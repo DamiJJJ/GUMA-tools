@@ -1,0 +1,14 @@
+{
+  "name": "Officer Card Generator",
+  "short_name": "OfficerCard",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "theme_color": "#f0c040",
+  "background_color": "#04045e",
+  "display": "standalone"
+}
