@@ -1,6 +1,30 @@
 "use strict";
 
-// ── Year select ───────────────────────────────────────────────────────────────
+// ── Detect faction from body data attribute ───────────────────
+const FACTION_KEY = document.body.dataset.faction || "lspd";
+const faction = FACTIONS[FACTION_KEY];
+
+// ── Populate selects from faction data ───────────────────────
+function populateSelects() {
+  const rankSel = document.getElementById("rank");
+  faction.ranks.forEach((r) => {
+    const o = document.createElement("option");
+    o.value = r;
+    o.text = r;
+    if (r === faction.ranks[0]) o.selected = true; // default: pierwszy rank
+    rankSel.appendChild(o);
+  });
+
+  const divSel = document.getElementById("division");
+  faction.divisions.forEach((d) => {
+    const o = document.createElement("option");
+    o.value = d;
+    o.text = d;
+    divSel.appendChild(o);
+  });
+}
+
+// ── Year select ───────────────────────────────────────────────
 const yearSel = document.getElementById("yearHired");
 for (let y = 2026; y >= 1980; y--) {
   const o = document.createElement("option");
@@ -46,22 +70,9 @@ function calcTotal() {
 function randomizePay() {
   const rank = document.getElementById("rank").value;
 
-  const senior = [
-    "Lieutenant I",
-    "Lieutenant II",
-    "Captain I",
-    "Captain II",
-    "Captain III",
-    "Commander",
-    "Deputy Chief",
-    "Assistant Chief of Police",
-    "Chief of Police",
-  ];
-  const mid = ["Sergeant I", "Sergeant II", "Detective I", "Detective II", "Detective III"];
-
   let base;
-  if (senior.includes(rank)) base = 130000 + Math.random() * 60000;
-  else if (mid.includes(rank)) base = 95000 + Math.random() * 40000;
+  if (faction.seniorRanks.includes(rank)) base = 130000 + Math.random() * 60000;
+  else if (faction.midRanks.includes(rank)) base = 95000 + Math.random() * 40000;
   else base = 70000 + Math.random() * 50000;
 
   const ot = base * (0.5 + Math.random() * 0.5);
@@ -102,7 +113,7 @@ function generateCard() {
   const payRet = document.getElementById("payRetirement").value || "unknown";
   const total = calcTotal();
   const year = new Date().getFullYear() - 1;
-  const email = serial + "@lspd.online";
+  const email = serial + "@" + faction.emailDomain;
 
   const photoW = 356,
     photoH = H - 48,
@@ -168,8 +179,8 @@ function generateCard() {
       by = y,
       bw = rw,
       bh = 256;
-    ctx.fillStyle = "#e8e0c8";
-    ctx.strokeStyle = "#b8a96a";
+    ctx.fillStyle = faction.cardBg;
+    ctx.strokeStyle = faction.cardBorder;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.roundRect(bx, by, bw, bh, 8);
@@ -279,4 +290,5 @@ function downloadCard() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+populateSelects();
 randomizePay();

@@ -3,147 +3,213 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="authors" content="Dami" />
+    <meta name="author" content="Dami" />
     <title>Officer Card Generator</title>
     <link rel="stylesheet" href="css/style.css" />
-    <!-- Favicon -->
     <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-    <!-- Apple/iOS/Android (192x192px) -->
     <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon.ico" />
-    <!-- Safari pinned tab -->
-    <link rel="mask-icon" href="assets/favicon.ico" color="#f0c040" />
     <link rel="manifest" href="assets/manifest.json" />
+    <style>
+      .faction-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        width: 100%;
+        max-width: 700px;
+        margin-top: 16px;
+      }
+
+      .faction-card {
+        background: #16213e;
+        border-radius: 12px;
+        padding: 36px 24px;
+        text-align: center;
+        text-decoration: none;
+        color: #eee;
+        border: 2px solid transparent;
+        transition:
+          border-color 0.2s,
+          transform 0.15s,
+          background 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        cursor: pointer;
+      }
+
+      .faction-card:hover {
+        transform: translateY(-4px);
+      }
+
+      .faction-card .faction-badge {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+      }
+
+      .faction-card .faction-name {
+        font-size: 1.3rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+
+      .faction-card .faction-desc {
+        font-size: 0.75rem;
+        color: #aaa;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+
+      .faction-card .faction-tag {
+        font-size: 0.7rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: bold;
+        letter-spacing: 1px;
+      }
+
+      /* LSPD */
+      .faction-lspd {
+        border-color: #1a3a6b;
+      }
+      .faction-lspd:hover {
+        border-color: #f0c040;
+        background: #1a2a4a;
+      }
+      .faction-lspd .faction-badge {
+        background: #0f3460;
+      }
+      .faction-lspd .faction-name {
+        color: #f0c040;
+      }
+      .faction-lspd .faction-tag {
+        background: #0f3460;
+        color: #f0c040;
+        border: 1px solid #f0c040;
+      }
+
+      /* LSSD */
+      .faction-lssd {
+        border-color: #4a3000;
+      }
+      .faction-lssd:hover {
+        border-color: #c8860a;
+        background: #2a1e00;
+      }
+      .faction-lssd .faction-badge {
+        background: #5a3a00;
+      }
+      .faction-lssd .faction-name {
+        color: #c8860a;
+      }
+      .faction-lssd .faction-tag {
+        background: #5a3a00;
+        color: #c8860a;
+        border: 1px solid #c8860a;
+      }
+
+      /* BCSO */
+      .faction-bcso {
+        border-color: #3a3000;
+      }
+      .faction-bcso:hover {
+        border-color: #d4b800;
+        background: #222000;
+      }
+      .faction-bcso .faction-badge {
+        background: #3a3200;
+      }
+      .faction-bcso .faction-name {
+        color: #d4b800;
+      }
+      .faction-bcso .faction-tag {
+        background: #3a3200;
+        color: #d4b800;
+        border: 1px solid #d4b800;
+      }
+
+      /* SAHP */
+      .faction-sahp {
+        border-color: #0a3a2a;
+      }
+      .faction-sahp:hover {
+        border-color: #2ecc71;
+        background: #081e14;
+      }
+      .faction-sahp .faction-badge {
+        background: #0a3a20;
+      }
+      .faction-sahp .faction-name {
+        color: #2ecc71;
+      }
+      .faction-sahp .faction-tag {
+        background: #0a3a20;
+        color: #2ecc71;
+        border: 1px solid #2ecc71;
+      }
+
+      /* Coming soon overlay */
+      .faction-card.coming-soon {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
+      .faction-card.coming-soon .faction-tag {
+        background: #333;
+        color: #888;
+        border-color: #555;
+      }
+
+      .subtitle {
+        color: #aaa;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+      }
+    </style>
   </head>
   <body>
     <h1>OFFICER CARD GENERATOR</h1>
-    <div class="container">
-      <div class="form-panel">
-        <h2>Officer Details</h2>
+    <p class="subtitle">SELECT YOUR DEPARTMENT</p>
 
-        <div class="form-group">
-          <label>Photo</label>
-          <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
-            <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(event)" />
-            <span id="uploadText">Click to upload photo</span>
-            <img id="photoPreview" class="photo-preview" alt="preview" />
-          </div>
-        </div>
+    <div class="faction-grid">
+      <!-- LSPD -->
+      <a href="lspd.html" class="faction-card faction-lspd">
+        <div class="faction-badge">🔵</div>
+        <div class="faction-name">LSPD</div>
+        <div class="faction-desc">Los Santos Police Department</div>
+        <span class="faction-tag">AVAILABLE</span>
+      </a>
 
-        <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" id="fullName" placeholder="John Nolan" />
-        </div>
+      <!-- LSSD -->
+      <a href="lssd.html" class="faction-card faction-lssd">
+        <div class="faction-badge">🟤</div>
+        <div class="faction-name">LSSD</div>
+        <div class="faction-desc">Los Santos Sheriff's Department</div>
+        <span class="faction-tag">AVAILABLE</span>
+      </a>
 
-        <div class="form-group">
-          <label>Rank</label>
-          <select id="rank">
-            <option>Police Officer I</option>
-            <option selected>Police Officer II</option>
-            <option>Police Officer III</option>
-            <option>Detective I</option>
-            <option>Detective II</option>
-            <option>Detective III</option>
-            <option>Sergeant I</option>
-            <option>Sergeant II</option>
-            <option>Lieutenant I</option>
-            <option>Lieutenant II</option>
-            <option>Captain I</option>
-            <option>Captain II</option>
-            <option>Captain III</option>
-            <option>Commander</option>
-            <option>Deputy Chief</option>
-            <option>Assistant Chief of Police</option>
-            <option>Chief of Police</option>
-          </select>
-        </div>
+      <!-- BCSO -->
+      <a href="bcso.html" class="faction-card faction-bcso coming-soon">
+        <div class="faction-badge">🟡</div>
+        <div class="faction-name">BCSO</div>
+        <div class="faction-desc">Blaine County Sheriff's Office</div>
+        <span class="faction-tag">COMING SOON</span>
+      </a>
 
-        <div class="form-group">
-          <label>Division</label>
-          <select id="division">
-            <option>Patrol Division</option>
-            <option>Detective Bureau</option>
-            <option>Metropolitan Division</option>
-            <option>Training Division</option>
-            <option>SWAT</option>
-            <option>Traffic Division</option>
-            <option>Air Support Division</option>
-            <option>Gang and Narcotics Division</option>
-            <option>Internal Affairs Division</option>
-            <option>Major Crimes Division</option>
-          </select>
-        </div>
-
-        <div style="display: flex; gap: 10px">
-          <div class="form-group" style="flex: 1"><label>Serial #</label><input type="text" id="serial" placeholder="46212" /></div>
-          <div class="form-group" style="flex: 1"><label>Badge #</label><input type="text" id="badge" placeholder="25486" /></div>
-        </div>
-
-        <div style="display: flex; gap: 10px">
-          <div class="form-group" style="flex: 1">
-            <label>Ethnicity</label>
-            <select id="ethnicity">
-              <option>White</option>
-              <option>Black</option>
-              <option>Hispanic</option>
-              <option>Asian</option>
-              <option>Middle Eastern</option>
-              <option>Native American</option>
-              <option>Mixed</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex: 1">
-            <label>Gender</label>
-            <select id="gender">
-              <option>Male</option>
-              <option>Female</option>
-              <option>Non-binary</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 10px">
-          <div class="form-group" style="flex: 1">
-            <label>Current Age</label>
-            <input type="number" id="age" placeholder="27" min="21" max="75" />
-          </div>
-          <div class="form-group" style="flex: 1">
-            <label>Year Hired</label>
-            <select id="yearHired"></select>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 10px">
-          <div class="form-group" style="flex: 1"><label>Height</label><input type="text" id="height" placeholder='5&#39;9"' /></div>
-          <div class="form-group" style="flex: 1"><label>Weight (lbs)</label><input type="text" id="weight" placeholder="195" /></div>
-        </div>
-
-        <div class="form-group" style="margin-top: 6px">
-          <label>Payments</label>
-          <button class="btn-random" onclick="randomizePay()">&#127922; Randomize Pay</button>
-        </div>
-
-        <div style="display: flex; gap: 8px">
-          <div class="form-group" style="flex: 1"><label>Regular Pay</label><input type="text" id="payRegular" placeholder="$0.00" /></div>
-          <div class="form-group" style="flex: 1"><label>Overtime Pay</label><input type="text" id="payOvertime" placeholder="$0.00" /></div>
-        </div>
-        <div style="display: flex; gap: 8px">
-          <div class="form-group" style="flex: 1"><label>Other Pay</label><input type="text" id="payOther" placeholder="$0.00" /></div>
-          <div class="form-group" style="flex: 1"><label>Health Benefits</label><input type="text" id="payHealth" placeholder="$0.00" /></div>
-        </div>
-        <div class="form-group">
-          <label>Retirement Pay</label>
-          <input type="text" id="payRetirement" placeholder="unknown" />
-        </div>
-
-        <button class="btn-generate" onclick="generateCard()">GENERATE CARD</button>
-      </div>
-
-      <div class="preview-panel">
-        <h2>Preview</h2>
-        <canvas id="cardCanvas" width="840" height="680"></canvas>
-        <button class="btn-download" id="downloadBtn" onclick="downloadCard()">&#11015; Download PNG</button>
-      </div>
+      <!-- SAHP -->
+      <a href="sahp.html" class="faction-card faction-sahp coming-soon">
+        <div class="faction-badge">🟢</div>
+        <div class="faction-name">SAHP</div>
+        <div class="faction-desc">San Andreas Highway Patrol</div>
+        <span class="faction-tag">COMING SOON</span>
+      </a>
     </div>
 
     <footer class="site-footer">
@@ -151,16 +217,13 @@
         <span class="footer-text">Officer Card Generator &copy; Dami 2026</span>
         <div class="footer-links">
           <a href="https://www.youtube.com/@DamiJJJ" target="_blank" rel="noopener noreferrer" class="footer-icon-link" aria-label="YouTube">
-            <!-- YouTube icon -->
             <svg class="icon icon-youtube" viewBox="0 0 16 16" aria-hidden="true">
               <path
                 d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z"
               />
             </svg>
           </a>
-
           <a href="https://www.twitch.tv/ytdamipl" target="_blank" rel="noopener noreferrer" class="footer-icon-link" aria-label="Twitch">
-            <!-- Twitch icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-twitch" viewBox="0 0 16 16">
               <path d="M3.857 0 1 2.857v10.286h3.429V16l2.857-2.857H9.57L14.714 8V0zm9.714 7.429-2.285 2.285H9l-2 2v-2H4.429V1.143h9.142z" />
               <path d="M11.857 3.143h-1.143V6.57h1.143zm-3.143 0H7.571V6.57h1.143z" />
@@ -169,7 +232,5 @@
         </div>
       </div>
     </footer>
-
-    <script src="js/app.js"></script>
   </body>
 </html>
