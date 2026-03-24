@@ -117,10 +117,11 @@ function generateCard() {
   const year = new Date().getFullYear() - 1;
   const email = serial + "@" + faction.emailDomain;
 
+  const topOffset = 82;
   const photoW = 356,
-    photoH = H - 48,
+    photoH = H - topOffset - 24,
     photoX = 24,
-    photoY = 24;
+    photoY = topOffset;
   const rx = photoX + photoW + 20;
   const rw = W - rx - 20;
 
@@ -139,7 +140,7 @@ function generateCard() {
   // ── Draw text layer ──
   function drawText() {
     // Name Auto-scale
-    const maxNameWidth = rw - 10; // Max text width
+    const maxNameWidth = W - 48; // Max text width
     let nameFontSize = 46; // Start size
     const minFontSize = 18; // min size
 
@@ -151,7 +152,7 @@ function generateCard() {
     ctx.textAlign = "center";
     // ctx.font = "bold 46px 'Courier New', monospace";
     ctx.fillStyle = "#111";
-    ctx.fillText(name.toUpperCase(), rx + rw / 2, 56);
+    ctx.fillText(name.toUpperCase(), W / 2, 56);
 
     let y = 100;
     const lh = 32;
