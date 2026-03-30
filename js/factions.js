@@ -5,6 +5,7 @@ const FACTIONS = {
     name: "Los Santos Police Department",
     short: "LSPD",
     emailDomain: "lspd.online",
+    icon: "assets/lspd_192.png",
     cardBg: "#f5f0dc",
     cardBorder: "#c8b97a",
     ranks: [
@@ -61,6 +62,7 @@ const FACTIONS = {
     name: "Los Santos County Sheriff's Department",
     short: "LSSD",
     emailDomain: "lssd.gov",
+    icon: "assets/lssd_192.png",
     cardBg: "#f5ecd5",
     cardBorder: "#a07830",
     ranks: [

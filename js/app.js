@@ -3,6 +3,37 @@ const urlFaction = new URLSearchParams(window.location.search).get("faction");
 let FACTION_KEY = urlFaction && FACTIONS[urlFaction] ? urlFaction : "lspd";
 let faction = FACTIONS[FACTION_KEY];
 
+// Builds faction switcher buttons from FACTIONS data
+function buildFactionSwitcher(defaultFaction = "lspd") {
+  const container = document.getElementById("factionSwitcher");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  Object.entries(FACTIONS).forEach(([key, faction]) => {
+    const btn = document.createElement("button");
+    btn.className = "faction-btn" + (key === defaultFaction ? " active" : "");
+    btn.dataset.faction = key;
+    btn.onclick = () => switchFaction(key);
+
+    // Icon from factions.js — no hardcoded paths here
+    if (faction.icon) {
+      const img = document.createElement("img");
+      img.src = faction.icon;
+      img.alt = faction.short;
+      img.width = 32;
+      img.height = 32;
+      btn.appendChild(img);
+    }
+
+    btn.appendChild(document.createTextNode(" " + faction.short));
+    container.appendChild(btn);
+  });
+}
+
+// Call on page load
+buildFactionSwitcher("lspd");
+
 // ── Switch faction ────────────────────────────────────────────
 function switchFaction(key) {
   FACTION_KEY = key;
