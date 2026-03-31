@@ -1,25 +1,38 @@
-# Guma-LEA-Generator
+# GUMA-Tools
 
-A web app for generating fictional Law Enforcement Agency documents and officer cards — inspired by real LAPD/LSSD formats used in FiveM roleplay servers.
+A web app for generating fictional Law Enforcement Agency documents and officer/firefighter cards — inspired by real LAPD/LSSD/CHP/LAFD formats used in FiveM roleplay servers.
 Built with plain HTML, CSS and JavaScript. No frameworks, no dependencies.
 
 ## Live Demo
 
-[🔗 View on GitHub Pages](https://damijjj.github.io/Guma-LEA-Generator/)
+[🔗 View on GitHub Pages](https://damijjj.github.io/GUMA-tools/)
 
 ## Available Generators
 
-| Generator                       | File                     | Description                                                        |
-| ------------------------------- | ------------------------ | ------------------------------------------------------------------ |
-| Officer Card                    | `generator.html`         | LSPD / LSSD officer profile card with faction switcher             |
-| Firearm Discharge Investigation | `firearm-discharge.html` | LAPD-style Officer-Involved Firearm Discharge Investigation report |
+| Generator                       | File                         | Description                                                                   |
+| ------------------------------- | ---------------------------- | ----------------------------------------------------------------------------- |
+| Officer Card                    | `officer_generator.html`     | LSPD / LSSD / BCSO / SAHP / Custom officer profile card with faction switcher |
+| Firefighter Card                | `firefighter_generator.html` | LACoFD / LAFD / Custom firefighter profile card with faction switcher         |
+| Firearm Discharge Investigation | `firearm-discharge.html`     | LAPD-style Officer-Involved Firearm Discharge Investigation report            |
 
 ## Features
 
 ### Officer Card Generator
 
-- Faction switcher — LSPD / LSSD (BCSO & SAHP planned)
+- Faction switcher — LSPD / LSSD / BCSO / SAHP
 - Fill in officer details: name, rank, division, serial & badge number
+- Custom faction: Custom rank, division or mail domain
+- Upload a photo — auto-cropped to fit the card
+- Ethnicity, gender, age, year hired, height & weight fields
+- Randomize pay based on rank
+- Live preview rendered on HTML Canvas
+- Download the card as a PNG file
+
+### Firefighter Card Generator
+
+- Faction switcher — LSCoFD / LSFD
+- Fill in firefighter details: name, rank, division, serial & badge number
+- Custom faction: Custom rank, division or mail domain
 - Upload a photo — auto-cropped to fit the card
 - Ethnicity, gender, age, year hired, height & weight fields
 - Randomize pay based on rank
@@ -28,6 +41,7 @@ Built with plain HTML, CSS and JavaScript. No frameworks, no dependencies.
 
 ### Firearm Discharge Investigation
 
+- Possibility to enter custom faction name
 - Incident type checkboxes (Tactical, Non-Tactical, Animal Shooting, Warning Shot)
 - Section I — General Information (FID No., DR No., date, time, location, RD)
 - Day of Week dropdown, datetime-local picker for report date/time
