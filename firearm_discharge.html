@@ -96,11 +96,12 @@
           @apply inline-flex items-center gap-1.5 rounded-lg border border-guma-gold/50 bg-guma-input px-3 py-1.5 text-xs font-semibold text-guma-gold transition hover:border-guma-gold hover:bg-guma-gold hover:text-black;
         }
         .guma-btn-primary {
-          @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
+          @apply inline-flex h-full min-h-[42px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
           background: linear-gradient(135deg, #f0c040, #c8960c);
+          display: flex !important;
         }
         .guma-btn-support {
-          @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white no-underline transition hover:opacity-90;
+          @apply inline-flex h-full min-h-[42px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white no-underline transition hover:opacity-90;
           background: linear-gradient(135deg, #6cdd5e, #4ab034);
         }
 
@@ -301,9 +302,43 @@
 
         <canvas id="docCanvas" class="h-auto w-full max-w-[640px] border border-slate-700 bg-white shadow-canvas"></canvas>
 
-        <div class="flex w-full max-w-[640px] flex-col gap-3 sm:flex-row">
-          <button type="button" class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadPng()">⬇ Download PNG</button>
-          <a href="https://tipply.pl/@dami" target="_blank" rel="noopener noreferrer" class="guma-btn-support flex-1"> ☕ Support project </a>
+        <div class="flex w-full max-w-[640px] flex-col gap-3 sm:flex-row sm:items-stretch">
+          <button type="button" class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadPng()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download PNG
+          </button>
+          <a href="https://tipply.pl/@dami" target="_blank" rel="noopener noreferrer" class="guma-btn-support flex-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              />
+            </svg>
+            Support project
+          </a>
         </div>
       </div>
     </main>
@@ -312,7 +347,7 @@
 
     <script src="js/factions.js"></script>
     <script src="js/ui-helpers.js"></script>
-    <script src="js/firearm-discharge-investigation.js"></script>
+    <script src="js/firearm_discharge_investigation.js"></script>
     <script src="js/components.js"></script>
   </body>
 </html>

@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Traffic Collision Report — GUMA Tools</title>
+
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon.ico" />
+    <link rel="manifest" href="assets/manifest.json" />
+
+    <script src="js/tailwind.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "guma-bg": "#04045e",
+              "guma-panel": "#16213e",
+              "guma-panel-2": "#1a2a4a",
+              "guma-input": "#0f3460",
+              "guma-dark": "#0f1e3d",
+              "guma-footer": "#020338",
+              "guma-gold": "#f0c040",
+              "guma-gold-dark": "#c8960c",
+              "guma-border": "#2a2a4a",
+              "guma-border-2": "#2a2a5a",
+              "guma-text": "#eeeeee",
+              "guma-muted": "#aaaaaa",
+              "guma-danger": "#7b0000",
+              "guma-danger-h": "#cc0000",
+            },
+            boxShadow: {
+              panel: "0 12px 32px rgba(0,0,0,.28)",
+              canvas: "0 4px 24px rgba(0,0,0,.5)",
+            },
+            maxWidth: { "8xl": "1400px" },
+            fontFamily: { sans: ["Segoe UI", "Arial", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+
+    <style type="text/tailwindcss">
+      @layer base {
+        body {
+          @apply min-h-full text-guma-text font-sans antialiased;
+          background-color: #03034a;
+          background-image:
+            radial-gradient(circle at top, rgba(240, 192, 64, 0.08), transparent 28%), linear-gradient(180deg, #06305f 0%, #04045e 40%, #03154a 100%);
+          background-attachment: fixed;
+        }
+        ::selection {
+          background: rgba(240, 192, 64, 0.35);
+          color: #fff;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          filter: invert(0.7);
+          cursor: pointer;
+        }
+        input[type="checkbox"] {
+          accent-color: #f0c040;
+          width: 14px;
+          height: 14px;
+          cursor: pointer;
+        }
+      }
+
+      @layer components {
+        .guma-page {
+          @apply mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8;
+        }
+        .guma-topbar {
+          @apply sticky top-0 z-30 border-b border-white/10 bg-guma-bg/80 backdrop-blur;
+        }
+        .guma-panel {
+          @apply rounded-2xl border border-guma-border bg-guma-panel shadow-panel;
+        }
+
+        .guma-btn-back {
+          @apply inline-flex items-center gap-1.5 rounded-lg border border-guma-gold/50 bg-guma-input
+                 px-3 py-1.5 text-xs font-semibold text-guma-gold transition
+                 hover:border-guma-gold hover:bg-guma-gold hover:text-black;
+        }
+        .guma-btn-primary {
+          @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5
+                 text-sm font-bold text-white transition hover:opacity-90
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
+          background: linear-gradient(135deg, #f0c040, #c8960c);
+        }
+        .guma-btn-support {
+          @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5
+                 text-sm font-bold text-white no-underline transition hover:opacity-90;
+          background: linear-gradient(135deg, #6cdd5e, #4ab034);
+        }
+
+        .guma-form-section {
+          @apply mb-4 border-b border-guma-border pb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-guma-gold;
+        }
+
+        .dynamic-row {
+          @apply relative mb-3 rounded-xl border border-guma-border-2 bg-guma-dark p-4;
+        }
+        .row-title {
+          @apply mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-guma-gold;
+        }
+        .btn-remove-row {
+          @apply absolute right-3 top-3 inline-flex items-center justify-center rounded-md
+                 bg-guma-danger px-2 py-0.5 text-[11px] font-semibold text-white transition
+                 hover:bg-guma-danger-h;
+        }
+        .btn-add {
+          @apply inline-flex w-full items-center justify-center rounded-lg border border-dashed
+                 border-guma-gold bg-guma-input px-4 py-2 text-xs font-semibold uppercase
+                 tracking-[0.12em] text-guma-gold transition hover:bg-guma-panel-2
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
+        }
+
+        .form-group {
+          @apply mb-3 flex flex-col justify-end;
+        }
+        .form-group label {
+          @apply mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-guma-muted;
+        }
+        .form-group input,
+        .form-group select {
+          @apply w-full rounded-lg border border-guma-border-2 bg-guma-input px-3 py-2
+                 text-sm text-white placeholder:text-slate-500
+                 focus:border-guma-gold focus:ring-1 focus:ring-guma-gold/40 focus:outline-none
+                 transition appearance-auto;
+        }
+        .two-col {
+          @apply grid grid-cols-2 gap-3;
+        }
+        .three-col {
+          @apply grid grid-cols-3 gap-3;
+        }
+        .four-col {
+          @apply grid grid-cols-4 gap-3;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="flex min-h-full flex-col">
+    <!-- HEADER -->
+    <header class="guma-topbar">
+      <div class="guma-page flex min-h-[64px] items-center gap-4 py-3">
+        <a href="index.html" class="guma-btn-back">&larr; Go Back</a>
+      </div>
+    </header>
+
+    <!-- PAGE TITLE -->
+    <div class="guma-page pt-8 pb-6">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-gold md:text-3xl">Traffic Collision Report</h1>
+    </div>
+
+    <!-- MAIN -->
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- LEFT: FORM PANEL -->
+      <div class="guma-panel w-full p-6 xl:max-w-[640px] xl:flex-none">
+        <!-- Report Meta -->
+        <p class="guma-form-section">Report Info</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>State Name</label>
+            <input type="text" id="state_name" placeholder="San Andreas" />
+          </div>
+          <div class="form-group">
+            <label>Local Report Number</label>
+            <input type="text" id="local_report_no" placeholder="26-XXXXXXX" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>NCIC #</label>
+            <input type="text" id="ncic" placeholder="0000" />
+          </div>
+          <div class="form-group">
+            <label>Officer I.D.</label>
+            <input type="text" id="officer_id" placeholder="50286" />
+          </div>
+          <div class="form-group">
+            <label>Judicial District</label>
+            <input type="text" id="judicial_district" placeholder="-" />
+          </div>
+        </div>
+
+        <!-- Special Conditions -->
+        <p class="guma-form-section">Special Conditions</p>
+        <div class="mb-3 flex flex-col gap-2">
+          <label class="flex items-center gap-2 text-sm text-guma-text cursor-pointer select-none">
+            <input type="checkbox" id="cb_hit_run_misdemeanor" /> Hit &amp; Run (Misdemeanor)
+          </label>
+          <label class="flex items-center gap-2 text-sm text-guma-text cursor-pointer select-none">
+            <input type="checkbox" id="cb_hit_run_felony" /> Hit &amp; Run (Felony)
+          </label>
+        </div>
+        <div class="two-col mb-3">
+          <div class="form-group !mb-0">
+            <label>Number Injured</label>
+            <input type="number" id="num_injured" placeholder="0" min="0" />
+          </div>
+          <div class="form-group !mb-0">
+            <label>Number Killed</label>
+            <input type="number" id="num_killed" placeholder="0" min="0" />
+          </div>
+        </div>
+
+        <!-- Location -->
+        <p class="guma-form-section">Location</p>
+        <div class="form-group">
+          <label>Collision Occurred On (Street)</label>
+          <input type="text" id="collision_street" placeholder="Vespucci Blvd" />
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>At Intersection With</label>
+            <input type="text" id="intersection_with" placeholder="Power St" />
+          </div>
+          <div class="form-group">
+            <label>OR: Distance / Direction</label>
+            <input type="text" id="distance_from" placeholder="0.2 mi N of Maze Bank Tower" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="collision_date" />
+          </div>
+          <div class="form-group">
+            <label>Time (24h)</label>
+            <input type="time" id="collision_time" />
+          </div>
+          <div class="form-group">
+            <label>Day of Week</label>
+            <select id="day_of_week">
+              <option value="SUN">Sunday</option>
+              <option value="MON">Monday</option>
+              <option value="TUE">Tuesday</option>
+              <option value="WED">Wednesday</option>
+              <option value="THU">Thursday</option>
+              <option value="FRI">Friday</option>
+              <option value="SAT">Saturday</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Tow Away</label>
+            <select id="tow_away">
+              <option value="NO">No</option>
+              <option value="YES">Yes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>State Hwy Related</label>
+            <select id="state_hwy_rel">
+              <option value="NO">No</option>
+              <option value="YES">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Parties -->
+        <p class="guma-form-section">Parties Involved</p>
+        <div id="parties-container"></div>
+        <div class="mb-5">
+          <button type="button" class="btn-add" onclick="addPartyRow()">+ Add Party</button>
+        </div>
+
+        <!-- Footer info -->
+        <p class="guma-form-section">Report Footer</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Preparer's Name</label>
+            <input type="text" id="preparer_name" placeholder="Officer Name" />
+          </div>
+          <div class="form-group">
+            <label>Reviewer's Name</label>
+            <input type="text" id="reviewer_name" placeholder="Supervisor Name" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Dispatch Notified</label>
+            <select id="dispatch_notified">
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+              <option value="NA">N/A</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date Reviewed</label>
+            <input type="date" id="date_reviewed" />
+          </div>
+        </div>
+      </div>
+      <!-- /form panel -->
+
+      <!-- RIGHT: PREVIEW PANEL -->
+      <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6">
+        <p class="guma-form-section w-full self-start">Preview</p>
+        <canvas id="docCanvas" class="h-auto w-full max-w-[660px] border border-slate-700 bg-white shadow-canvas"></canvas>
+        <div class="flex w-full max-w-[660px] flex-col gap-3 sm:flex-row">
+          <button type="button" class="guma-btn-primary flex-1" onclick="downloadPng()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download PNG
+          </button>
+          <a href="https://tipply.pl/@dami" target="_blank" rel="noopener noreferrer" class="guma-btn-support flex-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              />
+            </svg>
+            Support project
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+
+    <script src="js/factions.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    <script src="js/traffic-collision-report.js"></script>
+    <script src="js/components.js"></script>
+  </body>
+</html>
