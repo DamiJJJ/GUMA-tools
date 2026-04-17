@@ -1,10 +1,5 @@
 "use strict";
-
-// ── Active faction ────────────────────────────────────────────────────────────
-const urlFaction = new URLSearchParams(window.location.search).get("faction");
-let REPORT_FACTION = urlFaction && FACTIONS[urlFaction] ? urlFaction : "lspd";
-
-buildFactionSwitcher(switchReportFaction, "lspd", FACTION_TYPE.POLICE);
+let REPORT_FACTION = "lspd";
 
 function switchReportFaction(key) {
   const panel = document.getElementById("customFactionPanel");
@@ -28,7 +23,6 @@ function switchReportFaction(key) {
 function applyCustomFaction() {
   const name = document.getElementById("customFactionName")?.value.trim() || "Custom Faction";
 
-  // Store custom data globally so getActiveFaction() can access it
   window._customFactionData = {
     name: name,
     short: name,
@@ -108,7 +102,7 @@ function addOfficerRow(type) {
   div.dataset.idx = idx;
   div.innerHTML = `
     <div class="row-title">Officer #${idx}</div>
-    <button class="btn-remove-row" onclick="this.parentElement.remove();refreshPreview()">✕</button>
+    <button class="btn-remove-row" type="button">✕</button>
     <div class="form-group"><label>Last, First, Middle Initial</label><input type="text" id="${prefix}_name" placeholder="Callahan, Michael R."></div>
     <div class="two-col">
       <div class="form-group"><label>Serial No.</label><input type="text" id="${prefix}_serial" placeholder="50286"></div>
@@ -128,6 +122,10 @@ function addOfficerRow(type) {
     </div>
     ${makeYnSelects(prefix)}
   `;
+  div.querySelector(".btn-remove-row").addEventListener("click", () => {
+    div.remove();
+    refreshPreview();
+  });
   container.appendChild(div);
   div.querySelectorAll("input,select").forEach((el) => {
     el.addEventListener("input", refreshPreview);
@@ -147,7 +145,7 @@ function addCivilianRow() {
   div.dataset.idx = idx;
   div.innerHTML = `
     <div class="row-title">Civilian #${idx}</div>
-    <button class="btn-remove-row" onclick="this.parentElement.remove();refreshPreview()">✕</button>
+    <button class="btn-remove-row" type="button">✕</button>
     <div class="form-group"><label>Last, First, Middle Initial</label><input type="text" id="${prefix}_name" placeholder="Doe, John F."></div>
     <div class="three-col">
       <div class="form-group">
@@ -182,6 +180,10 @@ function addCivilianRow() {
       <input type="text" id="${prefix}_supervisor" placeholder="-">
     </div>
   `;
+  div.querySelector(".btn-remove-row").addEventListener("click", () => {
+    div.remove();
+    refreshPreview();
+  });
   container.appendChild(div);
   div.querySelectorAll("input,select").forEach((el) => {
     el.addEventListener("input", refreshPreview);
@@ -601,16 +603,22 @@ function downloadPng() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+(function initReport() {
+  const urlFaction = new URLSearchParams(window.location.search).get("faction");
+  if (urlFaction && FACTIONS[urlFaction]) {
+    REPORT_FACTION = urlFaction;
+  }
+
+  buildFactionSwitcher(switchReportFaction, REPORT_FACTION, FACTION_TYPE.POLICE);
+
+  document.querySelectorAll(".faction-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.faction === REPORT_FACTION);
+  });
+})();
+
 document.querySelectorAll("input,select").forEach((el) => {
   el.addEventListener("input", refreshPreview);
   el.addEventListener("change", refreshPreview);
 });
-
-// Set active button on load if faction came from URL
-if (urlFaction && FACTIONS[urlFaction]) {
-  document.querySelectorAll(".faction-btn").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.faction === urlFaction);
-  });
-}
 
 addOfficerRow("involved");

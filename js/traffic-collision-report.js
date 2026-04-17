@@ -213,7 +213,7 @@ function getCode(id) {
   if (!el) return "-";
   const v = el.value.trim();
   if (!v || v === "-") return "-";
-  return v.split(" ")[0]; // "W – White" → "W"
+  return v.split(" ")[0];
 }
 
 function fmtDate(raw) {
@@ -642,7 +642,6 @@ function drawForm() {
   r1spec.forEach((s, i) => {
     const w = r1widths[i];
     if (s.value === "__DOW__") {
-      // Draw SMTWTFS selector cell
       cell(ctx, lx, y, w, locR1H, "DAY OF WEEK", "", { bg: CELL_BG });
       const dayLabels = ["S", "M", "T", "W", "T", "F", "S"];
       const dayKeys = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -714,7 +713,8 @@ function drawForm() {
     defects: "NONE APPARENT",
   };
 
-  const toRender = parties.length > 0 ? parties : [emptyParty];
+  const toRender = [...parties];
+  while (toRender.length < 3) toRender.push(emptyParty);
 
   toRender.forEach((p, i) => {
     y = drawParty(ctx, p || emptyParty, i + 1, y);
@@ -761,5 +761,4 @@ document.querySelectorAll("input,select").forEach((el) => {
   el.addEventListener("change", refreshPreview);
 });
 
-// Start with 3 default empty parties
 addPartyRow();

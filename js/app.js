@@ -1,9 +1,5 @@
-// ── Read faction from URL param ───────────────────────────────
-const urlFaction = new URLSearchParams(window.location.search).get("faction");
-let FACTION_KEY = urlFaction && FACTIONS[urlFaction] ? urlFaction : "lspd";
-let faction = FACTIONS[FACTION_KEY];
-
-buildFactionSwitcher(switchFaction, "lspd", FACTION_TYPE.POLICE);
+let FACTION_KEY;
+let faction;
 
 // ── Switch faction ────────────────────────────────────────────
 function switchFaction(key) {
@@ -128,9 +124,9 @@ function calcTotal() {
   const fields = ["payRegular", "payOvertime", "payOther", "payHealth"];
   let total = 0;
   fields.forEach((id) => {
-    const v = document.getElementById(id).value.replace(/[$,]/g, "");
-    const n = parseFloat(v);
-    if (!isNaN(n)) total += n;
+    const raw = document.getElementById(id).value.replace(/[$,\s]/g, "");
+    const n = parseFloat(raw);
+    if (!isNaN(n) && isFinite(n)) total += n;
   });
   return total > 0 ? fmt(total) : "N/A";
 }
@@ -196,7 +192,6 @@ function generateCard() {
 
   // ── Draw label + value pair on canvas ──
   function lv(label, val, x, y, maxWidth = rw) {
-    // Auto-scale font if text is too wide
     const fullText = label + ":  " + val;
     let fontSize = 20;
     ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
@@ -205,11 +200,12 @@ function generateCard() {
       fontSize -= 1;
       ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
     }
-
     ctx.fillStyle = "black";
     ctx.textAlign = "left";
     ctx.fillText(label + ": ", x, y);
     const lw = ctx.measureText(label + ": ").width;
+
+    // Switch to regular weight for the value.
     ctx.font = `${fontSize}px 'Courier New', monospace`;
     ctx.fillStyle = "#111";
     ctx.fillText(val, x + lw, y);
@@ -217,10 +213,9 @@ function generateCard() {
 
   // ── Draw text layer ──
   function drawText() {
-    // Name Auto-scale
-    const maxNameWidth = W - 48; // Max text width
-    let nameFontSize = 46; // Start size
-    const minFontSize = 18; // min size
+    const maxNameWidth = W - 48;
+    let nameFontSize = 46;
+    const minFontSize = 18;
 
     ctx.font = `bold ${nameFontSize}px 'Courier New', monospace`;
     while (ctx.measureText(name.toUpperCase()).width > maxNameWidth && nameFontSize > minFontSize) {
@@ -334,7 +329,11 @@ function generateCard() {
 
   if (photoDataURL) {
     const img = new Image();
-    img.onload = () => {
+    let rendered = false;
+    const renderPhoto = () => {
+      if (rendered || !img.naturalWidth) return;
+      rendered = true;
+
       const ratio = img.width / img.height;
       const areaR = photoW / photoH;
       let sx, sy, sw, sh;
@@ -352,7 +351,11 @@ function generateCard() {
       ctx.drawImage(img, sx, sy, sw, sh, photoX, photoY, photoW, photoH);
       drawText();
     };
+
+    img.onload = renderPhoto;
     img.src = photoDataURL;
+
+    if (img.complete && img.naturalWidth > 0) renderPhoto();
   } else {
     ctx.fillStyle = "#888";
     ctx.font = "22px 'Courier New', monospace";
@@ -381,10 +384,8 @@ function debounce(fn, delay = 300) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 function initGenerator({ factionType = null, defaultFaction = "lspd" } = {}) {
-  // Set default faction based on passed config
   const urlFaction = new URLSearchParams(window.location.search).get("faction");
 
-  // Validate: URL faction must match the expected type
   if (urlFaction && FACTIONS[urlFaction]) {
     const matchesType = factionType === null || FACTIONS[urlFaction].type === factionType;
     FACTION_KEY = matchesType ? urlFaction : defaultFaction;

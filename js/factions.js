@@ -252,7 +252,6 @@ const FACTIONS = {
       "Firefighter II / EMT",
       "Firefighter III / EMT",
       "Firefighter III / Paramedic",
-      "Firefighter III / Paramedic",
       "Engineer",
       "Apparatus Operator",
       "Captain I",
