@@ -1,3 +1,5 @@
+const GUMA_VERSION = "1.5";
+
 // HEADER
 class GumaHeader extends HTMLElement {
   connectedCallback() {
@@ -310,7 +312,7 @@ class GumaFooter extends HTMLElement {
       <footer class="mt-auto w-full border-t border-guma-border bg-guma-footer">
         <div class="mx-auto flex w-full max-w-[1400px] flex-col items-start justify-between gap-4 px-4 py-4 text-sm text-zinc-400 sm:flex-row sm:items-center">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span class="text-xs sm:text-sm">GUMA Tools v1.5 &copy; Dami 2026</span>
+            <span class="text-xs sm:text-sm">GUMA Tools v${GUMA_VERSION} &copy; Dami ${new Date().getFullYear()}</span>
             <span data-guma-counter hidden class="flex items-center gap-1.5 text-[11px] text-guma-muted/60 border-l border-guma-border pl-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <span id="gumaVisitCount">0</span> visits
