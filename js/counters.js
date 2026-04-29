@@ -97,4 +97,5 @@ window.GumaCounters = {
   getDownloadCount,
   initVisitCounter,
   initDownloadCounter,
+  fmt: _fmt,
 };

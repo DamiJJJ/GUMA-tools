@@ -385,6 +385,31 @@ function downloadCard() {
   a.click();
 }
 
+// ── Copy to Clipboard ───────────────────────────────────────────────
+async function copyCardToClipboard() {
+  const canvas = document.getElementById("cardCanvas");
+  const btn = document.getElementById("copyDiscordBtn");
+  canvas.toBlob(async (blob) => {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "officer");
+      const countEl = document.getElementById("downloadCount");
+      if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.innerHTML = orig), 2000);
+      }
+    } catch (err) {
+      alert("Could not copy to clipboard: " + err);
+    }
+  }, "image/png");
+}
+
+function discordBtnHTML() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> Copy`;
+}
+
 function debounce(fn, delay = 300) {
   let timer;
   return (...args) => {

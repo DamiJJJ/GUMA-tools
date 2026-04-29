@@ -755,6 +755,27 @@ function downloadPng() {
   a.click();
 }
 
+async function copyDocToClipboard() {
+  drawForm();
+  const canvas = document.getElementById("docCanvas");
+  const btn = document.getElementById("copyDiscordBtn");
+  canvas.toBlob(async (blob) => {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      const newCount = await window.GumaCounters?.trackDownload("traffic");
+      const countEl = document.getElementById("downloadCount");
+      if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.innerHTML = orig), 2000);
+      }
+    } catch (err) {
+      alert("Could not copy to clipboard: " + err);
+    }
+  }, "image/png");
+}
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.querySelectorAll("input,select").forEach((el) => {
   el.addEventListener("input", refreshPreview);
