@@ -10,95 +10,10 @@
     <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon.ico" />
     <link rel="manifest" href="manifest.json" />
 
+    <script src="js/theme-init.js"></script>
     <script src="js/tailwind.js"></script>
     <script src="js/tailwind-config.js"></script>
-
-    <style type="text/tailwindcss">
-      @layer base {
-        html {
-          @apply h-full;
-        }
-
-        body {
-          @apply min-h-full text-guma-text font-sans antialiased;
-          background-color: #03034a;
-          background-image:
-            radial-gradient(circle at top, rgba(240, 192, 64, 0.08), transparent 28%), linear-gradient(180deg, #06065f 0%, #04045e 40%, #03034a 100%);
-          background-attachment: fixed;
-        }
-
-        ::selection {
-          background: rgba(240, 192, 64, 0.35);
-          color: #fff;
-        }
-      }
-
-      @layer components {
-        .guma-page {
-          @apply mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8;
-        }
-
-        .guma-section-title {
-          @apply text-center text-2xl font-bold uppercase tracking-[0.18em] text-guma-gold md:text-3xl;
-        }
-
-        .guma-section-subtitle {
-          @apply mt-2 text-center text-sm uppercase tracking-[0.22em] text-guma-muted;
-        }
-
-        .guma-card {
-          @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-guma-border bg-guma-panel/95 p-6 shadow-panel transition duration-200 hover:-translate-y-1 hover:border-guma-gold hover:bg-guma-panel-2 hover:shadow-glow;
-        }
-
-        .guma-card-disabled {
-          @apply cursor-not-allowed pointer-events-none;
-        }
-
-        .guma-badge-wrap {
-          @apply mb-5 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-guma-border bg-guma-dark p-3;
-        }
-
-        .guma-badge-wrap img {
-          @apply h-full w-full object-contain;
-        }
-
-        .guma-card-title {
-          @apply text-lg font-bold uppercase tracking-[0.14em] text-guma-text transition;
-        }
-
-        .guma-card-desc {
-          @apply mt-3 text-sm leading-6 text-guma-muted;
-        }
-
-        .guma-status {
-          @apply mt-5 inline-flex w-fit items-center rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em];
-        }
-
-        .guma-status-available {
-          @apply border-guma-gold bg-guma-input text-guma-gold;
-        }
-
-        .guma-status-soon {
-          @apply border-slate-600 bg-slate-800 text-slate-300;
-        }
-
-        .guma-topbar {
-          @apply sticky top-0 z-30 border-b border-white/10 bg-[#04045e]/80 backdrop-blur;
-        }
-
-        .guma-brand {
-          @apply inline-flex items-center gap-3 text-guma-text no-underline;
-        }
-
-        .guma-brand-mark {
-          @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-guma-gold/40 bg-guma-dark text-lg font-black text-guma-gold shadow-glow;
-        }
-
-        .guma-chip {
-          @apply inline-flex items-center rounded-full border border-guma-gold/30 bg-guma-dark px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-guma-gold/90;
-        }
-      }
-    </style>
+    <script src="js/guma-styles.js"></script>
   </head>
 
   <body class="flex min-h-full flex-col">
@@ -107,7 +22,10 @@
     <main class="flex-1">
       <section class="guma-page pt-10 pb-8 md:pt-16 md:pb-12">
         <div class="mx-auto max-w-4xl text-center">
-          <h1 class="text-4xl font-black uppercase tracking-[0.18em] text-guma-gold text-shadow-soft md:text-6xl guma-page-title">GUMA Tools</h1>
+          <div class="guma-page-title flex justify-center">
+            <img src="assets/logo.png" alt="GUMA Tools" class="h-20 md:h-28 w-auto block dark:hidden" />
+            <img src="assets/logo_dark.png" alt="GUMA Tools" class="h-20 md:h-28 w-auto hidden dark:block" />
+          </div>
 
           <!-- <p class="mx-auto mt-6 max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
             Text

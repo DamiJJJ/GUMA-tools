@@ -524,10 +524,10 @@ function addEmploymentRow() {
   const agencyName = faction ? faction.name : "";
 
   const row = document.createElement("div");
-  row.className = "employment-row rounded-xl border border-guma-border-2 bg-guma-dark p-3";
+  row.className = "employment-row rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-3";
   row.innerHTML = `
     <div class="mb-2 flex items-center justify-between">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-guma-gold">Entry #${idx}</span>
+      <span class="text-[11px] font-bold uppercase tracking-wider text-guma-l-gold dark:text-guma-gold">Entry #${idx}</span>
       <button type="button" onclick="removeEmploymentRow(this)" class="text-xs text-red-400 transition hover:text-red-300">✕ Remove</button>
     </div>
     <div class="mb-2 grid grid-cols-2 gap-2">
