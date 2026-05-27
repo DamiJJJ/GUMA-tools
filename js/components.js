@@ -6,7 +6,7 @@ class GumaHeader extends HTMLElement {
     const current = window.location.pathname.split("/").pop() || "index.html";
 
     const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html"].includes(current);
-    const isReport = ["firearm_discharge.html", "traffic_collision_report.html"].includes(current);
+    const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "personnel_file_generator.html"].includes(current);
     const isHome = current === "index.html" || current === "";
 
     const navLinkBase = "px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-[0.12em] transition";
@@ -104,6 +104,11 @@ class GumaHeader extends HTMLElement {
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "traffic_collision_report.html" ? dropActive : dropInactive}">
                   <img src="assets/collision.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Traffic Collision Report
+                </a>
+                <a href="personnel_file_generator.html"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "personnel_file_generator.html" ? dropActive : dropInactive}">
+                  <img src="assets/file.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Personnel File Generator
                 </a>
                 <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
                              border-guma-l-border text-guma-l-muted/50
@@ -304,6 +309,12 @@ class GumaHeader extends HTMLElement {
                       ${current === "traffic_collision_report.html" ? mobActive : mobInactive}">
               <img src="assets/collision.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Traffic Collision Report
+            </a>
+            <a href="personnel_file_generator.html"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "personnel_file_generator.html" ? mobActive : mobInactive}">
+              <img src="assets/file.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Personnel File Generator
             </a>
             <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
               <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />

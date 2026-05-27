@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Personnel File Generator — GUMA Tools</title>
+    <link rel="icon" href="assets/file.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/file.png" />
+    <link rel="manifest" href="manifest.json" />
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+  </head>
+
+  <body class="theme-navy-soft flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <div class="guma-page pt-8 pb-4">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.2em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Personnel File Generator
+      </h1>
+    </div>
+
+    <div class="guma-page pb-4 guma-faction-switcher-wrap">
+      <div id="factionSwitcher" class="flex flex-wrap justify-center gap-3"></div>
+    </div>
+
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- ════ FORM PANEL ════ -->
+      <div class="guma-panel w-full p-6 xl:w-[480px] xl:flex-none guma-panel-form">
+        <!-- Custom Faction Panel -->
+        <div
+          id="customFactionPanel"
+          style="display: none"
+          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
+          <p class="guma-form-section mb-3">Custom Agency</p>
+          <label class="guma-label">Agency Name</label>
+          <input class="guma-input" type="text" id="customAgencyName" placeholder="Los Angeles Police Department" oninput="applyCustomFaction()" />
+        </div>
+
+        <!-- Document Details -->
+        <p class="guma-form-section mb-4">Document Details</p>
+
+        <div class="mb-4">
+          <label class="guma-label" for="subjectName">Subject Name</label>
+          <input class="guma-input" type="text" id="subjectName" placeholder="John Nolan" oninput="generateDoc()" />
+        </div>
+
+        <div class="mb-6 border-t border-guma-l-border dark:border-guma-border pt-4">
+          <label class="flex cursor-pointer select-none items-center gap-2.5">
+            <input type="checkbox" id="confidentialStamp" onchange="generateDoc()" />
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-red-500 dark:text-red-400">Mark as Confidential</span>
+          </label>
+        </div>
+
+        <!-- ─── Personnel Sections ─── -->
+
+        <div class="mb-5">
+          <p class="guma-form-section mb-2">Personal Information</p>
+          <label class="guma-label">Residence Address</label>
+          <input class="guma-input" type="text" id="pfAddress" placeholder="e.g. 1234 Maple St, Los Santos" oninput="generateDoc()" />
+        </div>
+
+        <div class="mb-5">
+          <div class="mb-2 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Emergency Contacts</p>
+            <button type="button" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs shrink-0" onclick="addEmergencyContact()">+ Add</button>
+          </div>
+          <div id="pfEcRows" class="space-y-2"></div>
+        </div>
+
+        <div class="mb-5">
+          <div class="mb-2 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Training Records</p>
+            <button type="button" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs shrink-0" onclick="addTrainingRow()">+ Add</button>
+          </div>
+          <div id="pfTrRows" class="space-y-2"></div>
+        </div>
+
+        <div class="mb-5">
+          <div class="mb-2 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Commendations</p>
+            <button type="button" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs shrink-0" onclick="addCommendationRow()">+ Add</button>
+          </div>
+          <div id="pfCmRows" class="space-y-2"></div>
+        </div>
+
+        <div class="mb-5">
+          <div class="mb-2 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Disciplinary Record</p>
+            <button type="button" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs shrink-0" onclick="addDisciplinaryRow()">+ Add</button>
+          </div>
+          <div id="pfDiRows" class="space-y-2"></div>
+        </div>
+
+        <div class="mb-5">
+          <p class="guma-form-section mb-2">Attendance Summary</p>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="guma-label">Days Scheduled</label>
+              <input class="guma-input" type="text" id="pfAttScheduled" placeholder="N/A" oninput="generateDoc()" />
+            </div>
+            <div>
+              <label class="guma-label">Days Present</label>
+              <input class="guma-input" type="text" id="pfAttPresent" placeholder="N/A" oninput="generateDoc()" />
+            </div>
+            <div>
+              <label class="guma-label">Sick Days Used</label>
+              <input class="guma-input" type="text" id="pfAttSick" placeholder="N/A" oninput="generateDoc()" />
+            </div>
+            <div>
+              <label class="guma-label">Late Arrivals</label>
+              <input class="guma-input" type="text" id="pfAttLate" placeholder="N/A" oninput="generateDoc()" />
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <div class="mb-2 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Medical Leave</p>
+            <button type="button" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs shrink-0" onclick="addMedLeaveRow()">+ Add</button>
+          </div>
+          <div id="pfMlRows" class="space-y-2"></div>
+        </div>
+
+        <div class="mb-5">
+          <div class="mb-2 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Workers' Compensation</p>
+            <button type="button" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs shrink-0" onclick="addWorkersCompRow()">+ Add</button>
+          </div>
+          <div id="pfWcRows" class="space-y-2"></div>
+        </div>
+
+        <div class="mb-5">
+          <p class="guma-form-section mb-2">Background Investigation</p>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="guma-label">Status</label>
+              <select class="guma-select" id="pfBgStatus" onchange="generateDoc()">
+                <option value="N/A">N/A</option>
+                <option value="Cleared">Cleared</option>
+                <option value="Pending">Pending</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Flagged">Flagged</option>
+              </select>
+            </div>
+            <div>
+              <label class="guma-label">Clearance Level</label>
+              <select class="guma-select" id="pfBgClearance" onchange="generateDoc()">
+                <option value="N/A">N/A</option>
+                <option value="Standard">Standard</option>
+                <option value="Confidential">Confidential</option>
+                <option value="Secret">Secret</option>
+                <option value="Top Secret">Top Secret</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="guma-label">Date Completed</label>
+              <input class="guma-input" type="date" id="pfBgDate" oninput="generateDoc()" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="guma-form-section mb-2">Notes / Personal Facts</p>
+          <textarea
+            class="guma-input min-h-[96px] resize-y"
+            id="pfNotes"
+            placeholder="e.g. Favorite food: tacos. Has a daughter named Emma. Always brings coffee to morning briefings."
+            oninput="generateDoc()"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- ════ PREVIEW PANEL ════ -->
+      <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
+        <p
+          class="self-start mb-0 border-b border-guma-l-border dark:border-guma-border pb-2 w-full text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold"
+        >
+          Preview
+        </p>
+
+        <canvas id="docCanvas" width="840" height="1200" class="h-auto w-full max-w-[660px] shadow-canvas"></canvas>
+
+        <div class="flex w-full max-w-[660px] flex-col gap-3 sm:flex-row sm:items-stretch">
+          <button class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadDoc()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download PNG
+          </button>
+          <button class="guma-btn-outline flex-1" id="copyBtn" onclick="copyDocToClipboard()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect width="8" height="4" x="8" y="2" rx="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            </svg>
+            Copy
+          </button>
+        </div>
+
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-muted/60 mt-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          Generated <span id="downloadCount">0</span> times
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <script src="js/counters.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/factions.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    <script src="js/personnel-app.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GUMA_GENERATOR_KEY = "personnel";
+        initPersonnelGenerator({ defaultFaction: "lspd" });
+        window.GumaCounters?.initDownloadCounter("personnel", "downloadCount", "downloadBtn");
+      });
+    </script>
+  </body>
+</html>
