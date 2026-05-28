@@ -4,14 +4,19 @@ let faction;
 // ── Switch faction ────────────────────────────────────────────
 function switchFaction(key) {
   const panel = document.getElementById("customFactionPanel");
+  const mainRow = document.getElementById("mainRankDivisionRow");
 
   if (key === "custom") {
     panel.style.display = "block";
+    if (mainRow) mainRow.classList.add("hidden");
+    FACTION_KEY = "custom";
     applyCustomFaction();
+    updateEmploymentRows();
     return;
   }
 
   panel.style.display = "none";
+  if (mainRow) mainRow.classList.remove("hidden");
 
   FACTION_KEY = key;
   faction = FACTIONS[key];
@@ -38,32 +43,12 @@ function applyCustomFaction() {
     emailDomain: domain || "faction.gov",
     cardBg: "#f0f0f0",
     cardBorder: "#888888",
-    ranks: rank ? [rank] : ["Officer"],
-    divisions: div ? [div] : ["General Division"],
+    ranks: rank ? [rank] : ["Custom rank"],
+    divisions: div ? [div] : ["Custom Division"],
     seniorRanks: [],
     midRanks: [],
     icon: null,
   };
-
-  // Repopulate selects with single custom values
-  const rankSel = document.getElementById("rank");
-  rankSel.innerHTML = "";
-  faction.ranks.forEach((r) => {
-    const o = document.createElement("option");
-    o.value = r;
-    o.text = r;
-    o.selected = true;
-    rankSel.appendChild(o);
-  });
-
-  const divSel = document.getElementById("division");
-  divSel.innerHTML = "";
-  faction.divisions.forEach((d) => {
-    const o = document.createElement("option");
-    o.value = d;
-    o.text = d;
-    divSel.appendChild(o);
-  });
 
   generateCard();
 }
@@ -88,6 +73,27 @@ function populateSelects() {
     o.text = d;
     divSel.appendChild(o);
   });
+  // "Custom..." option lets the user type a division name not in the preset list
+  const customOpt = document.createElement("option");
+  customOpt.value = "__custom__";
+  customOpt.text = "Custom…";
+  divSel.appendChild(customOpt);
+
+  onDivisionChange();
+}
+
+// ── Toggle custom-division input visibility ───────────────────
+function onDivisionChange() {
+  const sel = document.getElementById("division");
+  const input = document.getElementById("divisionCustom");
+  if (!sel || !input) return;
+  if (sel.value === "__custom__") {
+    input.classList.remove("hidden");
+  } else {
+    input.classList.add("hidden");
+    input.value = "";
+  }
+  generateCard();
 }
 
 // ── Year select ───────────────────────────────────────────────
@@ -134,8 +140,17 @@ function calcTotal() {
 
 // ── Randomize pay ─────────────────────────────────────────────────────────────
 function randomizePay() {
-  const rank = document.getElementById("rank").value;
-  const division = document.getElementById("division")?.value || "";
+  const isCustomFaction = FACTION_KEY === "custom";
+  const rank = isCustomFaction ? document.getElementById("customRank").value.trim() || "Officer" : document.getElementById("rank").value;
+  const divSel = document.getElementById("division");
+  let division;
+  if (isCustomFaction) {
+    division = document.getElementById("customDivision").value.trim() || "";
+  } else if (divSel?.value === "__custom__") {
+    division = document.getElementById("divisionCustom").value.trim() || "";
+  } else {
+    division = divSel?.value || "";
+  }
   const yearHired = parseInt(document.getElementById("yearHired")?.value) || 2020;
   const currentYear = 2026;
   const yearsOfService = Math.max(0, currentYear - yearHired);
@@ -256,8 +271,17 @@ function generateCard() {
   canvas.height = H;
 
   const name = document.getElementById("fullName").value || "John Nolan";
-  const rank = document.getElementById("rank").value;
-  const division = document.getElementById("division").value;
+  const isCustomFaction = FACTION_KEY === "custom";
+  const rank = isCustomFaction ? document.getElementById("customRank").value.trim() || "Custom rank" : document.getElementById("rank").value;
+  const divSel = document.getElementById("division");
+  let division;
+  if (isCustomFaction) {
+    division = document.getElementById("customDivision").value.trim() || "Custom Division";
+  } else if (divSel.value === "__custom__") {
+    division = document.getElementById("divisionCustom").value.trim() || "Custom Division";
+  } else {
+    division = divSel.value;
+  }
   const serial = document.getElementById("serial").value || "00000";
   const badge = document.getElementById("badge").value || "00000";
   const ethnicity = document.getElementById("ethnicity").value;
@@ -520,8 +544,14 @@ function toggleEmploymentHistory() {
 function addEmploymentRow() {
   const container = document.getElementById("employmentRows");
   const idx = container.children.length + 1;
+  const isCustomFaction = FACTION_KEY === "custom";
   const rankOptions = faction.ranks.map((r) => `<option value="${r}">${r}</option>`).join("");
-  const agencyName = faction ? faction.name : "";
+  const agencyName = faction ? faction.shortName || faction.name : "";
+
+  const rankFieldHTML = isCustomFaction
+    ? `<input type="text" class="guma-input emp-rank-custom" placeholder="Rank (e.g. Captain)" oninput="generateCard()" />`
+    : `<select class="guma-select emp-rank-select mb-1.5" onchange="generateCard()">${rankOptions}</select>
+       <input type="text" class="guma-input emp-rank-custom" placeholder="Custom rank (overrides dropdown)" oninput="generateCard()" />`;
 
   const row = document.createElement("div");
   row.className = "employment-row rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-3";
@@ -548,10 +578,9 @@ function addEmploymentRow() {
       <label class="guma-label">Agency</label>
       <input type="text" class="guma-input emp-agency" value="${agencyName}" oninput="generateCard()" />
     </div>
-    <div>
+    <div class="emp-rank-wrap">
       <label class="guma-label">Rank</label>
-      <select class="guma-select emp-rank-select mb-1.5" onchange="generateCard()">${rankOptions}</select>
-      <input type="text" class="guma-input emp-rank-custom" placeholder="Custom rank (overrides dropdown)" oninput="generateCard()" />
+      ${rankFieldHTML}
     </div>
   `;
   container.insertBefore(row, container.firstChild);
@@ -562,11 +591,33 @@ function addEmploymentRow() {
 function updateEmploymentRows() {
   const rows = document.querySelectorAll(".employment-row");
   if (rows.length === 0) return;
+  const isCustomFaction = FACTION_KEY === "custom";
   const rankOptions = faction.ranks.map((r) => `<option value="${r}">${r}</option>`).join("");
-  const agencyName = faction ? faction.name : "";
+  const agencyName = faction ? faction.shortName || faction.name : "";
+
   rows.forEach((row) => {
     row.querySelector(".emp-agency").value = agencyName;
-    row.querySelector(".emp-rank-select").innerHTML = rankOptions;
+
+    const rankWrap = row.querySelector(".emp-rank-wrap");
+    const hasSelect = !!row.querySelector(".emp-rank-select");
+    const prevCustomVal = row.querySelector(".emp-rank-custom")?.value || "";
+
+    if (isCustomFaction && hasSelect) {
+      // preset → custom: drop the dropdown, keep a single free-text input
+      rankWrap.innerHTML = `
+        <label class="guma-label">Rank</label>
+        <input type="text" class="guma-input emp-rank-custom" placeholder="Rank (e.g. Captain)" value="${prevCustomVal}" oninput="generateCard()" />
+      `;
+    } else if (!isCustomFaction && !hasSelect) {
+      // custom → preset: restore the dropdown + override input
+      rankWrap.innerHTML = `
+        <label class="guma-label">Rank</label>
+        <select class="guma-select emp-rank-select mb-1.5" onchange="generateCard()">${rankOptions}</select>
+        <input type="text" class="guma-input emp-rank-custom" placeholder="Custom rank (overrides dropdown)" value="${prevCustomVal}" oninput="generateCard()" />
+      `;
+    } else if (!isCustomFaction && hasSelect) {
+      row.querySelector(".emp-rank-select").innerHTML = rankOptions;
+    }
   });
   generateCard();
 }
