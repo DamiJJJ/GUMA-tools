@@ -12,6 +12,7 @@ const FACTIONS = {
   lspd: {
     name: "Los Santos Police Department",
     short: "LSPD",
+    shortName: "Los Santos PD",
     emailDomain: "lspd.online",
     icon: "assets/lspd_192.png",
     type: FACTION_TYPE.POLICE,
@@ -79,6 +80,7 @@ const FACTIONS = {
   lssd: {
     name: "Los Santos County Sheriff's Department",
     short: "LSSD",
+    shortName: "Los Santos SD",
     emailDomain: "lssd.gov",
     icon: "assets/lssd_192.png",
     type: FACTION_TYPE.POLICE,
@@ -125,6 +127,7 @@ const FACTIONS = {
   bcso: {
     name: "Blaine County Sheriff's Office",
     short: "BCSO",
+    shortName: "Blaine County SO",
     emailDomain: "bcso.gov",
     icon: "assets/bcso_192.png",
     type: FACTION_TYPE.POLICE,
@@ -170,6 +173,7 @@ const FACTIONS = {
   sahp: {
     name: "San Andreas Highway Patrol",
     short: "SAHP",
+    shortName: "San Andreas HP",
     emailDomain: "sahp.gov",
     icon: "assets/sahp_192.png",
     type: FACTION_TYPE.POLICE,
@@ -216,6 +220,7 @@ const FACTIONS = {
   lscofd: {
     name: "Los Santos County Fire Department",
     short: "LSCoFD",
+    shortName: "Los Santos County FD",
     emailDomain: "lscofd.gov",
     icon: "assets/lscofd_192.png",
     type: FACTION_TYPE.FIRE,
@@ -283,6 +288,7 @@ const FACTIONS = {
   lsfd: {
     name: "Los Santos Fire Department",
     short: "LSFD",
+    shortName: "Los Santos FD",
     emailDomain: "lsfd.online",
     icon: "assets/lsfd_192.png",
     type: FACTION_TYPE.FIRE,

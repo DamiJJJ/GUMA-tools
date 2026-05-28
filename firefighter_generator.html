@@ -46,7 +46,7 @@
 
             <div>
               <label class="guma-label" for="customDivision">Division</label>
-              <input class="guma-input" type="text" id="customDivision" placeholder="Rescue Division" oninput="applyCustomFaction()" />
+              <input class="guma-input" type="text" id="customDivision" placeholder="Custom Division" oninput="applyCustomFaction()" />
             </div>
 
             <div class="sm:col-span-2">
@@ -76,7 +76,7 @@
           <input class="guma-input" type="text" id="fullName" placeholder="Andrew Warren" />
         </div>
 
-        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div id="mainRankDivisionRow" class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label class="guma-label" for="rank">Rank</label>
             <select class="guma-select" id="rank"></select>
@@ -84,7 +84,8 @@
 
           <div>
             <label class="guma-label" for="division">Division</label>
-            <select class="guma-select" id="division"></select>
+            <select class="guma-select" id="division" onchange="onDivisionChange()"></select>
+            <input type="text" id="divisionCustom" class="guma-input mt-2 hidden" placeholder="Custom division name" oninput="generateCard()" />
           </div>
         </div>
 
