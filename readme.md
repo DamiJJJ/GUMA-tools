@@ -9,13 +9,14 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 
 ## Available Generators
 
-| Generator                       | File                            | Description                                                                   |
-| ------------------------------- | ------------------------------- | ----------------------------------------------------------------------------- |
-| Officer Card                    | `officer_generator.html`        | LSPD / LSSD / BCSO / SAHP / Custom officer profile card with faction switcher |
-| Firefighter Card                | `firefighter_generator.html`    | LSCoFD / LSFD / Custom firefighter profile card with faction switcher         |
-| Business Card                   | `business_card_generator.html`  | Universal business card for LEA, Fire, civilians and business owners          |
-| Firearm Discharge Investigation | `firearm_discharge.html`        | LAPD-style Officer-Involved Firearm Discharge Investigation report            |
-| Traffic Collision Report        | `traffic_collision_report.html` | CHP 555-style Traffic Collision Report with dynamic party rows                |
+| Generator                       | File                            | Description                                                                                       |
+| ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Officer Card                    | `officer_generator.html`        | LSPD / LSSD / BCSO / SAHP / Custom officer profile card with faction switcher                     |
+| Firefighter Card                | `firefighter_generator.html`    | LSCoFD / LSFD / Custom firefighter profile card with faction switcher                             |
+| Business Card                   | `business_card_generator.html`  | Universal business card for LEA, Fire, civilians and business owners                              |
+| Firearm Discharge Investigation | `firearm_discharge.html`        | LAPD-style Officer-Involved Firearm Discharge Investigation report                                |
+| Traffic Collision Report        | `traffic_collision_report.html` | CHP 555-style Traffic Collision Report with dynamic party rows                                    |
+| Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file — attendance, training, commendations, discipline & medical leave |
 
 ### Coming Soon
 
@@ -31,11 +32,12 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 
 ### Shared / App-Wide
 
-- **Dark / Light mode** - theme switcher (sun / moon icon) in the header, persisted across pages via localStorage, dark as default; per-page accent gradients in dark mode (navy / navy-soft / red); first-load anti-FOUC init via `js/theme-init.js`
+- **Dark / Light mode** - pill-shaped slider switch in the header, persisted across pages via localStorage, dark as default; per-page accent gradients in dark mode (navy / navy-soft / red); first-load anti-FOUC init via `js/theme-init.js`
 - **Centralised theme styles** - all `@layer base/components/utilities` rules live in a single `js/guma-styles.js` injected at runtime; HTML pages are style-free
 - **Responsive header** - app logo (auto-swapped between light/dark variants), desktop nav with Generator & Report dropdowns, active page detection, "About" item, mobile hamburger menu with full panel
 - **Live on Kick badge** - pulsing badge appears in the header when the streamer is live (preview via `?preview_live=1`)
 - **Page animations** - smooth entrance animations on all pages via `js/animations.js`
+- **Per-page favicons** - each generator and report has its own browser-tab icon
 - **Visit counter** - global page-visit count displayed in the footer (Supabase-backed)
 - **Kick social link** in the footer (replaced Twitch)
 
@@ -104,6 +106,24 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Live preview rendered on HTML Canvas
 - Download the report as a PNG file
 - **Copy to clipboard** - export the report as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
+### Personnel File Generator
+
+- Agency switcher with custom agency name input
+- Subject details: name, residence address
+- **Mark as Confidential** toggle
+- Status, clearance level and date completed fields
+- **Attendance** - days scheduled / present, sick days used, late arrivals
+- **Emergency Contacts** - dynamic add/remove rows
+- **Training Records** - dynamic add/remove rows
+- **Commendations** - dynamic add/remove rows
+- **Disciplinary Record** - dynamic add/remove rows
+- **Medical Leave** & **Workers' Compensation** sections
+- Free-text personal notes field
+- Live preview rendered on HTML Canvas
+- Download the document as a PNG file
+- **Copy to clipboard** - export the document as PNG directly to the clipboard
 - Download counter displayed below the export buttons
 
 ## Usage

@@ -7,3 +7,6 @@
 .claude/cache/
 .claude/sessions/
 .claude/*.local.*
+
+# materials folder
+/materialy
