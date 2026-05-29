@@ -106,14 +106,14 @@ function addOfficerRow(type) {
     <div class="form-group"><label>Last, First, Middle Initial</label><input type="text" id="${prefix}_name" placeholder="Callahan, Michael R."></div>
     <div class="two-col">
       <div class="form-group"><label>Serial No.</label><input type="text" id="${prefix}_serial" placeholder="50286"></div>
-      <div class="form-group"><label>Area/Division</label><input type="text" id="${prefix}_division" placeholder="Patrol Div."></div>
+      <div class="form-group"><label>Area/Division</label><input type="text" id="${prefix}_division" placeholder="Patrol Div." class="!text-xs !px-1.5"></div>
     </div>
     <div class="three-col">
       <div class="form-group">
         <label>Sex</label>
         <select id="${prefix}_sex"><option value="-">-</option><option value="M" selected>M</option><option value="F">F</option></select>
       </div>
-      <div class="form-group"><label>Desc.</label><input type="text" id="${prefix}_desc" placeholder="-"></div>
+      <div class="form-group"><label>Desc.</label><input type="text" id="${prefix}_desc" placeholder="-" class="!text-xs !px-1.5"></div>
       <div class="form-group"><label>Ht.</label><input type="text" id="${prefix}_ht" placeholder='5&#39;9"'></div>
     </div>
     <div class="two-col">
@@ -152,7 +152,7 @@ function addCivilianRow() {
         <label>Sex</label>
         <select id="${prefix}_sex"><option value="-">-</option><option value="M">M</option><option value="F">F</option></select>
       </div>
-      <div class="form-group"><label>Desc.</label><input type="text" id="${prefix}_desc" placeholder="-"></div>
+      <div class="form-group"><label>Desc.</label><input type="text" id="${prefix}_desc" placeholder="-" class="!text-xs !px-1.5"></div>
       <div class="form-group"><label>Ht.</label><input type="text" id="${prefix}_ht" placeholder='5&#39;9"'></div>
     </div>
     <div class="three-col">

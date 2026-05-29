@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Business Card Generator — GUMA Tools</title>
+
+    <link rel="icon" href="assets/card_256.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/card_256.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+  </head>
+
+  <body class="flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <div class="guma-page pt-8 pb-4">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.2em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Business Card Generator
+      </h1>
+    </div>
+
+    <div class="guma-page pb-4 guma-faction-switcher-wrap">
+      <div id="bcFactionSwitcher" class="flex flex-wrap justify-center gap-3"></div>
+    </div>
+
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- ════ FORM PANEL ════ -->
+      <div class="guma-panel w-full p-6 xl:w-[480px] xl:flex-none guma-panel-form">
+        <!-- Custom-only: image upload -->
+        <div
+          id="bcCustomImagePanel"
+          style="display: none"
+          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
+          <p class="guma-form-section mb-3">Custom Logo / Image</p>
+          <div
+            class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-guma-border px-4 py-5 text-center text-sm text-guma-muted transition hover:border-guma-gold hover:text-guma-gold"
+            onclick="document.getElementById('bcImageInput').click()"
+          >
+            <input type="file" id="bcImageInput" accept="image/*" class="hidden" onchange="bcPreviewImage(event)" />
+            <span id="bcUploadText">Click to upload image</span>
+            <img id="bcImagePreview" class="mt-2 hidden max-h-[120px] max-w-[180px] object-contain" alt="preview" />
+          </div>
+        </div>
+
+        <!-- Custom-only: header text -->
+        <div
+          id="bcCustomHeaderPanel"
+          style="display: none"
+          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
+          <p class="guma-form-section mb-3">Card Header</p>
+          <label class="guma-label" for="bcHeader">Header Title</label>
+          <input class="guma-input" type="text" id="bcHeader" placeholder="ACME CORPORATION" oninput="bcRender()" />
+        </div>
+
+        <!-- Logo / Badge Size -->
+        <div class="mb-5">
+          <label class="guma-label flex items-center justify-between" for="bcLogoScale">
+            <span>Logo Size</span>
+            <span id="bcLogoScaleValue" class="text-guma-gold/90 normal-case tracking-normal">100%</span>
+          </label>
+          <input
+            type="range"
+            id="bcLogoScale"
+            min="0.3"
+            max="1"
+            step="0.05"
+            value="1"
+            class="w-full accent-guma-gold cursor-pointer"
+            oninput="bcOnLogoScaleChange(this.value)"
+          />
+        </div>
+
+        <!-- Watermark toggle -->
+        <div class="mb-5">
+          <label class="flex cursor-pointer select-none items-center gap-2.5">
+            <input type="checkbox" id="bcWatermark" onchange="bcRender()" />
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-gold">Enable Watermark</span>
+          </label>
+        </div>
+
+        <!-- Card Details -->
+        <p class="guma-form-section mb-4">Card Details</p>
+
+        <!-- Rank (LEA/Fire) -->
+        <div id="bcRankRow" class="mb-3">
+          <label class="guma-label" for="bcRank">Rank</label>
+          <select class="guma-select" id="bcRank" onchange="bcRender()"></select>
+        </div>
+
+        <!-- Title (Custom) -->
+        <div id="bcCustomRankRow" style="display: none" class="mb-3">
+          <label class="guma-label" for="bcCustomRank">Title</label>
+          <input class="guma-input" type="text" id="bcCustomRank" placeholder="Chief Executive Officer" oninput="bcRender()" />
+        </div>
+
+        <!-- Full name -->
+        <div class="mb-3">
+          <label class="guma-label" for="bcFullName">Full Name</label>
+          <input class="guma-input" type="text" id="bcFullName" placeholder="John Nolan" oninput="bcRender()" />
+        </div>
+
+        <!-- Badge No. (LEA/Fire) -->
+        <div id="bcBadgeRow" class="mb-3">
+          <label class="guma-label" for="bcBadge">Badge No.</label>
+          <input class="guma-input" type="text" id="bcBadge" placeholder="25486" oninput="bcRender()" />
+        </div>
+
+        <!-- Area + Role -->
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label class="guma-label" for="bcArea">Area <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span></label>
+            <input class="guma-input" type="text" id="bcArea" placeholder="Central Area" oninput="bcRender()" />
+          </div>
+          <div>
+            <label class="guma-label" for="bcRole">Role <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span></label>
+            <input class="guma-input" type="text" id="bcRole" placeholder="Community Relations Officer" oninput="bcRender()" />
+          </div>
+        </div>
+
+        <!-- Contacts -->
+        <p class="guma-form-section mb-4">Contacts</p>
+
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label class="guma-label" for="bcTel">Tel <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span></label>
+            <input class="guma-input" type="text" id="bcTel" placeholder="(213) 486-1163" oninput="bcRender()" />
+          </div>
+          <div>
+            <label class="guma-label" for="bcCell">Cell <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span></label>
+            <input class="guma-input" type="text" id="bcCell" placeholder="(562) 555-0188" oninput="bcRender()" />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="bcTdd">TDD <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span></label>
+          <input class="guma-input" type="text" id="bcTdd" placeholder="(877) 275-5273" oninput="bcRender()" />
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="bcEmail">Email</label>
+          <input class="guma-input" type="text" id="bcEmail" placeholder="j.nolan" oninput="bcRender()" />
+          <p id="bcEmailHint" class="mt-1 text-[11px] text-guma-muted/70">
+            Domain auto-appended: <span id="bcEmailDomain" class="text-guma-gold/80">@lspd.online</span>
+          </p>
+        </div>
+
+        <!-- Address -->
+        <p class="guma-form-section mb-4">Address</p>
+
+        <div class="mb-3">
+          <label class="guma-label" for="bcAddress1">Address Line 1</label>
+          <input class="guma-input" type="text" id="bcAddress1" placeholder="251 E. 6th Street" oninput="bcRender()" />
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="bcAddress2">Address Line 2</label>
+          <input class="guma-input" type="text" id="bcAddress2" value="Los Santos, SA 90014" oninput="bcRender()" />
+        </div>
+
+        <!-- Custom-only: footer -->
+        <div
+          id="bcCustomFooterPanel"
+          style="display: none"
+          class="mt-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
+          <p class="guma-form-section mb-3">Custom Footer</p>
+          <div class="mb-3">
+            <label class="guma-label" for="bcCustomFooter1">Footer Left</label>
+            <input class="guma-input" type="text" id="bcCustomFooter1" placeholder="Visit us online" oninput="bcRender()" />
+          </div>
+          <div class="mb-3">
+            <label class="guma-label" for="bcCustomFooter2">Footer Center</label>
+            <input class="guma-input" type="text" id="bcCustomFooter2" placeholder="(800) 123-4567" oninput="bcRender()" />
+          </div>
+          <div>
+            <label class="guma-label" for="bcCustomFooter3">Footer Right</label>
+            <input class="guma-input" type="text" id="bcCustomFooter3" placeholder="www.example.com" oninput="bcRender()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ PREVIEW PANEL ════ -->
+      <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
+        <p class="self-start guma-form-section w-full">Preview</p>
+
+        <canvas id="bcCanvas" width="684" height="390" class="h-auto w-full max-w-[560px] shadow-canvas"></canvas>
+
+        <div class="flex w-full max-w-[560px] flex-col gap-3 sm:flex-row sm:items-stretch">
+          <button class="guma-btn-primary flex-1" id="bcDownloadBtn" onclick="bcDownload()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download PNG
+          </button>
+          <button class="guma-btn-outline flex-1" id="bcCopyBtn" onclick="bcCopy()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect width="8" height="4" x="8" y="2" rx="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            </svg>
+            Copy
+          </button>
+        </div>
+
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-muted/60 mt-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          <span class="leading-none">Generated <span id="downloadCount" class="tabular-nums">0</span> times</span>
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+
+    <script src="js/counters.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/factions.js"></script>
+    <script src="js/business-card.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GUMA_GENERATOR_KEY = "business_card";
+        bcInit();
+        window.GumaCounters?.initDownloadCounter("business_card", "downloadCount", "bcDownloadBtn");
+      });
+    </script>
+  </body>
+</html>

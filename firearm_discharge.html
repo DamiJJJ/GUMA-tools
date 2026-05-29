@@ -6,141 +6,24 @@
     <meta name="author" content="Dami" />
     <title>Firearm Discharge Investigation — GUMA Tools</title>
 
-    <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon.ico" />
+    <link rel="icon" href="assets/shooting.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/shooting.png" />
     <link rel="manifest" href="assets/manifest.json" />
 
+    <script src="js/theme-init.js"></script>
     <script src="js/tailwind.js"></script>
     <script src="js/tailwind-config.js"></script>
-
-    <style type="text/tailwindcss">
-      @layer base {
-        body {
-          @apply min-h-full text-guma-text font-sans antialiased;
-          background-color: #03034a; /* kolor końcowy gradientu jako fallback */
-          background-image:
-            radial-gradient(circle at top, rgba(240, 192, 64, 0.08), transparent 28%), linear-gradient(180deg, #06305f 0%, #04045e 40%, #03154a 100%);
-          background-attachment: fixed; /* gradient nie "przewija się" ze stroną */
-        }
-        ::selection {
-          background: rgba(240, 192, 64, 0.35);
-          color: #fff;
-        }
-
-        /* Date/time picker icon brightness */
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator,
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-          filter: invert(0.7);
-          cursor: pointer;
-        }
-
-        /* Checkbox accent */
-        input[type="checkbox"] {
-          accent-color: #f0c040;
-          width: 14px;
-          height: 14px;
-          cursor: pointer;
-        }
-      }
-
-      @layer components {
-        /* ── Layout ── */
-        .guma-page {
-          @apply mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8;
-        }
-        .guma-topbar {
-          @apply sticky top-0 z-30 border-b border-white/10 bg-guma-bg/80 backdrop-blur;
-        }
-        .guma-brand {
-          @apply inline-flex items-center gap-3 text-guma-text no-underline;
-        }
-        .guma-brand-mark {
-          @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-guma-gold/40 bg-guma-dark text-lg font-black text-guma-gold;
-        }
-        .guma-panel {
-          @apply rounded-2xl border border-guma-border bg-guma-panel shadow-panel;
-        }
-
-        /* ── Buttons ── */
-        .guma-btn-back {
-          @apply inline-flex items-center gap-1.5 rounded-lg border border-guma-gold/50 bg-guma-input px-3 py-1.5 text-xs font-semibold text-guma-gold transition hover:border-guma-gold hover:bg-guma-gold hover:text-black;
-        }
-        .guma-btn-primary {
-          @apply inline-flex h-full min-h-[42px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
-          background: linear-gradient(135deg, #f0c040, #c8960c);
-          display: flex !important;
-        }
-        .guma-btn-outline {
-          @apply inline-flex w-full items-center justify-center gap-2 rounded-lg border border-guma-gold bg-guma-input px-4 py-2.5 text-sm font-semibold text-guma-gold transition hover:bg-guma-gold hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
-        }
-        .guma-btn-support {
-          @apply inline-flex h-full min-h-[42px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white no-underline transition hover:opacity-90;
-          background: linear-gradient(135deg, #6cdd5e, #4ab034);
-        }
-
-        /* ── Form sections ── */
-        .guma-form-section {
-          @apply mb-4 border-b border-guma-border pb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-guma-gold;
-        }
-
-        /* ── Faction switcher ── */
-        .faction-btn {
-          @apply flex w-24 cursor-pointer flex-col items-center gap-1.5 rounded-xl border-2 border-guma-border bg-guma-panel py-2.5 text-[11px] font-bold uppercase tracking-wider text-guma-muted transition hover:border-guma-gold hover:text-guma-gold;
-        }
-        .faction-btn.active {
-          @apply border-guma-gold bg-guma-panel-2 text-guma-gold;
-        }
-
-        /* ── Dynamic rows ── */
-        .dynamic-row {
-          @apply relative mb-3 rounded-xl border border-guma-border-2 bg-guma-dark p-4;
-        }
-        .row-title {
-          @apply mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-guma-gold;
-        }
-        .btn-remove-row {
-          @apply absolute right-3 top-3 inline-flex items-center justify-center rounded-md bg-guma-danger px-2 py-0.5 text-[11px] font-semibold text-white transition hover:bg-guma-danger-h;
-        }
-        .btn-add {
-          @apply inline-flex w-full items-center justify-center rounded-lg border border-dashed border-guma-gold bg-guma-input px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-guma-gold transition hover:bg-guma-panel-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
-        }
-
-        /* ── Form grid helpers ── */
-        .form-group {
-          @apply mb-3 flex flex-col justify-end;
-        }
-        .form-group label {
-          @apply mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-guma-muted;
-        }
-        .form-group input,
-        .form-group select {
-          @apply w-full rounded-lg border border-guma-border-2 bg-guma-input px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-guma-gold focus:ring-1 focus:ring-guma-gold/40 focus:outline-none transition appearance-auto;
-        }
-        .two-col {
-          @apply grid grid-cols-2 gap-3;
-        }
-        .three-col {
-          @apply grid grid-cols-3 gap-3;
-        }
-
-        /* ── Checkbox group ── */
-        .checkbox-group {
-          @apply mb-5 flex flex-col gap-2;
-        }
-        .checkbox-item {
-          @apply flex cursor-pointer items-center gap-2 text-sm text-guma-text select-none;
-        }
-      }
-    </style>
+    <script src="js/guma-styles.js"></script>
   </head>
 
-  <body class="flex min-h-full flex-col">
+  <body class="theme-navy-soft flex min-h-full flex-col">
     <guma-header></guma-header>
 
     <!-- PAGE TITLE -->
     <div class="guma-page pt-8 pb-4">
-      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-gold md:text-3xl guma-page-title">Firearm Discharge Investigation</h1>
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Firearm Discharge Investigation
+      </h1>
     </div>
 
     <!-- FACTION SWITCHER -->
@@ -153,7 +36,11 @@
       <!-- LEFT: FORM PANEL -->
       <div class="guma-panel w-full p-6 xl:max-w-[580px] xl:flex-none guma-panel-form">
         <!-- Custom faction panel (hidden by default, shown by JS) -->
-        <div id="customFactionPanel" style="display: none" class="mb-5 rounded-xl border border-guma-border-2 bg-guma-dark p-4">
+        <div
+          id="customFactionPanel"
+          style="display: none"
+          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
           <p class="guma-form-section">Custom Faction Details</p>
           <div class="form-group">
             <label>Faction Name</label>
@@ -262,7 +149,7 @@
       <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
         <p class="guma-form-section w-full self-start">Preview</p>
 
-        <canvas id="docCanvas" class="h-auto w-full max-w-[640px] border border-slate-700 bg-white shadow-canvas"></canvas>
+        <canvas id="docCanvas" class="h-auto w-full max-w-[640px] border border-slate-300 dark:border-slate-700 bg-white shadow-canvas"></canvas>
 
         <div class="flex w-full max-w-[640px] flex-col gap-3 sm:flex-row sm:items-stretch">
           <button type="button" class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadPng()">
@@ -301,7 +188,7 @@
             Copy
           </button>
         </div>
-        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-muted/60 mt-0.5">
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60 mt-0.5">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="11"

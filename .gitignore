@@ -1,0 +1,12 @@
+.DS_Store
+.vscode
+.env
+
+# Claude — keep CLAUDE.md and .claude/commands/ tracked, ignore local-only files
+.claude/settings.local.json
+.claude/cache/
+.claude/sessions/
+.claude/*.local.*
+
+# materials folder
+/materialy

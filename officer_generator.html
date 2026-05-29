@@ -6,124 +6,25 @@
     <meta name="author" content="Dami" />
     <title>Officer Card Generator — GUMA Tools</title>
 
-    <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon.ico" />
+    <link rel="icon" href="assets/policeman.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/policeman.png" />
     <link rel="manifest" href="manifest.json" />
 
+    <script src="js/theme-init.js"></script>
     <script src="js/tailwind.js"></script>
     <script src="js/tailwind-config.js"></script>
-
-    <style type="text/tailwindcss">
-      @layer base {
-        html {
-          @apply h-full;
-        }
-        body {
-          @apply min-h-full text-guma-text font-sans antialiased;
-          background-color: #03034a; /* kolor końcowy gradientu jako fallback */
-          background-image:
-            radial-gradient(circle at top, rgba(240, 192, 64, 0.08), transparent 28%), linear-gradient(180deg, #06305f 0%, #04045e 40%, #03154a 100%);
-          background-attachment: fixed; /* gradient nie "przewija się" ze stroną */
-        }
-
-        ::selection {
-          background: rgba(240, 192, 64, 0.35);
-          color: #fff;
-        }
-      }
-
-      @layer components {
-        /* ── Layout ── */
-        .guma-page {
-          @apply mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8;
-        }
-
-        /* ── Topbar ── */
-        .guma-topbar {
-          @apply sticky top-0 z-30 border-b border-white/10 bg-guma-bg/80 backdrop-blur;
-        }
-        .guma-brand {
-          @apply inline-flex items-center gap-3 text-guma-text no-underline;
-        }
-        .guma-brand-mark {
-          @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-guma-gold/40 bg-guma-dark text-lg font-black text-guma-gold;
-        }
-
-        /* ── Panels ── */
-        .guma-panel {
-          @apply rounded-2xl border border-guma-border bg-guma-panel shadow-panel;
-        }
-
-        /* ── Form elements ── */
-        .guma-label {
-          @apply mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-guma-muted;
-        }
-        .guma-input {
-          @apply w-full rounded-lg border border-guma-border-2 bg-guma-input px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-guma-gold focus:ring-1 focus:ring-guma-gold/40 focus:outline-none transition;
-        }
-        .guma-select {
-          @apply guma-input appearance-auto;
-        }
-
-        /* ── Buttons ── */
-        .guma-btn-outline {
-          @apply inline-flex w-full items-center justify-center gap-2 rounded-lg border border-guma-gold bg-guma-input px-4 py-2 text-sm font-semibold text-guma-gold transition hover:bg-guma-gold hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
-        }
-        .guma-btn-primary {
-          @apply inline-flex h-full min-h-[42px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-gold;
-          background: linear-gradient(135deg, #f0c040, #c8960c);
-          display: flex !important;
-        }
-        .guma-btn-support {
-          @apply inline-flex h-full min-h-[42px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white no-underline transition hover:opacity-90;
-          background: linear-gradient(135deg, #6cdd5e, #4ab034);
-        }
-        .guma-btn-back {
-          @apply inline-flex items-center gap-1.5 rounded-lg border border-guma-gold/50 bg-guma-input px-3 py-1.5 text-xs font-semibold text-guma-gold transition hover:border-guma-gold hover:bg-guma-gold hover:text-black;
-        }
-
-        /* ── Form section header ── */
-        .guma-form-section {
-          @apply mb-1 border-b border-guma-border pb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-guma-gold;
-        }
-
-        /* ── Faction button ── */
-        .faction-btn {
-          @apply flex w-24 cursor-pointer flex-col items-center gap-1.5 rounded-xl border-2 border-guma-border bg-guma-panel py-2.5 text-[11px] font-bold uppercase tracking-wider text-guma-muted transition hover:border-guma-gold hover:text-guma-gold;
-        }
-        .faction-btn.active {
-          @apply border-guma-gold bg-guma-panel-2 text-guma-gold;
-        }
-      }
-
-      @layer utilities {
-        .border-guma-border-2 {
-          border-color: #2a2a5a;
-        }
-      }
-
-      /* Picker icon kolor na dark tle */
-      input[type="date"]::-webkit-calendar-picker-indicator,
-      input[type="time"]::-webkit-calendar-picker-indicator,
-      input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-        filter: invert(0.7);
-        cursor: pointer;
-      }
-
-      /* Checkbox accent */
-      input[type="checkbox"] {
-        accent-color: #f0c040;
-      }
-    </style>
+    <script src="js/guma-styles.js"></script>
   </head>
 
-  <body class="flex min-h-full flex-col">
+  <body class="theme-navy-soft flex min-h-full flex-col">
     <!-- ── Topbar ── -->
     <guma-header></guma-header>
 
     <!-- ── Page title ── -->
     <div class="guma-page pt-8 pb-4">
-      <h1 class="text-center text-2xl font-black uppercase tracking-[0.2em] text-guma-gold md:text-3xl guma-page-title">Officer Card Generator</h1>
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.2em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Officer Card Generator
+      </h1>
     </div>
 
     <!-- ── Faction Switcher ── -->
@@ -136,7 +37,11 @@
       <!-- ════ FORM PANEL ════ -->
       <div class="guma-panel w-full p-6 xl:w-[480px] xl:flex-none guma-panel-form">
         <!-- Custom Faction Panel -->
-        <div id="customFactionPanel" style="display: none" class="mb-5 rounded-xl border border-guma-border-2 bg-guma-dark p-4">
+        <div
+          id="customFactionPanel"
+          style="display: none"
+          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
           <p class="guma-form-section">Custom Faction Details</p>
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -145,7 +50,7 @@
             </div>
             <div>
               <label class="guma-label">Division</label>
-              <input class="guma-input" type="text" id="customDivision" placeholder="Rescue Division" oninput="applyCustomFaction()" />
+              <input class="guma-input" type="text" id="customDivision" placeholder="Custom Division" oninput="applyCustomFaction()" />
             </div>
             <div class="col-span-2">
               <label class="guma-label">Email Domain</label>
@@ -177,14 +82,15 @@
         </div>
 
         <!-- Rank + Division -->
-        <div class="mb-3 grid grid-cols-2 gap-3">
+        <div id="mainRankDivisionRow" class="mb-3 grid grid-cols-2 gap-3">
           <div>
             <label class="guma-label" for="rank">Rank</label>
             <select class="guma-select" id="rank"></select>
           </div>
           <div>
             <label class="guma-label" for="division">Division</label>
-            <select class="guma-select" id="division"></select>
+            <select class="guma-select" id="division" onchange="onDivisionChange()"></select>
+            <input type="text" id="divisionCustom" class="guma-input mt-2 hidden" placeholder="Custom division name" oninput="generateCard()" />
           </div>
         </div>
 
@@ -245,7 +151,7 @@
           </div>
           <div>
             <label class="guma-label" for="weight">Weight (lbs)</label>
-            <input class="guma-input" type="text" id="weight" placeholder="195lbs" />
+            <input class="guma-input" type="text" id="weight" placeholder="195" />
           </div>
         </div>
 
@@ -282,16 +188,17 @@
         </div>
 
         <!-- ── Employment History ── -->
-        <div class="mt-6 border-t border-guma-border pt-5">
+        <!-- ── Employment History ── -->
+        <div class="mt-6 border-t border-guma-l-border dark:border-guma-border pt-5">
           <label class="flex cursor-pointer select-none items-center gap-2.5">
             <input type="checkbox" id="attachEmploymentHistory" onchange="toggleEmploymentHistory()" />
-            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-gold">Attach Employment History</span>
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Attach Employment History</span>
           </label>
         </div>
 
         <div id="employmentHistorySection" class="hidden mt-4 space-y-3">
+          <button type="button" class="guma-btn-outline" onclick="addEmploymentRow()">+ Add Row</button>
           <div id="employmentRows"></div>
-          <button type="button" class="guma-btn-outline mt-1" onclick="addEmploymentRow()">+ Add Row</button>
         </div>
       </div>
 

@@ -4,14 +4,19 @@ let faction;
 // ── Switch faction ────────────────────────────────────────────
 function switchFaction(key) {
   const panel = document.getElementById("customFactionPanel");
+  const mainRow = document.getElementById("mainRankDivisionRow");
 
   if (key === "custom") {
     panel.style.display = "block";
+    if (mainRow) mainRow.classList.add("hidden");
+    FACTION_KEY = "custom";
     applyCustomFaction();
+    updateEmploymentRows();
     return;
   }
 
   panel.style.display = "none";
+  if (mainRow) mainRow.classList.remove("hidden");
 
   FACTION_KEY = key;
   faction = FACTIONS[key];
@@ -38,32 +43,12 @@ function applyCustomFaction() {
     emailDomain: domain || "faction.gov",
     cardBg: "#f0f0f0",
     cardBorder: "#888888",
-    ranks: rank ? [rank] : ["Officer"],
-    divisions: div ? [div] : ["General Division"],
+    ranks: rank ? [rank] : ["Custom rank"],
+    divisions: div ? [div] : ["Custom Division"],
     seniorRanks: [],
     midRanks: [],
     icon: null,
   };
-
-  // Repopulate selects with single custom values
-  const rankSel = document.getElementById("rank");
-  rankSel.innerHTML = "";
-  faction.ranks.forEach((r) => {
-    const o = document.createElement("option");
-    o.value = r;
-    o.text = r;
-    o.selected = true;
-    rankSel.appendChild(o);
-  });
-
-  const divSel = document.getElementById("division");
-  divSel.innerHTML = "";
-  faction.divisions.forEach((d) => {
-    const o = document.createElement("option");
-    o.value = d;
-    o.text = d;
-    divSel.appendChild(o);
-  });
 
   generateCard();
 }
@@ -88,6 +73,27 @@ function populateSelects() {
     o.text = d;
     divSel.appendChild(o);
   });
+  // "Custom..." option lets the user type a division name not in the preset list
+  const customOpt = document.createElement("option");
+  customOpt.value = "__custom__";
+  customOpt.text = "Custom…";
+  divSel.appendChild(customOpt);
+
+  onDivisionChange();
+}
+
+// ── Toggle custom-division input visibility ───────────────────
+function onDivisionChange() {
+  const sel = document.getElementById("division");
+  const input = document.getElementById("divisionCustom");
+  if (!sel || !input) return;
+  if (sel.value === "__custom__") {
+    input.classList.remove("hidden");
+  } else {
+    input.classList.add("hidden");
+    input.value = "";
+  }
+  generateCard();
 }
 
 // ── Year select ───────────────────────────────────────────────
@@ -134,16 +140,112 @@ function calcTotal() {
 
 // ── Randomize pay ─────────────────────────────────────────────────────────────
 function randomizePay() {
-  const rank = document.getElementById("rank").value;
+  const isCustomFaction = FACTION_KEY === "custom";
+  const rank = isCustomFaction ? document.getElementById("customRank").value.trim() || "Officer" : document.getElementById("rank").value;
+  const divSel = document.getElementById("division");
+  let division;
+  if (isCustomFaction) {
+    division = document.getElementById("customDivision").value.trim() || "";
+  } else if (divSel?.value === "__custom__") {
+    division = document.getElementById("divisionCustom").value.trim() || "";
+  } else {
+    division = divSel?.value || "";
+  }
+  const yearHired = parseInt(document.getElementById("yearHired")?.value) || 2020;
+  const currentYear = 2026;
+  const yearsOfService = Math.max(0, currentYear - yearHired);
 
-  let base;
-  if (faction.seniorRanks.includes(rank)) base = 130000 + Math.random() * 60000;
-  else if (faction.midRanks.includes(rank)) base = 95000 + Math.random() * 40000;
-  else base = 70000 + Math.random() * 50000;
+  const fType = faction.type || "other";
+  const isSenior = faction.seniorRanks?.includes(rank);
+  const isMid = faction.midRanks?.includes(rank);
 
-  const ot = base * (0.5 + Math.random() * 0.5);
-  const other = 5000 + Math.random() * 20000;
-  const health = 18000 + Math.random() * 10000;
+  let base, ot, other, health;
+
+  // ── Police / Sheriff / Highway Patrol ──────────────────────────────────────
+  if (fType === FACTION_TYPE.POLICE) {
+    // Senior (Lieutenant+):   $138k–$185k
+    // Mid    (Sergeant/Det):  $113k–$143k
+    // Junior (PO1–PO3):        $95k–$115k  → PO2 avg ≈ $105k
+    if (isSenior) base = 138000 + Math.random() * 47000;
+    else if (isMid) base = 113000 + Math.random() * 30000;
+    else base = 95000 + Math.random() * 20000;
+
+    // +4.5%–5.5% for each service year
+    const serviceYears = Math.min(yearsOfService, 30);
+    const annualRate = 0.045 + Math.random() * 0.01;
+    base *= Math.pow(1 + annualRate, serviceYears);
+
+    // Bonus for functions
+    let divBonus = 0;
+    if (/metropolitan|metro\s+div|\bmetro\b/i.test(division))
+      divBonus = 0.08 + Math.random() * 0.05; // 8–13%
+    else if (/swat|special weapons/i.test(division))
+      divBonus = 0.1 + Math.random() * 0.06; // 10–16%
+    else if (/training/i.test(division))
+      divBonus = 0.05 + Math.random() * 0.04; // 5–9%
+    else if (/air\s+support|aero|aviation/i.test(division))
+      divBonus = 0.06 + Math.random() * 0.04; // 6–10%
+    else if (/homicide|robbery|major\s+crimes|detective/i.test(division))
+      divBonus = 0.04 + Math.random() * 0.04; // 4–8%
+    else if (/gang|narcotics/i.test(division))
+      divBonus = 0.03 + Math.random() * 0.04; // 3–7%
+    else if (/internal\s+affairs|professional\s+standards/i.test(division))
+      divBonus = 0.02 + Math.random() * 0.03; // 2–5%
+    else divBonus = Math.random() * 0.03; // 0–3% patrol
+    base *= 1 + divBonus;
+
+    ot = base * (0.25 + Math.random() * 0.3); // 25–55% base (heavy OT culture)
+    other = 3000 + Math.random() * 12000;
+    health = 18000 + Math.random() * 7000;
+
+    // ── Fire / EMS ──────────────────────────────────────────────────────────────
+  } else if (fType === FACTION_TYPE.FIRE) {
+    // Senior (Battalion Chief+): $128k–$178k
+    // Mid    (Captain/Engineer):  $90k–$120k
+    // Junior (Firefighter):       $62k–$87k
+    if (isSenior) base = 128000 + Math.random() * 50000;
+    else if (isMid) base = 90000 + Math.random() * 30000;
+    else base = 62000 + Math.random() * 25000;
+
+    // +3%–5% for each service year
+    const serviceYears = Math.min(yearsOfService, 30);
+    const annualRate = 0.03 + Math.random() * 0.02;
+    base *= Math.pow(1 + annualRate, serviceYears);
+
+    // division bonus (fire)
+    let divBonus = 0;
+    if (/hazmat|health\s+haz/i.test(division))
+      divBonus = 0.07 + Math.random() * 0.05; // 7–12%
+    else if (/urban\s+search|rescue/i.test(division))
+      divBonus = 0.06 + Math.random() * 0.05; // 6–11%
+    else if (/air\s+op|air\s+support|aero|aviation/i.test(division))
+      divBonus = 0.06 + Math.random() * 0.04; // 6–10%
+    else if (/training/i.test(division))
+      divBonus = 0.04 + Math.random() * 0.03; // 4–7%
+    else if (/homeland|arson/i.test(division))
+      divBonus = 0.05 + Math.random() * 0.04; // 5–9%
+    else divBonus = Math.random() * 0.025; // 0–2.5%
+    base *= 1 + divBonus;
+
+    ot = base * (0.1 + Math.random() * 0.25); // 10–35%
+    other = 2000 + Math.random() * 10000;
+    health = 18000 + Math.random() * 8000;
+
+    // ── Custom / Other ──────────────────────────────────────────────────────────
+  } else {
+    if (isSenior) base = 80000 + Math.random() * 40000;
+    else if (isMid) base = 55000 + Math.random() * 25000;
+    else base = 40000 + Math.random() * 25000;
+
+    // +3%–6% for each service year
+    const serviceYears = Math.min(yearsOfService, 25);
+    const annualRate = 0.03 + Math.random() * 0.03;
+    base *= Math.pow(1 + annualRate, serviceYears);
+
+    ot = base * (0.1 + Math.random() * 0.3);
+    other = 1000 + Math.random() * 8000;
+    health = 12000 + Math.random() * 8000;
+  }
 
   document.getElementById("payRegular").value = fmt(base);
   document.getElementById("payOvertime").value = fmt(ot);
@@ -169,8 +271,17 @@ function generateCard() {
   canvas.height = H;
 
   const name = document.getElementById("fullName").value || "John Nolan";
-  const rank = document.getElementById("rank").value;
-  const division = document.getElementById("division").value;
+  const isCustomFaction = FACTION_KEY === "custom";
+  const rank = isCustomFaction ? document.getElementById("customRank").value.trim() || "Custom rank" : document.getElementById("rank").value;
+  const divSel = document.getElementById("division");
+  let division;
+  if (isCustomFaction) {
+    division = document.getElementById("customDivision").value.trim() || "Custom Division";
+  } else if (divSel.value === "__custom__") {
+    division = document.getElementById("divisionCustom").value.trim() || "Custom Division";
+  } else {
+    division = divSel.value;
+  }
   const serial = document.getElementById("serial").value || "00000";
   const badge = document.getElementById("badge").value || "00000";
   const ethnicity = document.getElementById("ethnicity").value;
@@ -433,14 +544,20 @@ function toggleEmploymentHistory() {
 function addEmploymentRow() {
   const container = document.getElementById("employmentRows");
   const idx = container.children.length + 1;
+  const isCustomFaction = FACTION_KEY === "custom";
   const rankOptions = faction.ranks.map((r) => `<option value="${r}">${r}</option>`).join("");
-  const agencyName = faction ? faction.name : "";
+  const agencyName = faction ? faction.shortName || faction.name : "";
+
+  const rankFieldHTML = isCustomFaction
+    ? `<input type="text" class="guma-input emp-rank-custom" placeholder="Rank (e.g. Captain)" oninput="generateCard()" />`
+    : `<select class="guma-select emp-rank-select mb-1.5" onchange="generateCard()">${rankOptions}</select>
+       <input type="text" class="guma-input emp-rank-custom" placeholder="Custom rank (overrides dropdown)" oninput="generateCard()" />`;
 
   const row = document.createElement("div");
-  row.className = "employment-row rounded-xl border border-guma-border-2 bg-guma-dark p-3";
+  row.className = "employment-row rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-3";
   row.innerHTML = `
     <div class="mb-2 flex items-center justify-between">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-guma-gold">Entry #${idx}</span>
+      <span class="text-[11px] font-bold uppercase tracking-wider text-guma-l-gold dark:text-guma-gold">Entry #${idx}</span>
       <button type="button" onclick="removeEmploymentRow(this)" class="text-xs text-red-400 transition hover:text-red-300">✕ Remove</button>
     </div>
     <div class="mb-2 grid grid-cols-2 gap-2">
@@ -461,13 +578,12 @@ function addEmploymentRow() {
       <label class="guma-label">Agency</label>
       <input type="text" class="guma-input emp-agency" value="${agencyName}" oninput="generateCard()" />
     </div>
-    <div>
+    <div class="emp-rank-wrap">
       <label class="guma-label">Rank</label>
-      <select class="guma-select emp-rank-select mb-1.5" onchange="generateCard()">${rankOptions}</select>
-      <input type="text" class="guma-input emp-rank-custom" placeholder="Custom rank (overrides dropdown)" oninput="generateCard()" />
+      ${rankFieldHTML}
     </div>
   `;
-  container.appendChild(row);
+  container.insertBefore(row, container.firstChild);
   renumberEmploymentRows();
   generateCard();
 }
@@ -475,11 +591,33 @@ function addEmploymentRow() {
 function updateEmploymentRows() {
   const rows = document.querySelectorAll(".employment-row");
   if (rows.length === 0) return;
+  const isCustomFaction = FACTION_KEY === "custom";
   const rankOptions = faction.ranks.map((r) => `<option value="${r}">${r}</option>`).join("");
-  const agencyName = faction ? faction.name : "";
+  const agencyName = faction ? faction.shortName || faction.name : "";
+
   rows.forEach((row) => {
     row.querySelector(".emp-agency").value = agencyName;
-    row.querySelector(".emp-rank-select").innerHTML = rankOptions;
+
+    const rankWrap = row.querySelector(".emp-rank-wrap");
+    const hasSelect = !!row.querySelector(".emp-rank-select");
+    const prevCustomVal = row.querySelector(".emp-rank-custom")?.value || "";
+
+    if (isCustomFaction && hasSelect) {
+      // preset → custom: drop the dropdown, keep a single free-text input
+      rankWrap.innerHTML = `
+        <label class="guma-label">Rank</label>
+        <input type="text" class="guma-input emp-rank-custom" placeholder="Rank (e.g. Captain)" value="${prevCustomVal}" oninput="generateCard()" />
+      `;
+    } else if (!isCustomFaction && !hasSelect) {
+      // custom → preset: restore the dropdown + override input
+      rankWrap.innerHTML = `
+        <label class="guma-label">Rank</label>
+        <select class="guma-select emp-rank-select mb-1.5" onchange="generateCard()">${rankOptions}</select>
+        <input type="text" class="guma-input emp-rank-custom" placeholder="Custom rank (overrides dropdown)" value="${prevCustomVal}" oninput="generateCard()" />
+      `;
+    } else if (!isCustomFaction && hasSelect) {
+      row.querySelector(".emp-rank-select").innerHTML = rankOptions;
+    }
   });
   generateCard();
 }
@@ -585,7 +723,7 @@ function drawEmploymentHistory(ctx, W, baseH, entries, cardName, cardSerial, car
     ctx.fillStyle = "#111";
     cx = tableX + 8;
 
-    const values = [entry.from || "", entry.to || "n/a", entry.change, entry.agency, entry.rank];
+    const values = [entry.from || "-", entry.to || "-", entry.change || "-", entry.agency || "-", entry.rank || "-"];
 
     values.forEach((val, vi) => {
       const maxW = cols[vi].w - 14;
