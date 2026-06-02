@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pl" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>O projekcie — GUMA Tools</title>
+
+    <link rel="icon" href="assets/logo_short.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/logo_short.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+  </head>
+
+  <body class="theme-navy-soft flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <!-- PAGE TITLE -->
+    <div class="guma-page pt-8 pb-4">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">O projekcie</h1>
+      <p class="guma-section-subtitle">GUMA Tools</p>
+    </div>
+
+    <!-- MAIN -->
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-14">
+      <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+        <!-- Intro -->
+        <section class="guma-panel p-6 md:p-8 guma-reveal">
+          <h2 class="text-lg font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">Co to jest?</h2>
+          <p class="mt-3 text-sm leading-7 text-guma-l-text dark:text-guma-text md:text-base">
+            GUMA Tools to aplikacja webowa do generowania fikcyjnych dokumentów agencji porządku publicznego, kart funkcjonariuszy i strażaków, wizytówek oraz
+            materiałów rekrutacyjnych. Formaty są inspirowane prawdziwymi wzorami LAPD, LSSD, CHP i LAFD, wykorzystywanymi na serwerach roleplay FiveM.
+          </p>
+          <p class="mt-3 text-sm leading-7 text-guma-l-muted dark:text-guma-muted md:text-base">
+            Całość działa w przeglądarce — wypełniasz formularz, a karta lub dokument renderuje się na żywo na płótnie (Canvas). Gotowy efekt pobierasz jako PNG
+            albo kopiujesz prosto do schowka. Bez instalacji, bez kont, bez logowania.
+          </p>
+        </section>
+
+        <!-- Why + For whom -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <section class="guma-panel p-6 md:p-8 guma-reveal">
+            <h2 class="text-lg font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">Dlaczego powstało?</h2>
+            <p class="mt-3 text-sm leading-7 text-guma-l-text dark:text-guma-text">
+              Projekt zaczął się jako hobby — z chęci tworzenia i z potrzeby uporządkowania dokumentów, które wcześniej każdy sklejał ręcznie. Zamiast
+              kombinować w edytorach grafiki, wystarczy uzupełnić pola i mieć spójny, profesjonalnie wyglądający efekt w kilka sekund.
+            </p>
+          </section>
+
+          <section class="guma-panel p-6 md:p-8 guma-reveal">
+            <h2 class="text-lg font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">Dla kogo?</h2>
+            <p class="mt-3 text-sm leading-7 text-guma-l-text dark:text-guma-text">
+              Dla graczy roleplay związanych z frakcjami porządkowymi — policją, biurem szeryfa, służbami drogowymi i strażą pożarną. Ułatwia życie zarówno
+              pojedynczym funkcjonariuszom, jak i osobom prowadzącym rekrutacje czy dokumentację w ramach frakcji.
+            </p>
+          </section>
+        </div>
+
+        <!-- Roadmap -->
+        <section class="guma-panel p-6 md:p-8 guma-reveal">
+          <h2 class="text-lg font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">Plany na rozwój</h2>
+          <p class="mt-3 text-sm leading-7 text-guma-l-muted dark:text-guma-muted">
+            Projekt jest rozwijany na bieżąco. W planach kolejne generatory oznaczone jako „wkrótce" na stronie głównej:
+          </p>
+          <ul class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <li class="flex items-start gap-2 text-sm leading-6 text-guma-l-text dark:text-guma-text">
+              <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-guma-l-gold dark:bg-guma-gold"></span>
+              Plakaty rekrutacyjne — policja i straż pożarna
+            </li>
+            <li class="flex items-start gap-2 text-sm leading-6 text-guma-l-text dark:text-guma-text">
+              <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-guma-l-gold dark:bg-guma-gold"></span>
+              Prehospital Care Report (dokumentacja medyczna / EMS)
+            </li>
+            <li class="flex items-start gap-2 text-sm leading-6 text-guma-l-text dark:text-guma-text">
+              <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-guma-l-gold dark:bg-guma-gold"></span>
+              Fire Code Inspection Report (kontrola przeciwpożarowa)
+            </li>
+            <li class="flex items-start gap-2 text-sm leading-6 text-guma-l-text dark:text-guma-text">
+              <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-guma-l-gold dark:bg-guma-gold"></span>
+              Coroner Autopsy Report (raport sekcyjny)
+            </li>
+          </ul>
+          <p class="mt-5 text-sm leading-7 text-guma-l-muted dark:text-guma-muted">
+            Poza tym rozwijane są ogólne kierunki: więcej obsługiwanych frakcji, kolejne pola i opcje w istniejących generatorach oraz usprawnienia eksportu i
+            podglądu. Masz pomysł albo znalazłeś błąd? Daj znać — lista poniżej.
+          </p>
+        </section>
+
+        <!-- Author & contact -->
+        <section class="guma-panel p-6 md:p-8 guma-reveal">
+          <h2 class="text-lg font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">Autor i kontakt</h2>
+          <p class="mt-3 text-sm leading-7 text-guma-l-text dark:text-guma-text">
+            GUMA Tools tworzy i utrzymuje <span class="font-semibold text-guma-l-gold dark:text-guma-gold">Dami</span>
+            — jako projekt hobbystyczny, w wolnym czasie. Najszybciej złapiesz mnie tutaj:
+          </p>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <a
+              href="https://discord.gg/gzQC2kUFbQ"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition border-guma-l-border bg-guma-l-input text-guma-l-text hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-border dark:bg-guma-input dark:text-guma-text dark:hover:border-guma-gold dark:hover:text-guma-gold"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M20.317 4.369A19.79 19.79 0 0 0 16.558 3.2a.074.074 0 0 0-.079.037c-.34.607-.719 1.4-.984 2.022a18.27 18.27 0 0 0-5.487 0 12.6 12.6 0 0 0-.997-2.022.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 4.37 4.369a.07.07 0 0 0-.032.027C1.533 8.59.766 12.703 1.142 16.766a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.197.373.291a.077.077 0 0 1-.006.128c-.598.349-1.22.645-1.873.891a.076.076 0 0 0-.04.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.029 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.056c.5-4.698-.838-8.78-3.549-12.37a.06.06 0 0 0-.031-.028ZM8.02 14.331c-1.183 0-2.157-1.086-2.157-2.42 0-1.333.955-2.42 2.157-2.42 1.21 0 2.176 1.096 2.157 2.42 0 1.334-.955 2.42-2.157 2.42Zm7.975 0c-1.183 0-2.157-1.086-2.157-2.42 0-1.333.955-2.42 2.157-2.42 1.21 0 2.176 1.096 2.157 2.42 0 1.334-.946 2.42-2.157 2.42Z"
+                />
+              </svg>
+              Discord
+            </a>
+            <a
+              href="https://kick.com/damulec"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition border-guma-l-border bg-guma-l-input text-guma-l-text hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-border dark:bg-guma-input dark:text-guma-text dark:hover:border-guma-gold dark:hover:text-guma-gold"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 3h5v6l4-6h6l-6 9 6 9h-6l-4-6v6H3z" />
+              </svg>
+              Kick
+            </a>
+          </div>
+        </section>
+
+        <!-- Disclaimer -->
+        <p class="text-center text-xs leading-6 text-guma-l-muted dark:text-guma-muted">
+          Wszystkie agencje, nazwiska, numery odznak i dokumenty są fikcyjne i służą wyłącznie do rozgrywki roleplay w FiveM. Projekt nie jest powiązany z żadną
+          realną agencją porządku publicznego.
+        </p>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <script src="js/counters.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/animations.js"></script>
+  </body>
+</html>
