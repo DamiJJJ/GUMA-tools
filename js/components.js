@@ -1,4 +1,4 @@
-const GUMA_VERSION = "1.6";
+const GUMA_VERSION = "1.7";
 
 // HEADER
 class GumaHeader extends HTMLElement {
@@ -8,6 +8,7 @@ class GumaHeader extends HTMLElement {
     const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html"].includes(current);
     const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "personnel_file_generator.html"].includes(current);
     const isHome = current === "index.html" || current === "";
+    const isAbout = current === "about.html";
 
     const navLinkBase = "px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-[0.12em] transition";
     const navActive = "text-guma-l-gold bg-guma-l-gold/10 dark:text-guma-gold dark:bg-guma-gold/10";
@@ -114,6 +115,13 @@ class GumaHeader extends HTMLElement {
                              border-guma-l-border text-guma-l-muted/50
                              dark:border-guma-border dark:text-guma-muted/40">
                   <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-30" alt="" />
+                  <span class="flex-1">Arrest Report</span>
+                  <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
+                </span>
+                <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
+                             border-guma-l-border text-guma-l-muted/50
+                             dark:border-guma-border dark:text-guma-muted/40">
+                  <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-30" alt="" />
                   <span class="flex-1">Prehospital Care Report</span>
                   <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
                 </span>
@@ -122,13 +130,6 @@ class GumaHeader extends HTMLElement {
                              dark:border-guma-border dark:text-guma-muted/40">
                   <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-30" alt="" />
                   <span class="flex-1">Fire Code Inspection Report</span>
-                  <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
-                </span>
-                <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
-                             border-guma-l-border text-guma-l-muted/50
-                             dark:border-guma-border dark:text-guma-muted/40">
-                  <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-30" alt="" />
-                  <span class="flex-1">Coroner Autopsy Report</span>
                   <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
                 </span>
               </div>
@@ -167,11 +168,11 @@ class GumaHeader extends HTMLElement {
               </div>
             </div>
 
-            <!-- About (coming soon) -->
-            <span class="${navLinkBase} opacity-35 cursor-not-allowed select-none text-guma-l-muted dark:text-guma-muted"
-                  title="Coming soon">
+            <!-- About -->
+            <a href="about.html"
+               class="${navLinkBase} ${isAbout ? navActive : navInactive}">
               About
-            </span>
+            </a>
 
           </nav>
 
@@ -318,17 +319,17 @@ class GumaHeader extends HTMLElement {
             </a>
             <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
               <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
+              <span class="flex-1">Arrest Report</span>
+              <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
+            </span>
+            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
+              <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
               <span class="flex-1">Prehospital Care Report</span>
               <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
             </span>
             <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
               <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
               <span class="flex-1">Fire Code Inspection Report</span>
-              <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
-            </span>
-            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
-              <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
-              <span class="flex-1">Coroner Autopsy Report</span>
               <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
             </span>
 
@@ -347,18 +348,15 @@ class GumaHeader extends HTMLElement {
               <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
             </span>
 
-            <!-- About (coming soon) mobile -->
-            <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
-              About
-            </p>
-            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm opacity-35 cursor-not-allowed select-none text-guma-l-muted dark:text-guma-muted">
+            <a href="about.html"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm ${isAbout ? mobActive : mobInactive}">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                    fill="none" stroke="currentColor" stroke-width="2"
                    stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              About (coming soon)
-            </span>
+              About
+            </a>
 
             <!-- Support button mobile -->
             <div class="pt-3 pb-1">
