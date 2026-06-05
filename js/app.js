@@ -488,12 +488,14 @@ function generateCard() {
 }
 
 // ── Download ──────────────────────────────────────────────────────────────────
-function downloadCard() {
+async function downloadCard() {
   const canvas = document.getElementById("cardCanvas");
   const a = document.createElement("a");
   a.download = "officer_card.png";
   a.href = canvas.toDataURL("image/png");
   a.click();
+  // Save a history snapshot after the canvas is in its final state.
+  await GumaHistoryWiring.save(canvas);
 }
 
 // ── Copy to Clipboard ───────────────────────────────────────────────
@@ -506,6 +508,8 @@ async function copyCardToClipboard() {
       const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "officer");
       const countEl = document.getElementById("downloadCount");
       if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+      // Save a history snapshot on successful copy.
+      await GumaHistoryWiring.save(canvas);
       if (btn) {
         const orig = btn.innerHTML;
         btn.textContent = "Copied!";
@@ -528,6 +532,205 @@ function debounce(fn, delay = 300) {
     timer = setTimeout(() => fn(...args), delay);
   };
 }
+
+// ── Card history: serialize / hydrate / save ──────────────────
+
+// Native canvas photo-slot size (see generateCard(): photoW / photoH).
+const HISTORY_PHOTO_W = 356;
+const HISTORY_PHOTO_H = 574;
+
+// Build the meta label shown in the history drawer.
+function buildHistoryLabel(payload) {
+  const name = (payload.fullName || "").trim() || "Unnamed";
+  let rank, short;
+  if (payload.FACTION_KEY === "custom") {
+    rank = (payload.custom?.customRank || "").trim() || "?";
+    short = (payload.custom?.customFactionName || "").trim() || "Custom";
+  } else {
+    rank = (payload.rank || "").trim() || "?";
+    short = FACTIONS[payload.FACTION_KEY]?.short || "?";
+  }
+  return `${name} — ${rank} (${short})`;
+}
+
+// Snapshot the whole form as a JSON-friendly object (async: avatar downscale).
+async function serializeCardState() {
+  const val = (id) => document.getElementById(id)?.value ?? "";
+  const divSel = document.getElementById("division");
+
+  const employment = [];
+  document.querySelectorAll(".employment-row").forEach((row) => {
+    employment.push({
+      from: row.querySelector(".emp-from")?.value ?? "",
+      to: row.querySelector(".emp-to")?.value ?? "",
+      change: row.querySelector(".emp-change")?.value ?? "",
+      agency: row.querySelector(".emp-agency")?.value ?? "",
+      rankSelect: row.querySelector(".emp-rank-select")?.value ?? "",
+      rankCustom: row.querySelector(".emp-rank-custom")?.value ?? "",
+    });
+  });
+
+  let photo = null;
+  if (photoDataURL) {
+    photo = await GumaHistory._downscaleAvatar(photoDataURL, HISTORY_PHOTO_W, HISTORY_PHOTO_H);
+  }
+
+  return {
+    FACTION_KEY,
+    fullName: val("fullName"),
+    rank: val("rank"),
+    division: divSel?.value ?? "",
+    divisionCustom: val("divisionCustom"),
+    serial: val("serial"),
+    badge: val("badge"),
+    ethnicity: val("ethnicity"),
+    gender: val("gender"),
+    age: val("age"),
+    yearHired: val("yearHired"),
+    height: val("height"),
+    weight: val("weight"),
+    payRegular: val("payRegular"),
+    payOvertime: val("payOvertime"),
+    payOther: val("payOther"),
+    payHealth: val("payHealth"),
+    payRetirement: val("payRetirement"),
+    attachEmploymentHistory: !!document.getElementById("attachEmploymentHistory")?.checked,
+    employment,
+    custom: {
+      customFactionName: document.getElementById("customFactionName")?.value ?? "",
+      customRank: document.getElementById("customRank")?.value ?? "",
+      customDivision: document.getElementById("customDivision")?.value ?? "",
+      customEmailDomain: document.getElementById("customEmailDomain")?.value ?? "",
+    },
+    photoDataUrl: photo,
+  };
+}
+
+// Restore employment rows from a payload (safe: missing fields = no-op).
+function hydrateEmployment(payload) {
+  const checkbox = document.getElementById("attachEmploymentHistory");
+  const section = document.getElementById("employmentHistorySection");
+  const container = document.getElementById("employmentRows");
+  if (!checkbox || !section || !container) return;
+
+  const attach = !!payload.attachEmploymentHistory;
+  checkbox.checked = attach;
+  section.classList.toggle("hidden", !attach);
+  container.innerHTML = "";
+
+  if (!attach || !Array.isArray(payload.employment)) return;
+
+  // addEmploymentRow() prepends, so iterate reversed to preserve saved order.
+  payload.employment
+    .slice()
+    .reverse()
+    .forEach((r) => {
+      addEmploymentRow();
+      const row = container.firstChild;
+      if (!row) return;
+      const set = (sel, v) => {
+        const el = row.querySelector(sel);
+        if (el && v != null) el.value = v;
+      };
+      set(".emp-from", r.from);
+      set(".emp-to", r.to);
+      set(".emp-change", r.change);
+      set(".emp-agency", r.agency);
+      const sel = row.querySelector(".emp-rank-select");
+      if (sel && r.rankSelect != null) {
+        const ok = Array.from(sel.options).some((o) => o.value === String(r.rankSelect));
+        if (ok) sel.value = String(r.rankSelect);
+      }
+      set(".emp-rank-custom", r.rankCustom);
+    });
+}
+
+// Inverse of serializeCardState(). Name kept generic across both generators.
+function hydrateOfficerCardState(payload) {
+  if (!payload) return;
+  const setVal = (id, v) => {
+    const el = document.getElementById(id);
+    if (el != null && v != null) el.value = v;
+  };
+  const setSelect = (id, v) => {
+    const el = document.getElementById(id);
+    if (!el || v == null) return;
+    const ok = Array.from(el.options).some((o) => o.value === String(v));
+    if (ok) el.value = String(v);
+  };
+
+  // ── Faction first (drives selects + pay) ──
+  if (payload.FACTION_KEY === "custom") {
+    setVal("customFactionName", payload.custom?.customFactionName);
+    setVal("customRank", payload.custom?.customRank);
+    setVal("customDivision", payload.custom?.customDivision);
+    setVal("customEmailDomain", payload.custom?.customEmailDomain);
+    switchFaction("custom");
+  } else if (payload.FACTION_KEY && FACTIONS[payload.FACTION_KEY]) {
+    switchFaction(payload.FACTION_KEY); // populates selects + randomizes pay (overwritten below)
+  }
+
+  // ── Active switcher button state ──
+  document.querySelectorAll(".faction-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.faction === payload.FACTION_KEY);
+  });
+
+  // ── Identity ──
+  setVal("fullName", payload.fullName);
+  if (payload.FACTION_KEY !== "custom") {
+    setSelect("rank", payload.rank);
+    const divSel = document.getElementById("division");
+    setSelect("division", payload.division);
+    const divInput = document.getElementById("divisionCustom");
+    if (divSel && divInput) {
+      if (divSel.value === "__custom__") {
+        divInput.classList.remove("hidden");
+        if (payload.divisionCustom != null) divInput.value = payload.divisionCustom;
+      } else {
+        divInput.classList.add("hidden");
+        divInput.value = "";
+      }
+    }
+  }
+  setVal("serial", payload.serial);
+  setVal("badge", payload.badge);
+  setSelect("ethnicity", payload.ethnicity);
+  setSelect("gender", payload.gender);
+  setVal("age", payload.age);
+  setSelect("yearHired", payload.yearHired);
+  setVal("height", payload.height);
+  setVal("weight", payload.weight);
+
+  // ── Pay (after switchFaction's randomizePay) ──
+  setVal("payRegular", payload.payRegular);
+  setVal("payOvertime", payload.payOvertime);
+  setVal("payOther", payload.payOther);
+  setVal("payHealth", payload.payHealth);
+  setVal("payRetirement", payload.payRetirement);
+
+  // ── Employment history ──
+  hydrateEmployment(payload);
+
+  // ── Photo ──
+  photoDataURL = payload.photoDataUrl || null;
+  const prev = document.getElementById("photoPreview");
+  if (prev) {
+    if (photoDataURL) {
+      prev.src = photoDataURL;
+      prev.style.display = "block";
+      prev.classList.remove("hidden");
+    } else {
+      prev.removeAttribute("src");
+      prev.style.display = "none";
+    }
+  }
+  const uploadText = document.getElementById("uploadText");
+  if (uploadText) uploadText.textContent = photoDataURL ? "Saved photo restored" : "Click to upload photo";
+
+  generateCard();
+}
+
+window.hydrateOfficerCardState = hydrateOfficerCardState;
 
 // ── Employment History ─────────────────────────────────────────────────────────
 
@@ -765,4 +968,16 @@ function initGenerator({ factionType = null, defaultFaction = "lspd" } = {}) {
   generateCard();
 
   document.querySelector(".guma-panel").addEventListener("input", debounce(generateCard));
+
+  GumaHistoryWiring.register({
+    key: window.GUMA_GENERATOR_KEY,
+    noun: "card",
+    serialize: serializeCardState,
+    hydrate: hydrateOfficerCardState,
+    buildLabel: buildHistoryLabel,
+    buildFaction: (p) =>
+      GumaHistoryWiring.buildFaction(p, {
+        customShort: (pp) => (pp.custom?.customFactionName || "").trim(),
+      }),
+  });
 }

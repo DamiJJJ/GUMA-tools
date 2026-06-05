@@ -481,7 +481,6 @@ class GumaHeader extends HTMLElement {
     });
   }
 }
-
 customElements.define("guma-header", GumaHeader);
 
 // FOOTER
@@ -537,3 +536,321 @@ class GumaFooter extends HTMLElement {
 }
 
 customElements.define("guma-footer", GumaFooter);
+
+// ── HTML escape helper (history labels are user-supplied) ──────
+function ghEscapeHtml(str) {
+  return String(str == null ? "" : str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// ── Saved Cards Drawer ─────────────────────────────────────────
+class GumaHistoryDrawer extends HTMLElement {
+  connectedCallback() {
+    if (this._initialized) return;
+
+    const tryInit = () => {
+      if (this._initialized) return true;
+      const key = window.GUMA_GENERATOR_KEY;
+      if (!key) return false;
+      this.type = key;
+      this._initialized = true;
+      this._build();
+      return true;
+    };
+
+    if (tryInit()) return;
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => setTimeout(tryInit, 0), { once: true });
+    } else {
+      setTimeout(tryInit, 0);
+    }
+    window.addEventListener("load", tryInit, { once: true });
+  }
+
+  disconnectedCallback() {
+    if (this._unsub) this._unsub();
+    if (this._onKey) document.removeEventListener("keydown", this._onKey);
+  }
+
+  _build() {
+    this.innerHTML = `
+      <div data-gh-overlay
+           class="fixed inset-0 z-40 bg-black/40 opacity-0 pointer-events-none transition-opacity duration-300 motion-reduce:transition-none"></div>
+      <aside data-gh-panel role="dialog" aria-label="Saved cards" aria-hidden="true"
+             class="fixed top-0 right-0 z-50 h-full w-full max-w-[420px] translate-x-full
+                    flex flex-col border-l shadow-2xl transition-transform duration-300 motion-reduce:transition-none
+                    bg-guma-l-panel border-guma-l-border text-guma-l-text
+                    dark:bg-guma-panel dark:border-guma-border dark:text-guma-text">
+        <div class="flex items-center justify-between gap-3 border-b px-5 py-4 border-guma-l-border dark:border-guma-border">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                 stroke-linejoin="round" class="text-guma-l-gold dark:text-guma-gold" aria-hidden="true">
+              <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
+            </svg>
+            <h2 class="text-sm font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">${this._noun.title}</h2>
+            <span data-gh-count class="rounded-md px-1.5 py-0.5 text-[11px] font-bold
+                  bg-guma-l-panel-2 text-guma-l-muted dark:bg-guma-panel-2 dark:text-guma-muted">0</span>
+          </div>
+          <button data-gh-close aria-label="Close saved cards"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-lg transition
+                         text-guma-l-muted hover:bg-guma-l-panel-2 hover:text-guma-l-text
+                         dark:text-guma-muted dark:hover:bg-guma-panel-2 dark:hover:text-guma-text">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div data-gh-list class="flex-1 overflow-y-auto px-4 py-4 space-y-2"></div>
+
+        <div data-gh-footer class="border-t px-5 py-3 border-guma-l-border dark:border-guma-border">
+          <button data-gh-clear
+                  class="w-full rounded-lg border px-3 py-2 text-xs font-bold uppercase tracking-wider transition
+                         border-guma-l-border text-guma-l-muted hover:border-red-400 hover:text-red-400
+                         dark:border-guma-border dark:text-guma-muted dark:hover:border-red-400 dark:hover:text-red-400">
+            Clear all
+          </button>
+        </div>
+
+        <!-- Clear-all confirmation modal -->
+        <div data-gh-confirm class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+          <div data-gh-confirm-overlay class="absolute inset-0 bg-black/50"></div>
+          <div role="alertdialog" aria-modal="true" aria-label="Clear all saved cards"
+               class="relative w-full max-w-sm rounded-2xl border p-6 shadow-2xl
+                      bg-guma-l-panel border-guma-l-border text-guma-l-text
+                      dark:bg-guma-panel dark:border-guma-border dark:text-guma-text">
+            <h3 class="text-base font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text">Clear all saved ${this._noun.many}?</h3>
+            <p data-gh-confirm-msg class="mt-2 text-sm text-guma-l-muted dark:text-guma-muted"></p>
+            <div class="mt-5 flex justify-end gap-2">
+              <button data-gh-confirm-cancel
+                      class="rounded-lg border px-4 py-2 text-xs font-bold uppercase tracking-wider transition
+                             border-guma-l-border text-guma-l-muted hover:text-guma-l-text
+                             dark:border-guma-border dark:text-guma-muted dark:hover:text-guma-text">
+                Cancel
+              </button>
+              <button data-gh-confirm-ok
+                      class="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition
+                             bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500">
+                Clear all
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    `;
+
+    this._isOpen = false;
+    this._confirmOpen = false;
+
+    const overlay = this.querySelector("[data-gh-overlay]");
+    const listEl = this.querySelector("[data-gh-list]");
+    const closeBtn = this.querySelector("[data-gh-close]");
+    const clearBtn = this.querySelector("[data-gh-clear]");
+
+    overlay.addEventListener("click", () => this.close());
+    closeBtn.addEventListener("click", () => this.close());
+
+    clearBtn.addEventListener("click", () => this._showClearConfirm());
+    this.querySelector("[data-gh-confirm-overlay]").addEventListener("click", () => this._hideClearConfirm());
+    this.querySelector("[data-gh-confirm-cancel]").addEventListener("click", () => this._hideClearConfirm());
+    this.querySelector("[data-gh-confirm-ok]").addEventListener("click", () => {
+      GumaHistory.clear(this.type);
+      this._hideClearConfirm();
+    });
+
+    // Pin → toggle. Remove → delete. Otherwise click anywhere on the card → load.
+    listEl.addEventListener("click", (e) => {
+      const pinBtn = e.target.closest("[data-gh-pin]");
+      if (pinBtn) {
+        e.stopPropagation();
+        this._togglePin(pinBtn.getAttribute("data-gh-pin"));
+        return;
+      }
+      const delBtn = e.target.closest("[data-gh-del]");
+      if (delBtn) {
+        this._delete(delBtn.getAttribute("data-gh-del"));
+        return;
+      }
+      const row = e.target.closest("[data-gh-load]");
+      if (row) this._load(row.getAttribute("data-gh-load"));
+    });
+
+    this._onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (this._confirmOpen) {
+        this._hideClearConfirm();
+        return;
+      }
+      if (this._isOpen) this.close();
+    };
+    document.addEventListener("keydown", this._onKey);
+
+    if (typeof GumaHistory !== "undefined") {
+      this._unsub = GumaHistory.subscribe(this.type, () => this.render());
+    }
+
+    this.render();
+  }
+
+  // ── Noun for labels: "card" (default) or "report" ───────────────
+  get _noun() {
+    return window.GUMA_GENERATOR_NOUN === "report"
+      ? { one: "report", many: "reports", title: "Saved Reports" }
+      : { one: "card", many: "cards", title: "Saved Cards" };
+  }
+
+  // ── Render list + button badge ──────────────────────────────────
+  render() {
+    if (!this._initialized) return;
+    const items = typeof GumaHistory !== "undefined" ? GumaHistory.list(this.type) : [];
+    const listEl = this.querySelector("[data-gh-list]");
+    const countEl = this.querySelector("[data-gh-count]");
+    const footerEl = this.querySelector("[data-gh-footer]");
+    if (countEl) countEl.textContent = String(items.length);
+    if (footerEl) footerEl.style.display = items.length ? "" : "none";
+
+    // External count badge on the page button.
+    const btnCount = document.getElementById("gumaHistoryCount");
+    if (btnCount) {
+      btnCount.textContent = String(items.length);
+      btnCount.classList.remove("hidden");
+    }
+
+    if (!items.length) {
+      listEl.innerHTML = `
+        <div class="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+               stroke-linejoin="round" class="text-guma-l-muted/50 dark:text-guma-muted/40" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+          </svg>
+          <p class="text-sm text-guma-l-muted dark:text-guma-muted">No saved ${this._noun.many} yet. Click Download or Copy to save your first one.</p>
+        </div>`;
+      return;
+    }
+
+    const fmtDate = (ts) => {
+      try {
+        return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(ts));
+      } catch {
+        return "";
+      }
+    };
+
+    listEl.innerHTML = items
+      .map((it) => {
+        const ring = it.pinned
+          ? "border-guma-l-gold bg-guma-l-panel-2 dark:border-guma-gold dark:bg-guma-panel-2"
+          : "border-guma-l-border bg-guma-l-panel dark:border-guma-border dark:bg-guma-panel";
+        const pinCls = it.pinned
+          ? "text-guma-l-gold dark:text-guma-gold"
+          : "text-guma-l-muted hover:text-guma-l-gold dark:text-guma-muted dark:hover:text-guma-gold";
+        return `
+      <div data-gh-load="${it.id}" title="Load this card"
+           class="group flex cursor-pointer items-center gap-3 rounded-xl border p-2.5 transition
+                  hover:border-guma-l-gold hover:bg-guma-l-panel-2 dark:hover:border-guma-gold dark:hover:bg-guma-panel-2 ${ring}">
+        <div class="relative flex-none">
+          <img src="${it.thumbnail || ""}" alt=""
+               class="h-16 w-16 rounded-md object-cover border bg-guma-l-panel-2
+                      border-guma-l-border dark:border-guma-border dark:bg-guma-panel-2" />
+          ${
+            it.faction && it.faction.icon
+              ? `<img src="${it.faction.icon}" alt="${ghEscapeHtml(it.faction.short)}" title="${ghEscapeHtml(it.faction.short)}"
+                   class="absolute -bottom-1 -right-1 h-6 w-6 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />`
+              : ""
+          }
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-start justify-between gap-2">
+            <p class="truncate text-sm font-semibold text-guma-l-text dark:text-guma-text">${ghEscapeHtml(it.label || "Unnamed")}</p>
+            <div class="flex shrink-0 items-center gap-2.5">
+              <button data-gh-pin="${it.id}" aria-label="${it.pinned ? "Unpin" : "Pin"}" title="${it.pinned ? "Unpin" : "Pin"}"
+                      class="transition ${pinCls}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                     fill="${it.pinned ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              </button>
+              <button data-gh-del="${it.id}" class="text-xs text-red-400 transition hover:text-red-300">✕ Remove</button>
+            </div>
+          </div>
+          <p class="text-[11px] text-guma-l-muted dark:text-guma-muted">${fmtDate(it.createdAt)}${it.pinned ? " · Pinned" : ""}</p>
+        </div>
+      </div>`;
+      })
+      .join("");
+  }
+
+  open() {
+    if (!this._initialized) return;
+    const overlay = this.querySelector("[data-gh-overlay]");
+    const panel = this.querySelector("[data-gh-panel]");
+    this.render();
+    overlay.classList.remove("opacity-0", "pointer-events-none");
+    panel.classList.remove("translate-x-full");
+    panel.classList.add("translate-x-0");
+    panel.setAttribute("aria-hidden", "false");
+    this._isOpen = true;
+  }
+
+  close() {
+    if (!this._initialized) return;
+    const overlay = this.querySelector("[data-gh-overlay]");
+    const panel = this.querySelector("[data-gh-panel]");
+    if (this._confirmOpen) this._hideClearConfirm();
+    overlay.classList.add("opacity-0", "pointer-events-none");
+    panel.classList.add("translate-x-full");
+    panel.classList.remove("translate-x-0");
+    panel.setAttribute("aria-hidden", "true");
+    this._isOpen = false;
+  }
+
+  _showClearConfirm() {
+    const items = GumaHistory.list(this.type);
+    const n = items.length;
+    const pins = items.filter((i) => i.pinned).length;
+    const msg = this.querySelector("[data-gh-confirm-msg]");
+    if (msg) {
+      const pinNote = pins ? ` (including ${pins} pinned)` : "";
+      msg.textContent = `This will permanently delete all ${n} saved ${n === 1 ? this._noun.one : this._noun.many}${pinNote} for this generator. This can’t be undone.`;
+    }
+    const box = this.querySelector("[data-gh-confirm]");
+    box.classList.remove("hidden");
+    box.classList.add("flex");
+    this._confirmOpen = true;
+  }
+
+  _hideClearConfirm() {
+    const box = this.querySelector("[data-gh-confirm]");
+    box.classList.add("hidden");
+    box.classList.remove("flex");
+    this._confirmOpen = false;
+  }
+
+  _togglePin(id) {
+    const it = GumaHistory.list(this.type).find((x) => x.id === id);
+    GumaHistory.setPinned(this.type, id, !(it && it.pinned));
+  }
+
+  _load(id) {
+    const entry = GumaHistory.load(this.type, id);
+    const hydrate = window.GUMA_HYDRATE || window.hydrateOfficerCardState;
+    if (entry && typeof hydrate === "function") hydrate(entry.payload);
+    this.close();
+  }
+
+  _delete(id) {
+    GumaHistory.remove(this.type, id);
+  }
+}
+
+customElements.define("guma-history-drawer", GumaHistoryDrawer);

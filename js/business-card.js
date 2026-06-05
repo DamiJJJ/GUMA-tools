@@ -400,12 +400,13 @@ async function bcRender() {
 }
 
 // ── Download / Copy ─────────────────────────────────────────────────────
-function bcDownload() {
+async function bcDownload() {
   const canvas = document.getElementById("bcCanvas");
   const link = document.createElement("a");
   link.download = `business_card_${bcCurrentFaction}.png`;
   link.href = canvas.toDataURL("image/png");
   link.click();
+  await GumaHistoryWiring.save(canvas);
 }
 
 function bcCopy() {
@@ -438,6 +439,7 @@ function bcCopy() {
     try {
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
       await bumpCounter();
+      await GumaHistoryWiring.save(canvas);
       flashCopied();
     } catch {
       alert("Copy failed.");
@@ -451,3 +453,139 @@ function bcOnLogoScaleChange(val) {
   if (display) display.textContent = Math.round(parseFloat(val) * 100) + "%";
   bcRender();
 }
+
+// ── Saved cards: serialize / hydrate / wiring ─────────────────
+
+// Aspect-preserving downscale (logos must NOT be cropped).
+function bcDownscaleContain(dataUrl, maxW, maxH) {
+  return new Promise((resolve) => {
+    if (!dataUrl) {
+      resolve(null);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const r = Math.min(maxW / img.width, maxH / img.height, 1);
+        const w = Math.max(1, Math.round(img.width * r));
+        const h = Math.max(1, Math.round(img.height * r));
+        const c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        const cx = c.getContext("2d");
+        cx.imageSmoothingEnabled = true;
+        cx.imageSmoothingQuality = "high";
+        cx.drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL("image/png"));
+      } catch (e) {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+async function bcSerializeState() {
+  const val = (id) => document.getElementById(id)?.value ?? "";
+  let customImage = null;
+  if (bcCurrentFaction === "custom" && bcCustomImage) {
+    customImage = await bcDownscaleContain(bcCustomImage, 200, 224);
+  }
+  return {
+    FACTION_KEY: bcCurrentFaction,
+    header: val("bcHeader"),
+    rank: val("bcRank"),
+    customRank: val("bcCustomRank"),
+    fullName: val("bcFullName"),
+    badge: val("bcBadge"),
+    area: val("bcArea"),
+    role: val("bcRole"),
+    tel: val("bcTel"),
+    cell: val("bcCell"),
+    tdd: val("bcTdd"),
+    email: val("bcEmail"),
+    address1: val("bcAddress1"),
+    address2: val("bcAddress2"),
+    logoScale: val("bcLogoScale"),
+    watermark: !!document.getElementById("bcWatermark")?.checked,
+    custom: { footer1: val("bcCustomFooter1"), footer2: val("bcCustomFooter2"), footer3: val("bcCustomFooter3") },
+    customImage, // custom faction only
+  };
+}
+
+function bcHydrateState(payload) {
+  if (!payload) return;
+  const setVal = GumaHistoryWiring.setVal;
+  const fk = payload.FACTION_KEY || "lspd";
+  bcSelectFaction(fk); // toggles panels + populates rank select
+
+  if (fk === "custom") {
+    bcCustomImage = payload.customImage || null;
+    const preview = document.getElementById("bcImagePreview");
+    const uploadText = document.getElementById("bcUploadText");
+    if (bcCustomImage) {
+      if (preview) {
+        preview.src = bcCustomImage;
+        preview.classList.remove("hidden");
+      }
+      if (uploadText) uploadText.textContent = "Click to change image";
+    } else {
+      if (preview) {
+        preview.removeAttribute("src");
+        preview.classList.add("hidden");
+      }
+      if (uploadText) uploadText.textContent = "Click to upload image";
+    }
+    setVal("bcHeader", payload.header);
+    setVal("bcCustomRank", payload.customRank);
+    setVal("bcCustomFooter1", payload.custom?.footer1);
+    setVal("bcCustomFooter2", payload.custom?.footer2);
+    setVal("bcCustomFooter3", payload.custom?.footer3);
+  } else {
+    setVal("bcRank", payload.rank);
+  }
+
+  setVal("bcFullName", payload.fullName);
+  setVal("bcBadge", payload.badge);
+  setVal("bcArea", payload.area);
+  setVal("bcRole", payload.role);
+  setVal("bcTel", payload.tel);
+  setVal("bcCell", payload.cell);
+  setVal("bcTdd", payload.tdd);
+  setVal("bcEmail", payload.email);
+  setVal("bcAddress1", payload.address1);
+  setVal("bcAddress2", payload.address2);
+
+  const wm = document.getElementById("bcWatermark");
+  if (wm) wm.checked = !!payload.watermark;
+
+  setVal("bcLogoScale", payload.logoScale || "1");
+  const scaleDisp = document.getElementById("bcLogoScaleValue");
+  if (scaleDisp) scaleDisp.textContent = Math.round((parseFloat(payload.logoScale) || 1) * 100) + "%";
+
+  bcRender();
+}
+
+function bcBuildLabel(payload) {
+  const name = (payload.fullName || "").trim() || "Unnamed";
+  let rank, short;
+  if (payload.FACTION_KEY === "custom") {
+    rank = (payload.customRank || "").trim();
+    short = (payload.header || "").trim() || "Custom";
+  } else {
+    rank = (payload.rank || "").trim();
+    short = (typeof FACTIONS !== "undefined" && FACTIONS[payload.FACTION_KEY]?.short) || "";
+  }
+  const tail = short ? ` (${short})` : "";
+  return rank ? `${name} — ${rank}${tail}` : `${name}${tail}`;
+}
+
+GumaHistoryWiring.register({
+  key: "business_card",
+  noun: "card",
+  serialize: bcSerializeState,
+  hydrate: bcHydrateState,
+  buildLabel: bcBuildLabel,
+  buildFaction: (p) => GumaHistoryWiring.buildFaction(p, { customShort: (pp) => (pp.header || "").trim() }),
+});

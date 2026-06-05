@@ -33,10 +33,12 @@ Wygenerowane z kodu. Update przez `/styleguide`.
     ├── tailwind.js             # Tailwind CDN snapshot
     ├── tailwind-config.js      # design tokens (colors, shadows, fonts, keyframes)
     ├── guma-styles.js          # @layer base/components/utilities rules
-    ├── components.js           # <guma-header>, <guma-footer> Web Components
+    ├── components.js           # <guma-header>, <guma-footer>, <guma-history-drawer>
     ├── animations.js           # page entrance animations
     ├── counters.js             # Supabase visit/download counters
     ├── factions.js             # FACTIONS dict (LSPD/LSSD/BCSO/SAHP/...)
+    ├── history.js              # GumaHistory — localStorage saved cards/reports engine
+    ├── history-wiring.js       # GumaHistoryWiring — shared save/serialize glue
     ├── ui-helpers.js
     └── <page>.js               # one JS file per generator/report
 ```
@@ -176,12 +178,116 @@ sibling (snake if it's a report, kebab if it's a card — match the pattern).
    shared helpers go to `js/ui-helpers.js` or a new shared file.
 5. Register the page in `js/components.js` — update the `isCard` / `isReport`
    arrays and the dropdown link lists, so the header highlights correctly.
-6. Update `readme.md`: add a row to the **Available Generators** table and
+6. Wire **Saved Cards / Reports** (see the section below): page-specific
+   `serialize` / `hydrate` / `buildLabel` (+ `buildFaction`), one
+   `GumaHistoryWiring.register({...})`, `await GumaHistoryWiring.save(canvas)`
+   in Download + Copy, and the 3 markup additions (Saved button, drawer,
+   `history.js` + `history-wiring.js` first).
+7. Update `readme.md`: add a row to the **Available Generators** table and
    a Features sub-section (use `/readme`).
-7. Add a faction icon / asset to `assets/` if needed (192×192 PNG to match
+8. Add a faction icon / asset to `assets/` if needed (192×192 PNG to match
    the rest).
-8. Test in light + dark. Test PNG download and clipboard copy paths.
-9. Use `/commit` for the commit message, `/changelog` for the announcement.
+9. Test in light + dark. Test PNG download and clipboard copy paths, plus
+   save → reload from the drawer.
+10. Use `/commit` for the commit message, `/changelog` for the announcement.
+
+## Saved Cards / Reports (history)
+
+Every generator can persist exported documents to `localStorage` and reload
+them into the form. The engine is **generator-agnostic** — you only wire the
+page-specific parts.
+
+Three shared pieces (don't fork them):
+
+- **`js/history.js`** → `window.GumaHistory`: storage API (`save` / `list` /
+  `load` / `setPinned` / `remove` / `clear` / `subscribe`) keyed by
+  `guma:history:<key>`. Dedup of identical consecutive saves, pinned-aware
+  FIFO trim (limit 10 unpinned), quota recovery. Plus helpers
+  `_downscaleAvatar`, `_makeThumbnail`.
+- **`js/history-wiring.js`** → `window.GumaHistoryWiring`: owns the save
+  orchestration, the `GUMA_*` globals and the universal faction descriptor.
+  API: `register(cfg)`, `save(canvas)`, `buildFaction(payload, opts)`,
+  `setVal(id, v)`, `setChecked(id, v)`.
+- **`<guma-history-drawer>`** (in `js/components.js`): the whole drawer UI
+  (list, pin, remove, clear-all modal, counter, faction badge). Reads
+  `window.GUMA_GENERATOR_KEY`, `window.GUMA_GENERATOR_NOUN`, and calls
+  `window.GUMA_HYDRATE`. **Don't touch the drawer** to wire a new page.
+
+### Globals the engine reads
+
+| Global                   | Set by                  | Purpose                                  |
+| ------------------------ | ----------------------- | ---------------------------------------- |
+| `GUMA_GENERATOR_KEY`     | `register({ key })`     | storage namespace (`guma:history:<key>`) |
+| `GUMA_GENERATOR_NOUN`    | `register({ noun })`    | `"card"` (default) or `"report"` — drawer copy |
+| `GUMA_HYDRATE`           | `register({ hydrate })` | function the drawer calls on load        |
+
+`noun` = `"card"` for cards/business cards, `"report"` for report-style docs
+(firearm, traffic, personnel) — drives "Saved Cards" vs "Saved Reports".
+
+### Wiring a new generator (recipe)
+
+In `js/<page>.js`, write only the page-specific functions, then register:
+
+```js
+// ── Saved cards: serialize / hydrate / wiring ─────────────────
+function pgSerializeState() {
+  // JSON-friendly snapshot of the real form fields. May be async if there's
+  // a photo: photoDataUrl = await GumaHistory._downscaleAvatar(src, w, h)
+  // (use the real canvas slot dims). Stable output — no random/time fields.
+}
+function pgHydrateState(payload) {
+  // Inverse, safe (missing field = no-op). Faction first (switchFaction(...)),
+  // then GumaHistoryWiring.setVal / setChecked, then rebuild dynamic rows in
+  // saved order, then call the page's render fn (generate.../refreshPreview()).
+}
+function pgBuildLabel(payload) {
+  // Short human title from the key fields. Don't repeat info already shown by
+  // the corner faction badge.
+}
+
+GumaHistoryWiring.register({
+  key: "<unique-key>",
+  noun: "report", // or "card"
+  serialize: pgSerializeState,
+  hydrate: pgHydrateState,
+  buildLabel: pgBuildLabel,
+  // omit buildFaction entirely if the page has no faction switcher
+  buildFaction: (p) =>
+    GumaHistoryWiring.buildFaction(p, { customShort: (pp) => /* custom name */ "" }),
+});
+```
+
+Then in the page's Download **and** Copy handlers, after the PNG is in its
+final state, call `await GumaHistoryWiring.save(canvas)` (the real page canvas).
+`save()` picks the thumbnail source automatically: `payload.photoDataUrl` if
+present, otherwise the canvas.
+
+Markup (3 additions):
+
+1. **Saved button** in the preview-panel header (next to "Preview"/"Document",
+   far right), `border-2` gold accent — copy the block from any wired page.
+   The drawer updates `#gumaHistoryCount` itself (shows `0` when empty).
+2. `<guma-history-drawer></guma-history-drawer>` just before `</body>`.
+3. End-of-body script order: `history.js` → `history-wiring.js` first, then
+   `components.js` and the page JS:
+
+```html
+<script src="js/history.js"></script>
+<script src="js/history-wiring.js"></script>
+<!-- ...components.js, page JS, etc. -->
+```
+
+### Rules
+
+- **Faction descriptor stores a path only** (`FACTIONS[key].icon` /
+  `assets/custom.png`) — never base64. Pages without factions: omit
+  `buildFaction`, the badge just won't render.
+- Serialize output must be **stable** — dedup compares `JSON.stringify(payload)`.
+- Dynamic rows: serialize an array, hydrate by clearing the container,
+  resetting its counter, and re-adding rows in saved order (mind whether the
+  page's add-row prepends or appends).
+- No `alert`/`confirm` — "✕ Remove" deletes immediately; the only modal is the
+  drawer's built-in "Clear all".
 
 ## Things to avoid
 
