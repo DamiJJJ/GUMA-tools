@@ -594,12 +594,14 @@ function refreshPreview() {
   drawForm();
 }
 
-function downloadPng() {
+async function downloadPng() {
   drawForm();
+  const canvas = document.getElementById("docCanvas");
   const a = document.createElement("a");
   a.download = "firearm-discharge-investigation.png";
-  a.href = document.getElementById("docCanvas").toDataURL("image/png");
+  a.href = canvas.toDataURL("image/png");
   a.click();
+  await GumaHistoryWiring.save(canvas);
 }
 
 async function copyDocToClipboard() {
@@ -612,6 +614,7 @@ async function copyDocToClipboard() {
       const newCount = await window.GumaCounters?.trackDownload("firearm");
       const countEl = document.getElementById("downloadCount");
       if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+      await GumaHistoryWiring.save(canvas);
       if (btn) {
         const orig = btn.innerHTML;
         btn.textContent = "Copied!";
@@ -643,3 +646,167 @@ document.querySelectorAll("input,select").forEach((el) => {
 });
 
 addOfficerRow("involved");
+
+// ── Saved cards: serialize / hydrate / wiring ─────────────────
+
+const FD_GENERAL_IDS = [
+  "fid_no",
+  "dr_no",
+  "date_incident",
+  "day_of_week",
+  "time_incident",
+  "location",
+  "rd",
+  "report_datetime",
+  "officer_area",
+  "area_occurrence",
+];
+
+function fdRawVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+function fdChecked(id) {
+  return !!document.getElementById(id)?.checked;
+}
+
+function fdCollectOfficerRowsRaw(type) {
+  const cid = type === "involved" ? "involved-officers-container" : "witnessing-officers-container";
+  const c = document.getElementById(cid);
+  if (!c) return [];
+  return Array.from(c.querySelectorAll(".dynamic-row")).map((row) => {
+    const p = type + "_" + row.dataset.idx;
+    const g = (k) => fdRawVal(p + "_" + k);
+    return {
+      name: g("name"),
+      serial: g("serial"),
+      division: g("division"),
+      sex: g("sex"),
+      desc: g("desc"),
+      ht: g("ht"),
+      wt: g("wt"),
+      age: g("age"),
+      in_uniform: g("in_uniform"),
+      vest: g("vest"),
+      on_duty: g("on_duty"),
+      injured: g("injured"),
+      iod: g("iod"),
+      light_duty: g("light_duty"),
+    };
+  });
+}
+
+function fdCollectCivilianRowsRaw() {
+  const c = document.getElementById("civilians-container");
+  if (!c) return [];
+  return Array.from(c.querySelectorAll(".dynamic-row")).map((row) => {
+    const p = "civ_" + row.dataset.idx;
+    const g = (k) => fdRawVal(p + "_" + k);
+    return {
+      name: g("name"),
+      sex: g("sex"),
+      desc: g("desc"),
+      ht: g("ht"),
+      wt: g("wt"),
+      age: g("age"),
+      dob: g("dob"),
+      dl: g("dl"),
+      occupation: g("occupation"),
+      addr_r: g("addr_r"),
+      phone_r: g("phone_r"),
+      email: g("email"),
+      addr_b: g("addr_b"),
+      phone_b: g("phone_b"),
+      cell: g("cell"),
+      lang: g("lang"),
+      supervisor: g("supervisor"),
+    };
+  });
+}
+
+function fdSerializeState() {
+  const general = {};
+  FD_GENERAL_IDS.forEach((id) => (general[id] = fdRawVal(id)));
+  return {
+    FACTION_KEY: REPORT_FACTION,
+    custom: { customFactionName: fdRawVal("customFactionName") },
+    incidentType: {
+      cb_tactical: fdChecked("cb_tactical"),
+      cb_animal: fdChecked("cb_animal"),
+      cb_non_tactical: fdChecked("cb_non_tactical"),
+      cb_warning: fdChecked("cb_warning"),
+    },
+    general,
+    involved: fdCollectOfficerRowsRaw("involved"),
+    witnessing: fdCollectOfficerRowsRaw("witnessing"),
+    civilians: fdCollectCivilianRowsRaw(),
+  };
+}
+
+function fdFillRow(prefix, data) {
+  Object.keys(data || {}).forEach((k) => GumaHistoryWiring.setVal(prefix + "_" + k, data[k]));
+}
+
+function fdHydrateState(payload) {
+  if (!payload) return;
+  const setVal = GumaHistoryWiring.setVal;
+  const setCheck = GumaHistoryWiring.setChecked;
+
+  const fk = payload.FACTION_KEY || "lspd";
+  if (fk === "custom") {
+    setVal("customFactionName", payload.custom?.customFactionName);
+    switchReportFaction("custom");
+  } else {
+    switchReportFaction(fk);
+  }
+
+  const it = payload.incidentType || {};
+  setCheck("cb_tactical", it.cb_tactical);
+  setCheck("cb_animal", it.cb_animal);
+  setCheck("cb_non_tactical", it.cb_non_tactical);
+  setCheck("cb_warning", it.cb_warning);
+
+  const g = payload.general || {};
+  FD_GENERAL_IDS.forEach((id) => setVal(id, g[id]));
+
+  ["involved-officers-container", "witnessing-officers-container", "civilians-container"].forEach((cid) => {
+    const c = document.getElementById(cid);
+    if (c) c.innerHTML = "";
+  });
+  involvedCount = 0;
+  witnessingCount = 0;
+  civilianCount = 0;
+
+  (payload.involved || []).forEach((r) => {
+    addOfficerRow("involved");
+    fdFillRow("involved_" + involvedCount, r);
+  });
+  (payload.witnessing || []).forEach((r) => {
+    addOfficerRow("witnessing");
+    fdFillRow("witnessing_" + witnessingCount, r);
+  });
+  (payload.civilians || []).forEach((r) => {
+    addCivilianRow();
+    fdFillRow("civ_" + civilianCount, r);
+  });
+
+  refreshPreview();
+}
+
+function fdBuildLabel(payload) {
+  const off = (payload.involved && payload.involved[0]) || null;
+  const name = ((off && off.name) || "").trim();
+  const dr = (payload.general?.dr_no || "").trim();
+  const date = (payload.general?.date_incident || "").trim();
+  const who = name || dr || "Firearm Discharge";
+  return date ? `${who} — ${date}` : who;
+}
+
+GumaHistoryWiring.register({
+  key: "firearm",
+  noun: "report",
+  serialize: fdSerializeState,
+  hydrate: fdHydrateState,
+  buildLabel: fdBuildLabel,
+  buildFaction: (p) => GumaHistoryWiring.buildFaction(p, { customShort: (pp) => (pp.custom?.customFactionName || "").trim() }),
+});

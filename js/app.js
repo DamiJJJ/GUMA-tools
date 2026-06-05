@@ -495,7 +495,7 @@ async function downloadCard() {
   a.href = canvas.toDataURL("image/png");
   a.click();
   // Save a history snapshot after the canvas is in its final state.
-  await saveCardToHistory(canvas);
+  await GumaHistoryWiring.save(canvas);
 }
 
 // ── Copy to Clipboard ───────────────────────────────────────────────
@@ -509,7 +509,7 @@ async function copyCardToClipboard() {
       const countEl = document.getElementById("downloadCount");
       if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
       // Save a history snapshot on successful copy.
-      await saveCardToHistory(canvas);
+      await GumaHistoryWiring.save(canvas);
       if (btn) {
         const orig = btn.innerHTML;
         btn.textContent = "Copied!";
@@ -730,35 +730,7 @@ function hydrateOfficerCardState(payload) {
   generateCard();
 }
 
-// Shared save path for Download + Copy.
-async function saveCardToHistory(canvas) {
-  if (typeof GumaHistory === "undefined") return;
-  try {
-    const type = window.GUMA_GENERATOR_KEY ?? "officer";
-    const payload = await serializeCardState();
-    const thumbSource = payload.photoDataUrl || canvas;
-    const thumbnail = await GumaHistory._makeThumbnail(thumbSource, 64);
-    const label = buildHistoryLabel(payload);
-    const faction = buildHistoryFaction(payload);
-    GumaHistory.save(type, { schemaVersion: 1, type, label, faction, thumbnail, payload });
-  } catch (err) {
-    console.warn("[GumaHistory] save failed:", err);
-  }
-}
-
-// Small, storage-cheap faction descriptor (path only — no base64).
-function buildHistoryFaction(payload) {
-  const fk = payload.FACTION_KEY;
-  if (fk === "custom") {
-    return { key: "custom", short: (payload.custom?.customFactionName || "").trim() || "Custom", icon: "assets/custom.png" };
-  }
-  const f = FACTIONS[fk];
-  return { key: fk || "", short: f?.short || "", icon: f?.icon || "" };
-}
-
-// Expose for the drawer (Web Component in components.js).
 window.hydrateOfficerCardState = hydrateOfficerCardState;
-window.GUMA_HYDRATE = hydrateOfficerCardState; // generic hook the drawer calls
 
 // ── Employment History ─────────────────────────────────────────────────────────
 
@@ -996,4 +968,16 @@ function initGenerator({ factionType = null, defaultFaction = "lspd" } = {}) {
   generateCard();
 
   document.querySelector(".guma-panel").addEventListener("input", debounce(generateCard));
+
+  GumaHistoryWiring.register({
+    key: window.GUMA_GENERATOR_KEY,
+    noun: "card",
+    serialize: serializeCardState,
+    hydrate: hydrateOfficerCardState,
+    buildLabel: buildHistoryLabel,
+    buildFaction: (p) =>
+      GumaHistoryWiring.buildFaction(p, {
+        customShort: (pp) => (pp.custom?.customFactionName || "").trim(),
+      }),
+  });
 }

@@ -593,7 +593,7 @@ class GumaHistoryDrawer extends HTMLElement {
                  stroke-linejoin="round" class="text-guma-l-gold dark:text-guma-gold" aria-hidden="true">
               <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
             </svg>
-            <h2 class="text-sm font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Saved Cards</h2>
+            <h2 class="text-sm font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">${this._noun.title}</h2>
             <span data-gh-count class="rounded-md px-1.5 py-0.5 text-[11px] font-bold
                   bg-guma-l-panel-2 text-guma-l-muted dark:bg-guma-panel-2 dark:text-guma-muted">0</span>
           </div>
@@ -627,7 +627,7 @@ class GumaHistoryDrawer extends HTMLElement {
                class="relative w-full max-w-sm rounded-2xl border p-6 shadow-2xl
                       bg-guma-l-panel border-guma-l-border text-guma-l-text
                       dark:bg-guma-panel dark:border-guma-border dark:text-guma-text">
-            <h3 class="text-base font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text">Clear all saved cards?</h3>
+            <h3 class="text-base font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text">Clear all saved ${this._noun.many}?</h3>
             <p data-gh-confirm-msg class="mt-2 text-sm text-guma-l-muted dark:text-guma-muted"></p>
             <div class="mt-5 flex justify-end gap-2">
               <button data-gh-confirm-cancel
@@ -700,6 +700,13 @@ class GumaHistoryDrawer extends HTMLElement {
     this.render();
   }
 
+  // ── Noun for labels: "card" (default) or "report" ───────────────
+  get _noun() {
+    return window.GUMA_GENERATOR_NOUN === "report"
+      ? { one: "report", many: "reports", title: "Saved Reports" }
+      : { one: "card", many: "cards", title: "Saved Cards" };
+  }
+
   // ── Render list + button badge ──────────────────────────────────
   render() {
     if (!this._initialized) return;
@@ -714,7 +721,7 @@ class GumaHistoryDrawer extends HTMLElement {
     const btnCount = document.getElementById("gumaHistoryCount");
     if (btnCount) {
       btnCount.textContent = String(items.length);
-      btnCount.classList.toggle("hidden", items.length === 0);
+      btnCount.classList.remove("hidden");
     }
 
     if (!items.length) {
@@ -725,7 +732,7 @@ class GumaHistoryDrawer extends HTMLElement {
                stroke-linejoin="round" class="text-guma-l-muted/50 dark:text-guma-muted/40" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
           </svg>
-          <p class="text-sm text-guma-l-muted dark:text-guma-muted">No saved cards yet. Click Download or Copy to save your first one.</p>
+          <p class="text-sm text-guma-l-muted dark:text-guma-muted">No saved ${this._noun.many} yet. Click Download or Copy to save your first one.</p>
         </div>`;
       return;
     }
@@ -814,7 +821,7 @@ class GumaHistoryDrawer extends HTMLElement {
     const msg = this.querySelector("[data-gh-confirm-msg]");
     if (msg) {
       const pinNote = pins ? ` (including ${pins} pinned)` : "";
-      msg.textContent = `This will permanently delete all ${n} saved card${n === 1 ? "" : "s"}${pinNote} for this generator. This can’t be undone.`;
+      msg.textContent = `This will permanently delete all ${n} saved ${n === 1 ? this._noun.one : this._noun.many}${pinNote} for this generator. This can’t be undone.`;
     }
     const box = this.querySelector("[data-gh-confirm]");
     box.classList.remove("hidden");

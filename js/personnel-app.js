@@ -698,13 +698,14 @@ function generateDoc() {
 }
 
 // ── Download / Copy ───────────────────────────────────────────────────────────
-function downloadDoc() {
+async function downloadDoc() {
   const canvas = document.getElementById("docCanvas");
   const safeName = (document.getElementById("subjectName")?.value.trim() || "personnel_file").toLowerCase().replace(/\s+/g, "_");
   const a = document.createElement("a");
   a.download = safeName + "_personnel_file.png";
   a.href = canvas.toDataURL("image/png");
   a.click();
+  await GumaHistoryWiring.save(canvas);
 }
 
 async function copyDocToClipboard() {
@@ -716,6 +717,7 @@ async function copyDocToClipboard() {
       const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "personnel");
       const countEl = document.getElementById("downloadCount");
       if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+      await GumaHistoryWiring.save(canvas);
       if (btn) {
         const orig = btn.innerHTML;
         btn.textContent = "Copied!";
@@ -744,3 +746,89 @@ function initPersonnelGenerator({ defaultFaction = "lspd" } = {}) {
   generateDoc();
   document.querySelector(".guma-panel")?.addEventListener("input", debounce(generateDoc));
 }
+
+// ── Saved reports: serialize / hydrate / wiring ───────────────
+
+function pfSerializeState() {
+  const data = getDocData(); // already JSON-friendly
+  return Object.assign(
+    {
+      FACTION_KEY,
+      custom: { customAgencyName: document.getElementById("customAgencyName")?.value.trim() || "" },
+    },
+    data,
+  );
+}
+
+function pfHydrateState(payload) {
+  if (!payload) return;
+  const setVal = GumaHistoryWiring.setVal;
+
+  const fk = payload.FACTION_KEY || "lspd";
+  if (fk === "custom") {
+    setVal("customAgencyName", payload.custom?.customAgencyName);
+    switchFaction("custom");
+  } else {
+    switchFaction(fk);
+  }
+
+  setVal("subjectName", payload.subjectName);
+  const conf = document.getElementById("confidentialStamp");
+  if (conf) conf.checked = !!payload.confidential;
+  setVal("pfAddress", payload.address);
+  setVal("pfAttScheduled", payload.attendance?.scheduled);
+  setVal("pfAttPresent", payload.attendance?.present);
+  setVal("pfAttSick", payload.attendance?.sick);
+  setVal("pfAttLate", payload.attendance?.late);
+  setVal("pfBgStatus", payload.background?.status);
+  setVal("pfBgClearance", payload.background?.clearance);
+  setVal("pfBgDate", payload.background?.date);
+  setVal("pfNotes", payload.notes);
+
+  const rebuild = (containerId, addFn, rows, classMap) => {
+    const c = document.getElementById(containerId);
+    if (c) c.innerHTML = "";
+    (rows || []).forEach((r) => {
+      addFn();
+      const row = c && c.lastElementChild;
+      if (!row) return;
+      Object.entries(classMap).forEach(([key, cls]) => {
+        const el = row.querySelector("." + cls);
+        if (!el || r[key] == null) return;
+        if (el.tagName === "SELECT") {
+          if (Array.from(el.options).some((o) => o.value === String(r[key]))) el.value = String(r[key]);
+        } else {
+          el.value = r[key];
+        }
+      });
+    });
+  };
+
+  rebuild("pfEcRows", addEmergencyContact, payload.emergencyContacts, { name: "pf-ec-name", relationship: "pf-ec-rel", phone: "pf-ec-phone" });
+  rebuild("pfTrRows", addTrainingRow, payload.training, { date: "pf-tr-date", course: "pf-tr-course", institution: "pf-tr-inst" });
+  rebuild("pfCmRows", addCommendationRow, payload.commendations, { date: "pf-cm-date", award: "pf-cm-award", issuedBy: "pf-cm-issued" });
+  rebuild("pfDiRows", addDisciplinaryRow, payload.disciplinary, {
+    date: "pf-di-date",
+    violation: "pf-di-violation",
+    penalty: "pf-di-penalty",
+    status: "pf-di-status",
+  });
+  rebuild("pfMlRows", addMedLeaveRow, payload.medLeave, { from: "pf-ml-from", to: "pf-ml-to", reason: "pf-ml-reason" });
+  rebuild("pfWcRows", addWorkersCompRow, payload.workersComp, { claim: "pf-wc-claim", date: "pf-wc-date", incident: "pf-wc-incident", status: "pf-wc-status" });
+
+  generateDoc();
+}
+
+// Label: subject name only (faction shows as the corner badge).
+function pfBuildLabel(payload) {
+  return (payload.subjectName || "").trim() || "Unnamed";
+}
+
+GumaHistoryWiring.register({
+  key: "personnel",
+  noun: "report",
+  serialize: pfSerializeState,
+  hydrate: pfHydrateState,
+  buildLabel: pfBuildLabel,
+  buildFaction: (p) => GumaHistoryWiring.buildFaction(p, { customShort: (pp) => (pp.custom?.customAgencyName || "").trim() }),
+});
