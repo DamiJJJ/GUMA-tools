@@ -6,7 +6,7 @@ class GumaHeader extends HTMLElement {
     const current = window.location.pathname.split("/").pop() || "index.html";
 
     const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html"].includes(current);
-    const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "personnel_file_generator.html"].includes(current);
+    const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "personnel_file_generator.html", "arrest_report.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
@@ -30,8 +30,8 @@ class GumaHeader extends HTMLElement {
         <div class="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
 
           <!-- Logo -->
-          <a href="index.html"
-             class="flex-shrink-0 flex items-center rounded-xl px-3 py-1.5 transition hover:-translate-y-px">
+          <a href="index.html" id="gumaLogo"
+             class="flex-shrink-0 flex items-center rounded-xl px-3 py-1.5 transition hover:-translate-y-px cursor-pointer select-none">
             <img src="assets/logo.png" alt="GUMA Tools" class="h-8 w-auto block dark:hidden" />
             <img src="assets/logo_dark.png" alt="GUMA Tools" class="h-8 w-auto hidden dark:block" />
           </a>
@@ -111,13 +111,11 @@ class GumaHeader extends HTMLElement {
                   <img src="assets/file.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Personnel File Generator
                 </a>
-                <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
-                             border-guma-l-border text-guma-l-muted/50
-                             dark:border-guma-border dark:text-guma-muted/40">
-                  <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-30" alt="" />
-                  <span class="flex-1">Arrest Report</span>
-                  <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
-                </span>
+                <a href="arrest_report.html"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "arrest_report.html" ? dropActive : dropInactive}">
+                  <img src="assets/arrest.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Arrest Report
+                </a>
                 <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
                              border-guma-l-border text-guma-l-muted/50
                              dark:border-guma-border dark:text-guma-muted/40">
@@ -317,11 +315,12 @@ class GumaHeader extends HTMLElement {
               <img src="assets/file.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Personnel File Generator
             </a>
-            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
-              <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
-              <span class="flex-1">Arrest Report</span>
-              <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
-            </span>
+            <a href="arrest_report.html"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "arrest_report.html" ? mobActive : mobInactive}">
+              <img src="assets/arrest.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Arrest Report
+            </a>
             <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
               <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
               <span class="flex-1">Prehospital Care Report</span>
@@ -418,6 +417,22 @@ class GumaHeader extends HTMLElement {
     checkLiveStatus();
     setInterval(checkLiveStatus, 60_000);
     // ──────────────────────────────────────────────────────────────
+
+    // ── Logo: klik → gumowa piłka ──────────────────────────────────
+    const logo = this.querySelector("#gumaLogo");
+    if (logo) {
+      logo.addEventListener("click", (e) => {
+        e.preventDefault(); // nie przeładowuj strony / nie przekierowuj do index.html
+        logo.classList.remove("guma-anim-rubber");
+        void logo.offsetWidth; // restart animacji
+        logo.classList.add("guma-anim-rubber");
+      });
+
+      logo.addEventListener("animationend", () => {
+        logo.classList.remove("guma-anim-rubber");
+      });
+    }
+    // ───────────────────────────────────────────────────────────────
 
     // ── Dropdown logic ──
     const setupDropdown = (btnId, menuId, chevronId) => {
@@ -748,7 +763,7 @@ class GumaHistoryDrawer extends HTMLElement {
     listEl.innerHTML = items
       .map((it) => {
         const ring = it.pinned
-          ? "border-guma-l-gold bg-guma-l-panel-2 dark:border-guma-gold dark:bg-guma-panel-2"
+          ? "border-guma-l-gold bg-guma-l-panel dark:border-guma-gold dark:bg-guma-panel"
           : "border-guma-l-border bg-guma-l-panel dark:border-guma-border dark:bg-guma-panel";
         const pinCls = it.pinned
           ? "text-guma-l-gold dark:text-guma-gold"
