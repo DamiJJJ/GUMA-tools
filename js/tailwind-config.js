@@ -89,6 +89,29 @@ tailwind.config = {
           from: { opacity: "0", transform: "translateY(-6px) scaleY(0.96)" },
           to: { opacity: "1", transform: "translateY(0) scaleY(1)" },
         },
+        "guma-rubber-ball": {
+          // 1) mocniejsze rozciągnięcie na boki (przykucnięcie)
+          "0%": { transform: "translateY(0) scaleX(1) scaleY(1)" },
+          "11%": { transform: "translateY(0) scaleX(1.42) scaleY(0.62)" },
+          "18%": { transform: "translateY(0) scaleX(1.2) scaleY(0.8)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
+          // 2) skok 1 (najwyższy)
+          "30%": { transform: "translateY(-14px) scaleX(0.95) scaleY(1.05)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
+          "40%": { transform: "translateY(0) scaleX(1.2) scaleY(0.8)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
+          // 3) skok 2
+          "50%": { transform: "translateY(-10px) scaleX(0.96) scaleY(1.04)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
+          "59%": { transform: "translateY(0) scaleX(1.14) scaleY(0.86)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
+          // 4) skok 3
+          "67%": { transform: "translateY(-7px) scaleX(0.98) scaleY(1.03)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
+          "75%": { transform: "translateY(0) scaleX(1.09) scaleY(0.91)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
+          // 5) skok 4
+          "82%": { transform: "translateY(-4px) scaleX(0.99) scaleY(1.02)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
+          "88%": { transform: "translateY(0) scaleX(1.05) scaleY(0.95)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
+          // 6) skok 5 (najniższy)
+          "93%": { transform: "translateY(-2px) scaleX(1) scaleY(1.01)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
+          "97%": { transform: "translateY(0) scaleX(1.03) scaleY(0.97)" },
+          // 7) spoczynek
+          "100%": { transform: "translateY(0) scaleX(1) scaleY(1)" },
+        },
       },
       animation: {
         "guma-header-drop": "guma-header-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
@@ -100,6 +123,7 @@ tailwind.config = {
         "guma-mobile-open": "guma-mobile-open 0.3s cubic-bezier(0.22, 1, 0.36, 1) both",
         "guma-slide-up-out": "guma-slide-up-out 0.22s ease-in both",
         "guma-dropdown-open": "guma-dropdown-open 0.2s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "guma-rubber-ball": "guma-rubber-ball 2.1s linear both",
       },
     },
   },
@@ -159,7 +183,11 @@ tailwind.config = {
         @apply animate-guma-dropdown-open;
         transform-origin: top left;
       }
-            .guma-card {
+      .guma-anim-rubber {
+        @apply animate-guma-rubber-ball;
+        transform-origin: bottom center;
+      }
+      .guma-card {
         transition:
           transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
           border-color 0.25s ease,
