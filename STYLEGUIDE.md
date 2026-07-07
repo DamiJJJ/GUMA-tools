@@ -40,6 +40,8 @@ Wygenerowane z kodu. Update przez `/styleguide`.
     ├── animations.js           # page entrance animations
     ├── counters.js             # Supabase visit/download counters + Hot/Popular flags
     ├── factions.js             # FACTIONS dict (LSPD/LSSD/BCSO/SAHP/...)
+    ├── streets.js              # GTA V street-name pools (LS_STREETS, BLAINE_STREETS)
+    ├── random-character.js     # shared "Randomize Character" form filler
     ├── history.js              # GumaHistory — localStorage saved cards/reports engine
     ├── history-wiring.js       # GumaHistoryWiring — shared save/serialize glue
     ├── ui-helpers.js
@@ -60,6 +62,11 @@ In `<head>`, in this exact order:
 
 `theme-init.js` **must** run before paint to avoid white-flash in dark mode.
 
+Shared cross-page utilities (e.g. `js/random-character.js`) load in `<head>`
+right after `js/guma-styles.js`. Data files they depend on load first on the
+pages that need them (e.g. `js/streets.js` before `js/random-character.js`
+on the personnel file page). Page-specific scripts stay at the end of `<body>`.
+
 ## HTML conventions
 
 - `<!doctype html>` lowercase.
@@ -75,6 +82,10 @@ In `<head>`, in this exact order:
 - No inline `style="..."` except where dynamically toggled (e.g.
   `style="display: none"` placeholders that JS flips).
 - No `<style>` blocks. All CSS goes through `js/guma-styles.js`.
+- **No emoji in UI.** Buttons and controls use inline SVG icons
+  (lucide-style, 16×16, `fill="none"`, `stroke="currentColor"`,
+  stroke-width 2–2.5) so the icon inherits the button's color in both
+  themes. Monochrome text glyphs (`✕`, `✓`) in small action links are fine.
 - **Hot/Popular flags**: mark an element with `data-generator-key="<counter
   key>"` to make it eligible for a trend badge (`applyHotFlags()` decorates
   the top-2 by download count). Index tiles use the bare attribute (corner
@@ -152,6 +163,16 @@ Rules of thumb:
 - The codebase deliberately uses some globals (`faction`, `FACTION_KEY`) so
   inline `onclick` handlers can call them. Match the surrounding pattern —
   don't introduce a module system just for one file.
+- **Shared data files**: static lookup pools live in their own `/js/` file as
+  top-level `UPPER_SNAKE` consts (`FACTIONS` in `factions.js`, `LS_STREETS` /
+  `BLAINE_STREETS` in `streets.js`). Loaded via plain `<script>` before any
+  consumer; consumers guard with `typeof X !== "undefined"` when the data may
+  be absent on a page.
+- **Shared feature utilities**: cross-page logic (e.g. `js/random-character.js`)
+  is wrapped in an IIFE exposing a single `window.*` entry point
+  (`window.randomizeCharacter(generatorKey)`); it feature-detects the current
+  page via `document.getElementById(...)` and `typeof` checks on page globals
+  instead of forking per-page variants.
 
 ## Naming
 
@@ -310,6 +331,7 @@ Markup (3 additions):
 
 - Static `.css` files.
 - `<style>` blocks in HTML.
+- Emoji in buttons or GUI copy — use inline SVG icons (see HTML conventions).
 - New CDN scripts without explicit approval.
 - `npm install` / build steps / module bundlers.
 - ES module `import` / `export`.

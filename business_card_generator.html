@@ -14,6 +14,7 @@
     <script src="js/tailwind.js"></script>
     <script src="js/tailwind-config.js"></script>
     <script src="js/guma-styles.js"></script>
+    <script src="js/random-character.js"></script>
   </head>
 
   <body class="flex min-h-full flex-col">
@@ -32,6 +33,14 @@
     <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
       <!-- ════ FORM PANEL ════ -->
       <div class="guma-panel w-full p-6 xl:w-[480px] xl:flex-none guma-panel-form">
+        <!-- ── Randomize Character ── -->
+        <div class="mb-5">
+          <button type="button" class="guma-btn-outline" onclick="randomizeCharacter('businesscard')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M16 8h.01"/><path d="M8 8h.01"/><path d="M8 16h.01"/><path d="M16 16h.01"/><path d="M12 12h.01"/></svg>
+            Randomize Character
+          </button>
+        </div>
+
         <!-- Custom-only: image upload -->
         <div
           id="bcCustomImagePanel"
