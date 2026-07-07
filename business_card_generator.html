@@ -107,9 +107,11 @@
           <input class="guma-input" type="text" id="bcFullName" placeholder="John Nolan" oninput="bcRender()" />
         </div>
 
-        <!-- Badge No. (LEA/Fire) -->
+        <!-- Badge No. (optional in Custom mode) -->
         <div id="bcBadgeRow" class="mb-3">
-          <label class="guma-label" for="bcBadge">Badge No.</label>
+          <label class="guma-label" for="bcBadge">
+            Badge No. <span id="bcBadgeOptional" class="hidden text-guma-muted/60 normal-case tracking-normal">(optional)</span>
+          </label>
           <input class="guma-input" type="text" id="bcBadge" placeholder="25486" oninput="bcRender()" />
         </div>
 

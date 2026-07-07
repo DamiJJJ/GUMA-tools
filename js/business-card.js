@@ -120,7 +120,7 @@ function bcSelectFaction(key) {
   document.getElementById("bcCustomFooterPanel").style.display = isCustom ? "block" : "none";
   document.getElementById("bcRankRow").style.display = isCustom ? "none" : "block";
   document.getElementById("bcCustomRankRow").style.display = isCustom ? "block" : "none";
-  document.getElementById("bcBadgeRow").style.display = isCustom ? "none" : "block";
+  document.getElementById("bcBadgeOptional").classList.toggle("hidden", !isCustom);
 
   // Email domain hint
   const hint = document.getElementById("bcEmailHint");
@@ -316,7 +316,8 @@ async function bcRender() {
     ctx.fillText(fullName, centerX, cY);
     cY += 26;
   }
-  if (!isCustom) {
+  // Custom cards print the serial line only when a badge number is provided
+  if (!isCustom || badgeNo) {
     ctx.font = "18px 'Times New Roman', Times, serif";
     ctx.fillText("Serial No. " + (badgeNo || ""), centerX, cY);
   }

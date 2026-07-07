@@ -1,6 +1,6 @@
 # GUMA-Tools
 
-A web app for generating fictional Law Enforcement Agency documents, officer/firefighter cards, business cards and recruitment materials - inspired by real LAPD/LSSD/CHP/LAFD formats used in FiveM roleplay servers.
+A web app for generating fictional Law Enforcement Agency documents, officer/firefighter cards and business cards - inspired by real LAPD/LSSD/CHP/LAFD formats used in FiveM roleplay servers.
 Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools required.
 
 ## Live Demo
@@ -17,16 +17,15 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 | Firearm Discharge Investigation | `firearm_discharge.html`        | LAPD-style Officer-Involved Firearm Discharge Investigation report                                |
 | Traffic Collision Report        | `traffic_collision_report.html` | CHP 555-style Traffic Collision Report with dynamic party rows                                    |
 | Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file — attendance, training, commendations, discipline & medical leave |
+| Arrest Report                   | `arrest_report.html`            | LAPD-style arrest & booking report with dynamic arresting-officer rows                            |
 
 ### Coming Soon
 
-| Generator                   | Description                                               |
-| --------------------------- | --------------------------------------------------------- |
-| Police Recruitment Poster   | Print-ready recruitment poster with faction branding      |
-| Fire Department Poster      | Recruitment poster tailored with fire department insignia |
-| Prehospital Care Report     | EMS-style prehospital care / PCR document                 |
-| Fire Code Inspection Report | Fire code compliance inspection form                      |
-| Coroner Autopsy Report      | Coroner / medical examiner autopsy report                 |
+| Generator                   | Description                                |
+| --------------------------- | ------------------------------------------ |
+| Prehospital Care Report     | EMS-style prehospital care / PCR document  |
+| Fire Code Inspection Report | Fire code compliance inspection form       |
+| Coroner Autopsy Report      | Coroner / medical examiner autopsy report  |
 
 ## Features
 
@@ -37,7 +36,9 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - **Responsive header** - app logo (auto-swapped between light/dark variants), desktop nav with Generator & Report dropdowns, active page detection, "About" item, mobile hamburger menu with full panel
 - **Live on Kick badge** - pulsing badge appears in the header when the streamer is live (preview via `?preview_live=1`)
 - **Page animations** - smooth entrance animations on all pages via `js/animations.js`
-- **Per-page favicons** - each generator and report has its own browser-tab icon
+- **Per-page favicons** - each generator and report has its own browser-tab icon; the home/about favicon follows the active theme (light/dark logo variant)
+- **Saved Cards / Reports** - every generator stores exported documents in localStorage; slide-in drawer with thumbnails, pin, load & remove
+- **Hot / Popular badges** - the two most-generated tools get flame / trending-up badges on the home tiles (sorted first within their section) and small icons in the nav menus, based on global download counters
 - **Visit counter** - global page-visit count displayed in the footer (Supabase-backed)
 - **Kick social link** in the footer (replaced Twitch)
 
@@ -75,7 +76,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - **Custom mode** - upload your own logo / image, custom header title, custom footer lines
 - **Logo size slider** (30%-100%) for fine-tuning the badge / logo scale
 - **Watermark toggle** - subtle paper-texture watermark on the card surface
-- Card details: rank, full name, badge number, area, role, telephone, cell, TDD line, email (with auto-appended domain per faction), two-line address
+- Card details: rank, full name, badge number (optional in Custom mode), area, role, telephone, cell, TDD line, email (with auto-appended domain per faction), two-line address
 - Live preview rendered on HTML Canvas with paper texture
 - Download the card as a PNG file
 - **Copy to clipboard** - export the card as PNG directly to the clipboard
@@ -102,6 +103,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Location section: street, intersection, date/time, day of week, Tow Away, State Hwy Related
 - Dynamic party rows - add/remove parties (driver, pedestrian, parked vehicle, etc.)
 - Each party: DL#, vehicle info (year/make/model/color/plate), name, address, insurance, physical description, phone numbers, vehicle damage
+- **Auto age** - the age field fills in automatically from the date of birth
 - Report footer: Preparer, Reviewer, Dispatch Notified, Date Reviewed
 - Live preview rendered on HTML Canvas
 - Download the report as a PNG file
@@ -124,6 +126,18 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Live preview rendered on HTML Canvas
 - Download the document as a PNG file
 - **Copy to clipboard** - export the document as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
+### Arrest Report
+
+- Booking info: location booked, booking / DR / incident numbers
+- Arrestee details: name, sex, date of birth, residential address & phone
+- Occurrence section: location, RD, arrest and report date/time (24h)
+- Booking charge with Misdemeanor / Felony checkboxes
+- Dynamic rows - add/remove Arresting Officers
+- Live preview rendered on HTML Canvas
+- Download the report as a PNG file
+- **Copy to clipboard** - export the report as PNG directly to the clipboard
 - Download counter displayed below the export buttons
 
 ## Usage

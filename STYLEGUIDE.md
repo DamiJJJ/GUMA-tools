@@ -19,23 +19,26 @@ Wygenerowane z kodu. Update przez `/styleguide`.
 ```
 /
 ├── index.html
+├── about.html
 ├── officer_generator.html
 ├── firefighter_generator.html
 ├── business_card_generator.html
 ├── firearm_discharge.html
 ├── traffic_collision_report.html
+├── personnel_file_generator.html
+├── arrest_report.html
 ├── readme.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
 ├── manifest.json
 ├── assets/                     # logos, badges, favicons (192×192 PNG for factions)
 └── js/
-    ├── theme-init.js           # anti-FOUC, runs first
+    ├── theme-init.js           # anti-FOUC + theme-aware favicon swap, runs first
     ├── tailwind.js             # Tailwind CDN snapshot
     ├── tailwind-config.js      # design tokens (colors, shadows, fonts, keyframes)
     ├── guma-styles.js          # @layer base/components/utilities rules
     ├── components.js           # <guma-header>, <guma-footer>, <guma-history-drawer>
     ├── animations.js           # page entrance animations
-    ├── counters.js             # Supabase visit/download counters
+    ├── counters.js             # Supabase visit/download counters + Hot/Popular flags
     ├── factions.js             # FACTIONS dict (LSPD/LSSD/BCSO/SAHP/...)
     ├── history.js              # GumaHistory — localStorage saved cards/reports engine
     ├── history-wiring.js       # GumaHistoryWiring — shared save/serialize glue
@@ -72,6 +75,11 @@ In `<head>`, in this exact order:
 - No inline `style="..."` except where dynamically toggled (e.g.
   `style="display: none"` placeholders that JS flips).
 - No `<style>` blocks. All CSS goes through `js/guma-styles.js`.
+- **Hot/Popular flags**: mark an element with `data-generator-key="<counter
+  key>"` to make it eligible for a trend badge (`applyHotFlags()` decorates
+  the top-2 by download count). Index tiles use the bare attribute (corner
+  pill + moved to the front of their grid); nav links add
+  `data-hot-flag="icon"` (small right-edge icon, out of text flow).
 
 ## Tailwind & design tokens
 
@@ -112,6 +120,9 @@ in use, reuse first:
 - `guma-panel` — themed panel surface with border + shadow.
 - `guma-input`, `guma-label`, `guma-form-section` — form primitives.
 - `guma-page-title`, `guma-faction-switcher-wrap`, `guma-panel-form`, etc.
+- `guma-tile-flag` (+ `-corner` / `-icon` position modifiers, `-hot` /
+  `-popular` color modifiers) — Hot/Popular trend badges, injected by
+  `applyHotFlags()` in `js/counters.js`.
 
 Rules of thumb:
 
@@ -159,9 +170,12 @@ sibling (snake if it's a report, kebab if it's a card — match the pattern).
 
 ## Theming (dark / light)
 
-- Dark is default. `theme-init.js` reads `localStorage.theme` and toggles
-  `html.dark` synchronously before first paint.
+- Dark is default. `theme-init.js` reads `localStorage["guma-theme"]` and
+  toggles `html.dark` synchronously before first paint.
 - Light/dark toggle lives in the header (`<guma-header>`, see `components.js`).
+- Pages using the logo favicon (`index`, `about`) get it swapped to the
+  light/dark variant by `gumaApplyThemeFavicon()` (`theme-init.js`), re-run
+  on every toggle; generator pages keep their own static favicons.
 - Per-page accent: add `theme-navy`, `theme-navy-soft`, or `theme-red` to
   `<body>` — these only affect dark-mode background gradients.
 - **Every visual change must be checked in both modes.** New `guma-*` classes
@@ -177,7 +191,10 @@ sibling (snake if it's a report, kebab if it's a card — match the pattern).
 4. Create `js/<name>.js`. Mirror naming. Page-specific logic only —
    shared helpers go to `js/ui-helpers.js` or a new shared file.
 5. Register the page in `js/components.js` — update the `isCard` / `isReport`
-   arrays and the dropdown link lists, so the header highlights correctly.
+   arrays and the dropdown + mobile link lists (with `data-generator-key` +
+   `data-hot-flag="icon"`), so the header highlights correctly and the page
+   participates in Hot/Popular flags. Add the same `data-generator-key` to
+   its `index.html` tile.
 6. Wire **Saved Cards / Reports** (see the section below): page-specific
    `serialize` / `hydrate` / `buildLabel` (+ `buildFaction`), one
    `GumaHistoryWiring.register({...})`, `await GumaHistoryWiring.save(canvas)`
