@@ -38,6 +38,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - **Page animations** - smooth entrance animations on all pages via `js/animations.js`
 - **Per-page favicons** - each generator and report has its own browser-tab icon; the home/about favicon follows the active theme (light/dark logo variant)
 - **Saved Cards / Reports** - every generator stores exported documents in localStorage; slide-in drawer with thumbnails, pin, load & remove
+- **Randomize Character** - one-click random character seed on the Officer, Firefighter, Business Card and Personnel File generators: name & gender from randomuser.me (offline fallback pool included), weighted rank & division from the selected faction, age, height, weight, ethnicity, badge/serial numbers and a random Los Santos / Blaine County address; custom-faction mode fills personal fields only
 - **Hot / Popular badges** - the two most-generated tools get flame / trending-up badges on the home tiles (sorted first within their section) and small icons in the nav menus, based on global download counters
 - **Visit counter** - global page-visit count displayed in the footer (Supabase-backed)
 - **Kick social link** in the footer (replaced Twitch)

@@ -20,5 +20,5 @@ Steps:
    - Tech-stack change → update the **Tech Stack** section.
 5. Keep tone consistent with the existing readme: concise bullet points,
    `**Bold**` for feature names, em-dashes, no marketing fluff.
-6. Output as one or more code-fenced patches the user can copy-paste.
-   **Don't write to `readme.md` directly.**
+6. Apply the patches directly to `readme.md` (Edit/Write), then summarize
+   what changed. Don't commit or push.
