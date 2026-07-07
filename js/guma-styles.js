@@ -156,6 +156,28 @@
         @apply border-slate-300 bg-slate-100 text-slate-500
                dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300;
       }
+      .guma-tile-flag {
+        @apply inline-flex items-center gap-1 rounded-full border
+               px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em];
+      }
+      .guma-tile-flag-corner {
+        @apply absolute right-3 top-3 z-10;
+      }
+      /* Nav links: the trend icon sits out of flow so labels never wrap */
+      [data-hot-flag="icon"] {
+        @apply relative;
+      }
+      .guma-tile-flag-icon {
+        @apply absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center;
+      }
+      .guma-tile-flag-hot {
+        @apply border-orange-500/50 bg-orange-100 text-orange-600
+               dark:border-orange-400/50 dark:bg-orange-400/10 dark:text-orange-300;
+      }
+      .guma-tile-flag-popular {
+        @apply border-guma-l-gold/50 bg-guma-l-input text-guma-l-gold
+               dark:border-guma-gold/50 dark:bg-guma-gold/10 dark:text-guma-gold;
+      }
 
       /* ─── Form labels/inputs (card generators) ─── */
       .guma-label {

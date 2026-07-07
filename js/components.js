@@ -61,17 +61,17 @@ class GumaHeader extends HTMLElement {
                    class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
-                <a href="officer_generator.html"
+                <a href="officer_generator.html" data-generator-key="officer" data-hot-flag="icon"
                    class="${dropLinkBase} ${current === "officer_generator.html" ? dropActive : dropInactive}">
                   <img src="assets/policeman.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Officer Card Generator
                 </a>
-                <a href="firefighter_generator.html"
+                <a href="firefighter_generator.html" data-generator-key="firefighter" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "firefighter_generator.html" ? dropActive : dropInactive}">
                   <img src="assets/firefighter.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Firefighter Card Generator
                 </a>
-                <a href="business_card_generator.html"
+                <a href="business_card_generator.html" data-generator-key="business_card" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "business_card_generator.html" ? dropActive : dropInactive}">
                   <img src="assets/card_256.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Business Card Generator
@@ -96,22 +96,22 @@ class GumaHeader extends HTMLElement {
                    class="hidden absolute top-full left-0 mt-2 min-w-[240px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
-                <a href="firearm_discharge.html"
+                <a href="firearm_discharge.html" data-generator-key="firearm" data-hot-flag="icon"
                    class="${dropLinkBase} ${current === "firearm_discharge.html" ? dropActive : dropInactive}">
                   <img src="assets/shooting.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Firearm Discharge Report
                 </a>
-                <a href="traffic_collision_report.html"
+                <a href="traffic_collision_report.html" data-generator-key="traffic" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "traffic_collision_report.html" ? dropActive : dropInactive}">
                   <img src="assets/collision.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Traffic Collision Report
                 </a>
-                <a href="personnel_file_generator.html"
+                <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "personnel_file_generator.html" ? dropActive : dropInactive}">
                   <img src="assets/file.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Personnel File Generator
                 </a>
-                <a href="arrest_report.html"
+                <a href="arrest_report.html" data-generator-key="arrest" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "arrest_report.html" ? dropActive : dropInactive}">
                   <img src="assets/arrest.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Arrest Report
@@ -128,39 +128,6 @@ class GumaHeader extends HTMLElement {
                              dark:border-guma-border dark:text-guma-muted/40">
                   <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-30" alt="" />
                   <span class="flex-1">Fire Code Inspection Report</span>
-                  <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
-                </span>
-              </div>
-            </div>
-
-            <!-- Poster Generators dropdown -->
-            <div class="relative" id="gumaPostersDropdown">
-              <button id="gumaPostersBtn"
-                class="flex items-center gap-1.5 ${navLinkBase} ${navInactive}"
-                aria-haspopup="true" aria-expanded="false">
-                Poster Generators
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round"
-                     class="transition-transform duration-200" id="gumaPostersChevron">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </button>
-              <div id="gumaPostersMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[260px] rounded-xl overflow-hidden z-50
-                          border border-guma-l-border bg-guma-l-panel shadow-panel-light
-                          dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
-                <span class="flex items-center gap-2 px-4 py-3 text-sm cursor-not-allowed select-none
-                             text-guma-l-muted/50 dark:text-guma-muted/40">
-                  <img src="assets/policeman.png" class="h-5 w-5 object-contain opacity-30" alt="" />
-                  <span class="flex-1">Police Recruitment Poster</span>
-                  <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
-                </span>
-                <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
-                             border-guma-l-border text-guma-l-muted/50
-                             dark:border-guma-border dark:text-guma-muted/40">
-                  <img src="assets/firefighter.png" class="h-5 w-5 object-contain opacity-30" alt="" />
-                  <span class="flex-1">Fire Dept. Recruitment Poster</span>
                   <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
                 </span>
               </div>
@@ -275,19 +242,19 @@ class GumaHeader extends HTMLElement {
             <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
               Card Generators
             </p>
-            <a href="officer_generator.html"
+            <a href="officer_generator.html" data-generator-key="officer" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "officer_generator.html" ? mobActive : mobInactive}">
               <img src="assets/policeman.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Officer Card Generator
             </a>
-            <a href="firefighter_generator.html"
+            <a href="firefighter_generator.html" data-generator-key="firefighter" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "firefighter_generator.html" ? mobActive : mobInactive}">
               <img src="assets/firefighter.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Firefighter Card Generator
             </a>
-            <a href="business_card_generator.html"
+            <a href="business_card_generator.html" data-generator-key="business_card" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "business_card_generator.html" ? mobActive : mobInactive}">
               <img src="assets/card_256.png" class="h-5 w-5 object-contain opacity-70" alt="" />
@@ -297,25 +264,25 @@ class GumaHeader extends HTMLElement {
             <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
               Report Generators
             </p>
-            <a href="firearm_discharge.html"
+            <a href="firearm_discharge.html" data-generator-key="firearm" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "firearm_discharge.html" ? mobActive : mobInactive}">
               <img src="assets/shooting.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Firearm Discharge Report
             </a>
-            <a href="traffic_collision_report.html"
+            <a href="traffic_collision_report.html" data-generator-key="traffic" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "traffic_collision_report.html" ? mobActive : mobInactive}">
               <img src="assets/collision.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Traffic Collision Report
             </a>
-            <a href="personnel_file_generator.html"
+            <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "personnel_file_generator.html" ? mobActive : mobInactive}">
               <img src="assets/file.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Personnel File Generator
             </a>
-            <a href="arrest_report.html"
+            <a href="arrest_report.html" data-generator-key="arrest" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "arrest_report.html" ? mobActive : mobInactive}">
               <img src="assets/arrest.png" class="h-5 w-5 object-contain opacity-70" alt="" />
@@ -329,21 +296,6 @@ class GumaHeader extends HTMLElement {
             <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
               <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
               <span class="flex-1">Fire Code Inspection Report</span>
-              <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
-            </span>
-
-            <!-- Poster Generators -->
-            <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
-              Poster Generators
-            </p>
-            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
-              <img src="assets/policeman.png" class="h-5 w-5 object-contain opacity-40" alt="" />
-              <span class="flex-1">Police Recruitment Poster</span>
-              <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
-            </span>
-            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
-              <img src="assets/firefighter.png" class="h-5 w-5 object-contain opacity-40" alt="" />
-              <span class="flex-1">Fire Dept. Recruitment Poster</span>
               <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
             </span>
 
@@ -383,6 +335,7 @@ class GumaHeader extends HTMLElement {
       const next = isDark ? "light" : "dark";
       localStorage.setItem("guma-theme", next);
       document.documentElement.classList.toggle("dark", next === "dark");
+      if (typeof gumaApplyThemeFavicon === "function") gumaApplyThemeFavicon();
     });
     // ──────────────────────────────────────────────────────────────
 
@@ -460,7 +413,6 @@ class GumaHeader extends HTMLElement {
 
     setupDropdown("gumaCardsBtn", "gumaCardsMenu", "gumaCardsChevron");
     setupDropdown("gumaReportsBtn", "gumaReportsMenu", "gumaReportsChevron");
-    setupDropdown("gumaPostersBtn", "gumaPostersMenu", "gumaPostersChevron");
 
     document.addEventListener("click", () => {
       this.querySelectorAll('[id$="Menu"]:not(#gumaMobileMenu)').forEach((m) => m.classList.add("hidden"));
@@ -494,6 +446,16 @@ class GumaHeader extends HTMLElement {
         hamburger.setAttribute("aria-expanded", "true");
       }
     });
+
+    // ── Hot/Popular flags — decorate nav links + page elements ────
+    // Deferred to DOMContentLoaded so page-level [data-generator-key]
+    // targets (index tiles, page titles) are already in the DOM.
+    const decorateHotFlags = () => window.GumaCounters?.applyHotFlags?.();
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", decorateHotFlags, { once: true });
+    } else {
+      decorateHotFlags();
+    }
   }
 }
 customElements.define("guma-header", GumaHeader);

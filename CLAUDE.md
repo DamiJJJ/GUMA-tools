@@ -28,11 +28,11 @@ na HTML Canvas, export do PNG lub clipboard. Hosting: GitHub Pages.
 
 ### Repo discipline (PL)
 
-- **Nie commituj i nie pushuj nic samodzielnie.** Wszystkie zmiany w plikach
-  repo oddajesz jako patche / bloki kodu do skopiowania. Nigdy nie modyfikuj
-  plików w repo bez wyraźnej zgody użytkownika.
-- Jeśli zmiana obejmuje kilka plików — pokaż **wszystkie** patche w jednej
-  odpowiedzi, w kolejności w jakiej należy je nanieść.
+- **Nie commituj i nie pushuj nic samodzielnie.** Commity i pushe robi
+  użytkownik (albo prosi o nie wprost).
+- **Zmiany w plikach repo nanosisz samodzielnie** (Edit/Write), a po
+  zakończeniu pracy **krótko opisujesz co i gdzie zmieniłeś** — plik po
+  pliku, bez wklejania pełnych diffów.
 - Pliki tworzone na zewnątrz repo (eksporty, screenshoty, generowane assety
   do podglądu) możesz zapisywać do workspace / outputs.
 
@@ -97,9 +97,9 @@ albo _"wykonaj procedurę z `.claude/commands/changelog.md`"_. Wtedy Claude
 1. Przeczytać odpowiedni plik z `.claude/commands/<nazwa>.md` przez `Read`.
 2. Zastosować się do instrukcji w tym pliku tak, jakby były promptem
    slash commanda w Claude Code.
-3. Trzymać się reguły "don't write to repo on your own" niezależnie od
-   tego, co mówi sam plik komendy (np. `/commit` nigdy nie odpala `git commit`,
-   `/readme` nigdy nie zapisuje do `readme.md`).
+3. Trzymać się reguły "no commits/pushes on your own" niezależnie od tego,
+   co mówi sam plik komendy (np. `/commit` generuje tylko treść commit
+   message, nigdy nie odpala `git commit`).
 
 **Default rule:** nie odpalaj komend automatycznie ani w Cowork, ani w
 Claude Code. Czekaj aż użytkownik wpisze polecenie.

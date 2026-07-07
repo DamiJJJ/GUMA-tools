@@ -191,6 +191,16 @@ function addPartyRow() {
   `;
 
   container.appendChild(div);
+
+  // Auto-fill Age from DOB (registered before the generic refresh listeners
+  // so the age is already set when the preview re-renders)
+  const dobInput = div.querySelector(`#${prefix}_dob`);
+  const ageInput = div.querySelector(`#${prefix}_age`);
+  dobInput.addEventListener("input", () => {
+    const age = calcAge(dobInput.value);
+    if (age !== null) ageInput.value = String(age);
+  });
+
   div.querySelectorAll("input,select").forEach((el) => {
     el.addEventListener("input", refreshPreview);
     el.addEventListener("change", refreshPreview);
@@ -214,6 +224,18 @@ function getCode(id) {
   const v = el.value.trim();
   if (!v || v === "-") return "-";
   return v.split(" ")[0];
+}
+
+// Age in full years as of today; null for empty / invalid / future dates
+function calcAge(isoDate) {
+  if (!isoDate) return null;
+  const dob = new Date(isoDate + "T00:00:00");
+  if (isNaN(dob.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const m = now.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+  return age >= 0 && age <= 150 ? age : null;
 }
 
 function fmtDate(raw) {
