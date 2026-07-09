@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="Dami" />
-    <title>Firearm Discharge Investigation - GUMA Tools</title>
+    <title>Arrest Report - GUMA Tools</title>
 
-    <link rel="icon" href="assets/shooting.png" type="image/png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="assets/shooting.png" />
+    <link rel="icon" href="assets/arrest.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/arrest.png" />
     <link rel="manifest" href="manifest.json" />
 
     <script src="js/theme-init.js"></script>
@@ -20,130 +20,137 @@
     <guma-header></guma-header>
 
     <!-- PAGE TITLE -->
-    <div class="guma-page pt-8 pb-4">
+    <div class="guma-page pt-8 pb-6">
       <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
-        Firearm Discharge Investigation
+        Arrest Report
       </h1>
-    </div>
-
-    <!-- FACTION SWITCHER -->
-    <div class="guma-page pb-4 guma-faction-switcher-wrap">
-      <div id="factionSwitcher" class="flex flex-wrap justify-center gap-3"></div>
     </div>
 
     <!-- MAIN -->
     <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
       <!-- LEFT: FORM PANEL -->
-      <div class="guma-panel w-full p-6 xl:max-w-[580px] xl:flex-none guma-panel-form">
-        <!-- Custom faction panel (hidden by default, shown by JS) -->
-        <div
-          id="customFactionPanel"
-          style="display: none"
-          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
-        >
-          <p class="guma-form-section">Custom Faction Details</p>
-          <div class="form-group">
-            <label>Faction Name</label>
-            <input type="text" id="customFactionName" placeholder="Los Angeles Police Department" oninput="applyCustomFaction()" />
-          </div>
-        </div>
-
-        <!-- Incident type -->
-        <p class="guma-form-section">Incident Type</p>
-        <div class="checkbox-group">
-          <label class="checkbox-item"><input type="checkbox" id="cb_tactical" /> Tactical Unintentional Discharge of a Firearm</label>
-          <label class="checkbox-item"><input type="checkbox" id="cb_non_tactical" /> Non-Tactical Unintentional Discharge of a Firearm</label>
-          <label class="checkbox-item"><input type="checkbox" id="cb_animal" /> Animal Shooting</label>
-          <label class="checkbox-item"><input type="checkbox" id="cb_warning" /> Warning Shot</label>
-        </div>
-
-        <!-- Section I -->
-        <p class="guma-form-section">Section I – General Information</p>
-
+      <div class="guma-panel w-full p-6 xl:max-w-[640px] xl:flex-none guma-panel-form">
+        <!-- Booking Info -->
+        <p class="guma-form-section">Booking Info</p>
         <div class="two-col">
           <div class="form-group">
-            <label>FID No.</label>
-            <input type="text" id="fid_no" placeholder="00X-26" />
+            <label>Location Booked</label>
+            <input type="text" id="location_booked" placeholder="Mission Row Station" />
           </div>
+          <div class="form-group">
+            <label>Booking No.</label>
+            <input type="text" id="booking_no" placeholder="26-XXXXXX" />
+          </div>
+        </div>
+        <div class="two-col">
           <div class="form-group">
             <label>DR No.</label>
             <input type="text" id="dr_no" placeholder="26-XXXXXXX" />
           </div>
+          <div class="form-group">
+            <label>Inc. No.</label>
+            <input type="text" id="inc_no" placeholder="0000" />
+          </div>
         </div>
 
+        <!-- Arrestee / Suspect -->
+        <p class="guma-form-section">Arrestee / Suspect</p>
+        <div class="form-group">
+          <label>Arrestee/Suspect (Last, First, Middle)</label>
+          <input type="text" id="arrestee_name" placeholder="Doe, John Michael" />
+        </div>
         <div class="two-col">
           <div class="form-group">
-            <label>Date of Incident</label>
-            <input type="date" id="date_incident" />
-          </div>
-          <div class="form-group">
-            <label>Day of Week</label>
-            <select id="day_of_week">
+            <label>Sex</label>
+            <select id="sex">
               <option value="-">-</option>
-              <option>Monday</option>
-              <option>Tuesday</option>
-              <option>Wednesday</option>
-              <option>Thursday</option>
-              <option>Friday</option>
-              <option>Saturday</option>
-              <option>Sunday</option>
+              <option value="M">M</option>
+              <option value="F">F</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="date" id="dob" />
+          </div>
         </div>
 
+        <!-- Residential Address -->
+        <p class="guma-form-section">Residential Address</p>
+        <div class="form-group">
+          <label>Residential Address</label>
+          <input type="text" id="residential_address" placeholder="123 Main St" />
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="city" placeholder="Los Santos" />
+          </div>
+          <div class="form-group">
+            <label>Zip</label>
+            <input type="text" id="zip" placeholder="90001" />
+          </div>
+          <div class="form-group">
+            <label>Phone No.</label>
+            <input type="text" id="phone_no" placeholder="(555) 000-0000" />
+          </div>
+        </div>
+
+        <!-- Occurrence -->
+        <p class="guma-form-section">Occurrence</p>
         <div class="two-col">
           <div class="form-group">
-            <label>Time (HH:MM)</label>
-            <input type="time" id="time_incident" />
+            <label>Location of Occurrence</label>
+            <input type="text" id="location_occurrence" placeholder="Vespucci Blvd" />
           </div>
           <div class="form-group">
             <label>RD</label>
             <input type="text" id="rd" placeholder="7065" />
           </div>
         </div>
-
-        <div class="form-group">
-          <label>Location of Occurrence</label>
-          <input type="text" id="location" placeholder="Vespucci Blvd" />
-        </div>
-
         <div class="two-col">
           <div class="form-group">
-            <label>Date &amp; Time of Report</label>
-            <input type="datetime-local" id="report_datetime" />
+            <label>Date of Arrest</label>
+            <input type="date" id="date_arrest" />
           </div>
           <div class="form-group">
-            <label>Officer's Area/Division</label>
-            <input type="text" id="officer_area" placeholder="Central" />
+            <label>Time of Arrest (24h)</label>
+            <input type="time" id="time_arrest" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Date of this Report</label>
+            <input type="date" id="date_report" />
+          </div>
+          <div class="form-group">
+            <label>Time of this Report (24h)</label>
+            <input type="time" id="time_report" />
           </div>
         </div>
 
-        <div class="form-group mb-5">
-          <label>Area/Division of Occurrence</label>
-          <input type="text" id="area_occurrence" placeholder="Southwest" />
+        <!-- Charge -->
+        <p class="guma-form-section">Booking Charge</p>
+        <div class="form-group">
+          <label>Booking Charge</label>
+          <input type="text" id="booking_charge" placeholder="PC 459 - Burglary" />
+        </div>
+        <div class="mb-5 flex flex-col gap-2">
+          <label class="flex items-center gap-2 text-sm text-guma-l-text dark:text-guma-text cursor-pointer select-none">
+            <input type="checkbox" id="cb_misdemeanor" /> Misdemeanor
+          </label>
+          <label class="flex items-center gap-2 text-sm text-guma-l-text dark:text-guma-text cursor-pointer select-none">
+            <input type="checkbox" id="cb_felony" /> Felony
+          </label>
         </div>
 
-        <!-- Involved officers -->
-        <p class="guma-form-section">Involved Officer(s)</p>
-        <div id="involved-officers-container"></div>
-        <div class="mb-5">
-          <button type="button" class="btn-add" onclick="addOfficerRow('involved')">+ Add Involved Officer</button>
-        </div>
-
-        <!-- Witnessing officers -->
-        <p class="guma-form-section">Witnessing Officer(s)</p>
-        <div id="witnessing-officers-container"></div>
-        <div class="mb-5">
-          <button type="button" class="btn-add" onclick="addOfficerRow('witnessing')">+ Add Witnessing Officer</button>
-        </div>
-
-        <!-- Civilian witnesses -->
-        <p class="guma-form-section">Civilian Witnesses</p>
-        <div id="civilians-container"></div>
+        <!-- Arresting Officers -->
+        <p class="guma-form-section">Arresting Officer(s)</p>
+        <div id="officers-container"></div>
         <div class="mb-1">
-          <button type="button" class="btn-add" onclick="addCivilianRow()">+ Add Civilian</button>
+          <button type="button" id="addOfficerBtn" class="btn-add" onclick="addOfficerRow()">+ Add Officer</button>
         </div>
       </div>
+      <!-- /form panel -->
 
       <!-- RIGHT: PREVIEW PANEL -->
       <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
@@ -180,9 +187,8 @@
           </button>
         </div>
 
-        <canvas id="docCanvas" class="h-auto w-full max-w-[640px] border border-slate-300 dark:border-slate-700 bg-white shadow-canvas"></canvas>
-
-        <div class="flex w-full max-w-[640px] flex-col gap-3 sm:flex-row sm:items-stretch">
+        <canvas id="docCanvas" class="h-auto w-full max-w-[660px] border border-slate-300 dark:border-slate-700 bg-white shadow-canvas"></canvas>
+        <div class="flex w-full max-w-[660px] flex-col gap-3 sm:flex-row">
           <button type="button" class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadPng()">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -249,13 +255,13 @@
     <script src="js/history-wiring.js"></script>
     <script src="js/factions.js"></script>
     <script src="js/ui-helpers.js"></script>
-    <script src="js/firearm_discharge_investigation.js"></script>
+    <script src="js/arrest-report.js"></script>
     <script src="js/counters.js"></script>
     <script src="js/components.js"></script>
     <script src="js/animations.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        window.GumaCounters?.initDownloadCounter("firearm", "downloadCount", "downloadBtn");
+        window.GumaCounters?.initDownloadCounter("arrest", "downloadCount", "downloadBtn");
       });
     </script>
   </body>

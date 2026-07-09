@@ -19,24 +19,32 @@ Wygenerowane z kodu. Update przez `/styleguide`.
 ```
 /
 ├── index.html
+├── about.html
 ├── officer_generator.html
 ├── firefighter_generator.html
 ├── business_card_generator.html
 ├── firearm_discharge.html
 ├── traffic_collision_report.html
+├── personnel_file_generator.html
+├── arrest_report.html
+├── prehospital_care_report.html
 ├── readme.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
 ├── manifest.json
 ├── assets/                     # logos, badges, favicons (192×192 PNG for factions)
 └── js/
-    ├── theme-init.js           # anti-FOUC, runs first
+    ├── theme-init.js           # anti-FOUC + theme-aware favicon swap, runs first
     ├── tailwind.js             # Tailwind CDN snapshot
     ├── tailwind-config.js      # design tokens (colors, shadows, fonts, keyframes)
     ├── guma-styles.js          # @layer base/components/utilities rules
-    ├── components.js           # <guma-header>, <guma-footer> Web Components
+    ├── components.js           # <guma-header>, <guma-footer>, <guma-history-drawer>
     ├── animations.js           # page entrance animations
-    ├── counters.js             # Supabase visit/download counters
+    ├── counters.js             # Supabase visit/download counters + Hot/Popular flags
     ├── factions.js             # FACTIONS dict (LSPD/LSSD/BCSO/SAHP/...)
+    ├── streets.js              # GTA V street-name pools (LS_STREETS, BLAINE_STREETS)
+    ├── random-character.js     # shared "Randomize Character" form filler
+    ├── history.js              # GumaHistory — localStorage saved cards/reports engine
+    ├── history-wiring.js       # GumaHistoryWiring — shared save/serialize glue
     ├── ui-helpers.js
     └── <page>.js               # one JS file per generator/report
 ```
@@ -55,6 +63,11 @@ In `<head>`, in this exact order:
 
 `theme-init.js` **must** run before paint to avoid white-flash in dark mode.
 
+Shared cross-page utilities (e.g. `js/random-character.js`) load in `<head>`
+right after `js/guma-styles.js`. Data files they depend on load first on the
+pages that need them (e.g. `js/streets.js` before `js/random-character.js`
+on the personnel file page). Page-specific scripts stay at the end of `<body>`.
+
 ## HTML conventions
 
 - `<!doctype html>` lowercase.
@@ -70,6 +83,15 @@ In `<head>`, in this exact order:
 - No inline `style="..."` except where dynamically toggled (e.g.
   `style="display: none"` placeholders that JS flips).
 - No `<style>` blocks. All CSS goes through `js/guma-styles.js`.
+- **No emoji in UI.** Buttons and controls use inline SVG icons
+  (lucide-style, 16×16, `fill="none"`, `stroke="currentColor"`,
+  stroke-width 2–2.5) so the icon inherits the button's color in both
+  themes. Monochrome text glyphs (`✕`, `✓`) in small action links are fine.
+- **Hot/Popular flags**: mark an element with `data-generator-key="<counter
+  key>"` to make it eligible for a trend badge (`applyHotFlags()` decorates
+  the top-2 by download count). Index tiles use the bare attribute (corner
+  pill + moved to the front of their grid); nav links add
+  `data-hot-flag="icon"` (small right-edge icon, out of text flow).
 
 ## Tailwind & design tokens
 
@@ -110,6 +132,26 @@ in use, reuse first:
 - `guma-panel` — themed panel surface with border + shadow.
 - `guma-input`, `guma-label`, `guma-form-section` — form primitives.
 - `guma-page-title`, `guma-faction-switcher-wrap`, `guma-panel-form`, etc.
+- `guma-tile-flag` (+ `-corner` / `-icon` position modifiers, `-hot` /
+  `-popular` color modifiers) — Hot/Popular trend badges, injected by
+  `applyHotFlags()` in `js/counters.js`.
+
+**Report form helpers (unprefixed — deliberate exception):** report-style pages
+share a small set of non-`guma-` layout classes, also defined under
+`@layer components` in `js/guma-styles.js` and reused across `firearm_discharge`,
+`arrest_report`, `traffic_collision_report`, and `prehospital_care_report`:
+
+- `.form-group` — label-over-input field wrapper (`.form-group label` and
+  `.form-group input/select` style the children, so a bare
+  `<label>…</label><input>` inside gets the full themed treatment).
+- `.two-col` / `.three-col` / `.four-col` — 2/3/4-column form grids.
+- `.checkbox-group` / `.checkbox-item` — vertical checkbox list + a single row
+  (`<label class="checkbox-item"><input type="checkbox"> …</label>`).
+
+These predate the `guma-` prefix rule and are the established pattern for report
+forms — **reuse them as-is on new reports; don't reinvent them or rename them to
+`guma-*`.** Styling for the rendered card/document surface still goes through
+`guma-*` tokens and classes as usual.
 
 Rules of thumb:
 
@@ -139,27 +181,42 @@ Rules of thumb:
 - The codebase deliberately uses some globals (`faction`, `FACTION_KEY`) so
   inline `onclick` handlers can call them. Match the surrounding pattern —
   don't introduce a module system just for one file.
+- **Shared data files**: static lookup pools live in their own `/js/` file as
+  top-level `UPPER_SNAKE` consts (`FACTIONS` in `factions.js`, `LS_STREETS` /
+  `BLAINE_STREETS` in `streets.js`). Loaded via plain `<script>` before any
+  consumer; consumers guard with `typeof X !== "undefined"` when the data may
+  be absent on a page.
+- **Shared feature utilities**: cross-page logic (e.g. `js/random-character.js`)
+  is wrapped in an IIFE exposing a single `window.*` entry point
+  (`window.randomizeCharacter(generatorKey)`); it feature-detects the current
+  page via `document.getElementById(...)` and `typeof` checks on page globals
+  instead of forking per-page variants.
 
 ## Naming
 
 | Thing                | Convention                    | Example                                                  |
 | -------------------- | ----------------------------- | -------------------------------------------------------- |
 | HTML files           | snake_case                    | `firearm_discharge.html`                                 |
-| JS files             | kebab- _or_ snake-case        | `business-card.js`, `firearm_discharge_investigation.js` |
+| JS files             | kebab-case                    | `business-card.js`, `arrest-report.js`, `prehospital-care-report.js` |
 | HTML IDs             | camelCase                     | `customFactionPanel`, `photoInput`                       |
 | Tailwind utilities   | kebab-case (Tailwind default) | `bg-guma-l-panel`                                        |
 | Custom component cls | kebab + `guma-` prefix        | `guma-input`, `guma-panel`                               |
 | JS functions         | camelCase                     | `switchFaction()`                                        |
 | JS constants         | UPPER_SNAKE_CASE              | `FACTIONS`, `GUMA_VERSION`                               |
 
-For a new JS file paired with a new HTML page, mirror the nearest existing
-sibling (snake if it's a report, kebab if it's a card — match the pattern).
+New JS files use **kebab-case** — cards *and* reports alike
+(`arrest-report.js`, `traffic-collision-report.js`, `prehospital-care-report.js`).
+`firearm_discharge_investigation.js` is a lone legacy snake_case holdover; don't
+copy it. Paired HTML pages stay `snake_case.html` regardless.
 
 ## Theming (dark / light)
 
-- Dark is default. `theme-init.js` reads `localStorage.theme` and toggles
-  `html.dark` synchronously before first paint.
+- Dark is default. `theme-init.js` reads `localStorage["guma-theme"]` and
+  toggles `html.dark` synchronously before first paint.
 - Light/dark toggle lives in the header (`<guma-header>`, see `components.js`).
+- Pages using the logo favicon (`index`, `about`) get it swapped to the
+  light/dark variant by `gumaApplyThemeFavicon()` (`theme-init.js`), re-run
+  on every toggle; generator pages keep their own static favicons.
 - Per-page accent: add `theme-navy`, `theme-navy-soft`, or `theme-red` to
   `<body>` — these only affect dark-mode background gradients.
 - **Every visual change must be checked in both modes.** New `guma-*` classes
@@ -172,21 +229,130 @@ sibling (snake if it's a report, kebab if it's a card — match the pattern).
 2. Add body class: `theme-navy-soft` (cards), `theme-red` (fire), default
    navy for index/business-card.
 3. Drop in `<guma-header>` + `<guma-footer>`.
-4. Create `js/<name>.js`. Mirror naming. Page-specific logic only —
-   shared helpers go to `js/ui-helpers.js` or a new shared file.
+4. Create `js/<name>.js` (kebab-case, even for reports). Page-specific logic
+   only — shared helpers go to `js/ui-helpers.js` or a new shared file. Reports
+   reuse the `.form-group` / `.two-col` / `.checkbox-item` form helpers.
 5. Register the page in `js/components.js` — update the `isCard` / `isReport`
-   arrays and the dropdown link lists, so the header highlights correctly.
-6. Update `readme.md`: add a row to the **Available Generators** table and
+   arrays and the dropdown + mobile link lists (with `data-generator-key` +
+   `data-hot-flag="icon"`), so the header highlights correctly and the page
+   participates in Hot/Popular flags. Add the same `data-generator-key` to
+   its `index.html` tile.
+6. Wire **Saved Cards / Reports** (see the section below): page-specific
+   `serialize` / `hydrate` / `buildLabel` (+ `buildFaction`), one
+   `GumaHistoryWiring.register({...})`, `await GumaHistoryWiring.save(canvas)`
+   in Download + Copy, and the 3 markup additions (Saved button, drawer,
+   `history.js` + `history-wiring.js` first).
+7. Update `readme.md`: add a row to the **Available Generators** table and
    a Features sub-section (use `/readme`).
-7. Add a faction icon / asset to `assets/` if needed (192×192 PNG to match
+8. Add a faction icon / asset to `assets/` if needed (192×192 PNG to match
    the rest).
-8. Test in light + dark. Test PNG download and clipboard copy paths.
-9. Use `/commit` for the commit message, `/changelog` for the announcement.
+9. Test in light + dark. Test PNG download and clipboard copy paths, plus
+   save → reload from the drawer.
+10. Use `/commit` for the commit message, `/changelog` for the announcement.
+
+## Saved Cards / Reports (history)
+
+Every generator can persist exported documents to `localStorage` and reload
+them into the form. The engine is **generator-agnostic** — you only wire the
+page-specific parts.
+
+Three shared pieces (don't fork them):
+
+- **`js/history.js`** → `window.GumaHistory`: storage API (`save` / `list` /
+  `load` / `setPinned` / `remove` / `clear` / `subscribe`) keyed by
+  `guma:history:<key>`. Dedup of identical consecutive saves, pinned-aware
+  FIFO trim (limit 10 unpinned), quota recovery. Plus helpers
+  `_downscaleAvatar`, `_makeThumbnail`.
+- **`js/history-wiring.js`** → `window.GumaHistoryWiring`: owns the save
+  orchestration, the `GUMA_*` globals and the universal faction descriptor.
+  API: `register(cfg)`, `save(canvas)`, `buildFaction(payload, opts)`,
+  `setVal(id, v)`, `setChecked(id, v)`.
+- **`<guma-history-drawer>`** (in `js/components.js`): the whole drawer UI
+  (list, pin, remove, clear-all modal, counter, faction badge). Reads
+  `window.GUMA_GENERATOR_KEY`, `window.GUMA_GENERATOR_NOUN`, and calls
+  `window.GUMA_HYDRATE`. **Don't touch the drawer** to wire a new page.
+
+### Globals the engine reads
+
+| Global                   | Set by                  | Purpose                                  |
+| ------------------------ | ----------------------- | ---------------------------------------- |
+| `GUMA_GENERATOR_KEY`     | `register({ key })`     | storage namespace (`guma:history:<key>`) |
+| `GUMA_GENERATOR_NOUN`    | `register({ noun })`    | `"card"` (default) or `"report"` — drawer copy |
+| `GUMA_HYDRATE`           | `register({ hydrate })` | function the drawer calls on load        |
+
+`noun` = `"card"` for cards/business cards, `"report"` for report-style docs
+(firearm, traffic, personnel) — drives "Saved Cards" vs "Saved Reports".
+
+### Wiring a new generator (recipe)
+
+In `js/<page>.js`, write only the page-specific functions, then register:
+
+```js
+// ── Saved cards: serialize / hydrate / wiring ─────────────────
+function pgSerializeState() {
+  // JSON-friendly snapshot of the real form fields. May be async if there's
+  // a photo: photoDataUrl = await GumaHistory._downscaleAvatar(src, w, h)
+  // (use the real canvas slot dims). Stable output — no random/time fields.
+}
+function pgHydrateState(payload) {
+  // Inverse, safe (missing field = no-op). Faction first (switchFaction(...)),
+  // then GumaHistoryWiring.setVal / setChecked, then rebuild dynamic rows in
+  // saved order, then call the page's render fn (generate.../refreshPreview()).
+}
+function pgBuildLabel(payload) {
+  // Short human title from the key fields. Don't repeat info already shown by
+  // the corner faction badge.
+}
+
+GumaHistoryWiring.register({
+  key: "<unique-key>",
+  noun: "report", // or "card"
+  serialize: pgSerializeState,
+  hydrate: pgHydrateState,
+  buildLabel: pgBuildLabel,
+  // omit buildFaction entirely if the page has no faction switcher
+  buildFaction: (p) =>
+    GumaHistoryWiring.buildFaction(p, { customShort: (pp) => /* custom name */ "" }),
+});
+```
+
+Then in the page's Download **and** Copy handlers, after the PNG is in its
+final state, call `await GumaHistoryWiring.save(canvas)` (the real page canvas).
+`save()` picks the thumbnail source automatically: `payload.photoDataUrl` if
+present, otherwise the canvas.
+
+Markup (3 additions):
+
+1. **Saved button** in the preview-panel header (next to "Preview"/"Document",
+   far right), `border-2` gold accent — copy the block from any wired page.
+   The drawer updates `#gumaHistoryCount` itself (shows `0` when empty).
+2. `<guma-history-drawer></guma-history-drawer>` just before `</body>`.
+3. End-of-body script order: `history.js` → `history-wiring.js` first, then
+   `components.js` and the page JS:
+
+```html
+<script src="js/history.js"></script>
+<script src="js/history-wiring.js"></script>
+<!-- ...components.js, page JS, etc. -->
+```
+
+### Rules
+
+- **Faction descriptor stores a path only** (`FACTIONS[key].icon` /
+  `assets/custom.png`) — never base64. Pages without factions: omit
+  `buildFaction`, the badge just won't render.
+- Serialize output must be **stable** — dedup compares `JSON.stringify(payload)`.
+- Dynamic rows: serialize an array, hydrate by clearing the container,
+  resetting its counter, and re-adding rows in saved order (mind whether the
+  page's add-row prepends or appends).
+- No `alert`/`confirm` — "✕ Remove" deletes immediately; the only modal is the
+  drawer's built-in "Clear all".
 
 ## Things to avoid
 
 - Static `.css` files.
 - `<style>` blocks in HTML.
+- Emoji in buttons or GUI copy — use inline SVG icons (see HTML conventions).
 - New CDN scripts without explicit approval.
 - `npm install` / build steps / module bundlers.
 - ES module `import` / `export`.

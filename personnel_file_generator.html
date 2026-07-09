@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="Dami" />
-    <title>Personnel File Generator — GUMA Tools</title>
+    <title>Personnel File Generator - GUMA Tools</title>
     <link rel="icon" href="assets/file.png" type="image/png" />
     <link rel="apple-touch-icon" sizes="192x192" href="assets/file.png" />
     <link rel="manifest" href="manifest.json" />
@@ -12,6 +12,8 @@
     <script src="js/tailwind.js"></script>
     <script src="js/tailwind-config.js"></script>
     <script src="js/guma-styles.js"></script>
+    <script src="js/streets.js"></script>
+    <script src="js/random-character.js"></script>
   </head>
 
   <body class="theme-navy-soft flex min-h-full flex-col">
@@ -39,6 +41,14 @@
           <p class="guma-form-section mb-3">Custom Agency</p>
           <label class="guma-label">Agency Name</label>
           <input class="guma-input" type="text" id="customAgencyName" placeholder="Los Angeles Police Department" oninput="applyCustomFaction()" />
+        </div>
+
+        <!-- ── Randomize Character ── -->
+        <div class="mb-5">
+          <button type="button" class="guma-btn-outline" onclick="randomizeCharacter('personnel')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M16 8h.01"/><path d="M8 8h.01"/><path d="M8 16h.01"/><path d="M16 16h.01"/><path d="M12 12h.01"/></svg>
+            Randomize Character
+          </button>
         </div>
 
         <!-- Document Details -->
@@ -177,12 +187,38 @@
 
       <!-- ════ PREVIEW PANEL ════ -->
       <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
-        <p
-          class="self-start mb-0 border-b border-guma-l-border dark:border-guma-border pb-2 w-full text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold"
-        >
-          Preview
-        </p>
-
+        <div class="mb-4 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
+          <button
+            id="gumaHistoryBtn"
+            type="button"
+            aria-label="Open saved cards"
+            onclick="document.querySelector('guma-history-drawer')?.open()"
+            class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3v5h5" />
+              <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+              <path d="M12 7v5l4 2" />
+            </svg>
+            Saved
+            <span
+              id="gumaHistoryCount"
+              class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+            ></span>
+          </button>
+        </div>
         <canvas id="docCanvas" width="840" height="1200" class="h-auto w-full max-w-[660px] shadow-canvas"></canvas>
 
         <div class="flex w-full max-w-[660px] flex-col gap-3 sm:flex-row sm:items-stretch">
@@ -247,6 +283,10 @@
     </main>
 
     <guma-footer></guma-footer>
+    <guma-history-drawer></guma-history-drawer>
+
+    <script src="js/history.js"></script>
+    <script src="js/history-wiring.js"></script>
     <script src="js/counters.js"></script>
     <script src="js/components.js"></script>
     <script src="js/factions.js"></script>

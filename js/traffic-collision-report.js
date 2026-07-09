@@ -191,6 +191,16 @@ function addPartyRow() {
   `;
 
   container.appendChild(div);
+
+  // Auto-fill Age from DOB (registered before the generic refresh listeners
+  // so the age is already set when the preview re-renders)
+  const dobInput = div.querySelector(`#${prefix}_dob`);
+  const ageInput = div.querySelector(`#${prefix}_age`);
+  dobInput.addEventListener("input", () => {
+    const age = calcAge(dobInput.value);
+    if (age !== null) ageInput.value = String(age);
+  });
+
   div.querySelectorAll("input,select").forEach((el) => {
     el.addEventListener("input", refreshPreview);
     el.addEventListener("change", refreshPreview);
@@ -214,6 +224,18 @@ function getCode(id) {
   const v = el.value.trim();
   if (!v || v === "-") return "-";
   return v.split(" ")[0];
+}
+
+// Age in full years as of today; null for empty / invalid / future dates
+function calcAge(isoDate) {
+  if (!isoDate) return null;
+  const dob = new Date(isoDate + "T00:00:00");
+  if (isNaN(dob.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const m = now.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+  return age >= 0 && age <= 150 ? age : null;
 }
 
 function fmtDate(raw) {
@@ -747,12 +769,14 @@ function refreshPreview() {
   drawForm();
 }
 
-function downloadPng() {
+async function downloadPng() {
   drawForm();
+  const canvas = document.getElementById("docCanvas");
   const a = document.createElement("a");
   a.download = "traffic-collision-report.png";
-  a.href = document.getElementById("docCanvas").toDataURL("image/png");
+  a.href = canvas.toDataURL("image/png");
   a.click();
+  await GumaHistoryWiring.save(canvas);
 }
 
 async function copyDocToClipboard() {
@@ -765,6 +789,7 @@ async function copyDocToClipboard() {
       const newCount = await window.GumaCounters?.trackDownload("traffic");
       const countEl = document.getElementById("downloadCount");
       if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+      await GumaHistoryWiring.save(canvas);
       if (btn) {
         const orig = btn.innerHTML;
         btn.textContent = "Copied!";
@@ -783,3 +808,126 @@ document.querySelectorAll("input,select").forEach((el) => {
 });
 
 addPartyRow();
+
+// ── Saved reports: serialize / hydrate / wiring ───────────────
+
+const TC_SCALAR_FIELDS = [
+  "state_name",
+  "num_injured",
+  "num_killed",
+  "judicial_district",
+  "local_report_no",
+  "ncic",
+  "officer_id",
+  "tow_away",
+  "state_hwy_rel",
+  "collision_street",
+  "collision_date",
+  "collision_time",
+  "day_of_week",
+  "intersection_with",
+  "distance_from",
+  "preparer_name",
+  "dispatch_notified",
+  "reviewer_name",
+  "date_reviewed",
+];
+const TC_PARTY_FIELDS = [
+  "type",
+  "dl",
+  "dl_state",
+  "name",
+  "address",
+  "city",
+  "sex",
+  "race",
+  "age",
+  "dob",
+  "veh_year",
+  "veh_make",
+  "veh_plate",
+  "safety",
+  "dir",
+  "owner_name",
+  "owner_addr",
+  "insurance",
+  "policy",
+  "speed",
+  "damage",
+  "defects",
+  "phone_h",
+  "phone_b",
+];
+
+function tcRawVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+function tcChecked(id) {
+  return !!document.getElementById(id)?.checked;
+}
+
+function tcCollectPartiesRaw() {
+  const c = document.getElementById("parties-container");
+  if (!c) return [];
+  return Array.from(c.querySelectorAll(".dynamic-row")).map((row) => {
+    const p = "party_" + row.dataset.idx;
+    const o = {};
+    TC_PARTY_FIELDS.forEach((k) => (o[k] = tcRawVal(p + "_" + k)));
+    return o;
+  });
+}
+
+function tcSerializeState() {
+  const fields = {};
+  TC_SCALAR_FIELDS.forEach((id) => (fields[id] = tcRawVal(id)));
+  return {
+    fields,
+    checks: {
+      cb_hit_run_misdemeanor: tcChecked("cb_hit_run_misdemeanor"),
+      cb_hit_run_felony: tcChecked("cb_hit_run_felony"),
+    },
+    parties: tcCollectPartiesRaw(),
+  };
+}
+
+function tcHydrateState(payload) {
+  if (!payload) return;
+  const setVal = GumaHistoryWiring.setVal;
+
+  const f = payload.fields || {};
+  TC_SCALAR_FIELDS.forEach((id) => setVal(id, f[id]));
+
+  const ch = payload.checks || {};
+  GumaHistoryWiring.setChecked("cb_hit_run_misdemeanor", ch.cb_hit_run_misdemeanor);
+  GumaHistoryWiring.setChecked("cb_hit_run_felony", ch.cb_hit_run_felony);
+
+  const c = document.getElementById("parties-container");
+  if (c) c.innerHTML = "";
+  partyCount = 0;
+  (payload.parties || []).forEach((p) => {
+    addPartyRow();
+    const prefix = "party_" + partyCount;
+    TC_PARTY_FIELDS.forEach((k) => setVal(prefix + "_" + k, p[k]));
+  });
+
+  refreshPreview();
+}
+
+function tcBuildLabel(payload) {
+  const f = payload.fields || {};
+  const rep = (f.local_report_no || "").trim();
+  const date = (f.collision_date || "").trim();
+  const party = ((payload.parties && payload.parties[0] && payload.parties[0].name) || "").trim();
+  const head = rep ? "Report " + rep : party || "Traffic Collision";
+  return date ? `${head} — ${date}` : head;
+}
+
+GumaHistoryWiring.register({
+  key: "traffic",
+  noun: "report",
+  serialize: tcSerializeState,
+  hydrate: tcHydrateState,
+  buildLabel: tcBuildLabel,
+  // no buildFaction — traffic report has no faction
+});

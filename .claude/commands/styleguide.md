@@ -21,5 +21,5 @@ Steps:
    Things to avoid.
 4. Where conventions disagree between files, **surface the conflict** instead
    of silently picking one. Ask which way to go.
-5. Output as a patch (or full file content if regenerating).
-   **Don't write to `STYLEGUIDE.md` directly.**
+5. Apply the changes directly to `STYLEGUIDE.md` (Edit/Write), then summarize
+   what changed, section by section. Don't commit or push.

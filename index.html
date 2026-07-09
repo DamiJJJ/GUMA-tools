@@ -40,7 +40,7 @@
         </div>
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          <a href="officer_generator.html" class="guma-card group guma-tile-stagger">
+          <a href="officer_generator.html" data-generator-key="officer" class="guma-card group guma-tile-stagger">
             <div class="guma-badge-wrap">
               <img src="assets/policeman.png" alt="Officer generator icon" />
             </div>
@@ -53,7 +53,7 @@
             </div>
           </a>
 
-          <a href="firefighter_generator.html" class="guma-card group guma-tile-stagger">
+          <a href="firefighter_generator.html" data-generator-key="firefighter" class="guma-card group guma-tile-stagger">
             <div class="guma-badge-wrap">
               <img src="assets/firefighter.png" alt="Firefighter generator icon" />
             </div>
@@ -66,7 +66,7 @@
             </div>
           </a>
 
-          <a href="business_card_generator.html" class="guma-card group guma-tile-stagger">
+          <a href="business_card_generator.html" data-generator-key="business_card" class="guma-card group guma-tile-stagger">
             <div class="guma-badge-wrap">
               <img src="assets/card_256.png" alt="Business card generator icon" />
             </div>
@@ -88,7 +88,7 @@
         </div>
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          <a href="firearm_discharge.html" class="guma-card group guma-tile-stagger">
+          <a href="firearm_discharge.html" data-generator-key="firearm" class="guma-card group guma-tile-stagger">
             <div class="guma-badge-wrap">
               <img src="assets/shooting.png" alt="Firearm discharge report icon" />
             </div>
@@ -101,7 +101,7 @@
             </div>
           </a>
 
-          <a href="traffic_collision_report.html" class="guma-card group guma-tile-stagger">
+          <a href="traffic_collision_report.html" data-generator-key="traffic" class="guma-card group guma-tile-stagger">
             <div class="guma-badge-wrap">
               <img src="assets/collision.png" alt="Traffic collision report icon" />
             </div>
@@ -114,7 +114,7 @@
             </div>
           </a>
 
-          <a href="personnel_file_generator.html" class="guma-card group guma-tile-stagger">
+          <a href="personnel_file_generator.html" data-generator-key="personnel" class="guma-card group guma-tile-stagger">
             <div class="guma-badge-wrap">
               <img src="assets/file.png" alt="Personnel file generator icon" />
             </div>
@@ -127,14 +127,40 @@
             </div>
           </a>
 
-          <div class="guma-card guma-card-disabled group guma-tile-stagger">
+          <a href="arrest_report.html" data-generator-key="arrest" class="guma-card group guma-tile-stagger">
             <div class="guma-badge-wrap">
-              <img src="assets/placeholder.png" alt="Prehospital care report icon" />
+              <img src="assets/arrest.png" alt="Arrest Report icon" />
             </div>
 
             <div class="flex flex-1 flex-col">
-              <h3 class="guma-card-title">Prehospital Care Report</h3>
-              <p class="guma-card-desc">Future generator for medical and prehospital care documentation.</p>
+              <h3 class="guma-card-title group-hover:text-guma-gold">Arrest Report</h3>
+              <p class="guma-card-desc">Report generator for arrest documentation and booking input forms with structured workflow.</p>
+
+              <span class="guma-status guma-status-available">Available</span>
+            </div>
+          </a>
+
+          <a href="prehospital_care_report.html" data-generator-key="pcr" class="guma-card group guma-tile-stagger">
+            <div class="guma-badge-wrap">
+              <img src="assets/hospital.png" alt="Prehospital care report icon" />
+            </div>
+
+            <div class="flex flex-1 flex-col">
+              <h3 class="guma-card-title group-hover:text-guma-gold">Pre-Hospital Care Report</h3>
+              <p class="guma-card-desc">Report generator for EMS prehospital care documentation with structured report workflow.</p>
+
+              <span class="guma-status guma-status-available">Available</span>
+            </div>
+          </a>
+
+          <div class="guma-card guma-card-disabled group guma-tile-stagger">
+            <div class="guma-badge-wrap">
+              <img src="assets/placeholder.png" alt="Investigative Report icon" />
+            </div>
+
+            <div class="flex flex-1 flex-col">
+              <h3 class="guma-card-title">Investigative Report</h3>
+              <p class="guma-card-desc">Future generator for Investigative Report.</p>
 
               <span class="guma-status guma-status-soon">Coming soon</span>
             </div>
@@ -148,57 +174,6 @@
             <div class="flex flex-1 flex-col">
               <h3 class="guma-card-title">Fire Code Inspection Report</h3>
               <p class="guma-card-desc">Future generator for Fire Code Inspection Report.</p>
-
-              <span class="guma-status guma-status-soon">Coming soon</span>
-            </div>
-          </div>
-
-          <div class="guma-card guma-card-disabled group guma-tile-stagger">
-            <div class="guma-badge-wrap">
-              <img src="assets/placeholder.png" alt="Coroner Autopsy Report icon" />
-            </div>
-
-            <div class="flex flex-1 flex-col">
-              <h3 class="guma-card-title">Coroner Autopsy Report</h3>
-              <p class="guma-card-desc">Future generator for Coroner Autopsy Report.</p>
-
-              <span class="guma-status guma-status-soon">Coming soon</span>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section class="guma-page pb-14 md:pb-20">
-        <div class="mb-6 md:mb-8 guma-reveal">
-          <h2 class="guma-section-title">Recruitment Poster Generators</h2>
-          <p class="guma-section-subtitle">Design and export ready-to-use recruitment materials</p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          <div class="guma-card guma-card-disabled group guma-tile-stagger">
-            <div class="guma-badge-wrap">
-              <img src="assets/policeman.png" alt="Police recruitment poster icon" />
-            </div>
-
-            <div class="flex flex-1 flex-col">
-              <h3 class="guma-card-title">Police Recruitment Poster</h3>
-              <p class="guma-card-desc">
-                Create a polished, print-ready recruitment poster for the police department - customised with faction branding and officer details.
-              </p>
-
-              <span class="guma-status guma-status-soon">Coming soon</span>
-            </div>
-          </div>
-
-          <div class="guma-card guma-card-disabled group guma-tile-stagger">
-            <div class="guma-badge-wrap">
-              <img src="assets/firefighter.png" alt="Fire department recruitment poster icon" />
-            </div>
-
-            <div class="flex flex-1 flex-col">
-              <h3 class="guma-card-title">Fire Department Recruitment Poster</h3>
-              <p class="guma-card-desc">
-                Generate a striking recruitment poster for the fire department, tailored with faction insignia and ready to attract dedicated applicants.
-              </p>
 
               <span class="guma-status guma-status-soon">Coming soon</span>
             </div>
