@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Pre-Hospital Care Report - GUMA Tools</title>
+
+    <link rel="icon" href="assets/hospital.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/hospital.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+  </head>
+
+  <body class="theme-navy-soft flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <!-- PAGE TITLE -->
+    <div class="guma-page pt-8 pb-4">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Pre-Hospital Care Report
+      </h1>
+    </div>
+
+    <!-- MAIN -->
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- LEFT: FORM PANEL -->
+      <div class="guma-panel w-full p-6 xl:max-w-[580px] xl:flex-none guma-panel-form">
+        <!-- Report numbers (1–2) -->
+        <p class="guma-form-section">Report Numbers</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>1. Patient Care Report #</label>
+            <input type="text" id="pcr_report_no" placeholder="PCR-26-00123" />
+          </div>
+          <div class="form-group">
+            <label>2. EMS Response #</label>
+            <input type="text" id="ems_response_no" placeholder="R-26-04471" />
+          </div>
+        </div>
+
+        <!-- Incident & unit (3–7) -->
+        <p class="guma-form-section">Incident &amp; Unit</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>3. Incident Date</label>
+            <input type="date" id="incident_date" />
+          </div>
+          <div class="form-group">
+            <label>4. EMS Agcy #</label>
+            <input type="text" id="ems_agcy" placeholder="0142" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>5. Call Sign</label>
+            <input type="text" id="unit_callsign" placeholder="MED-12" />
+          </div>
+          <div class="form-group">
+            <label>6. Vehicle #</label>
+            <input type="text" id="unit_vehicle" placeholder="A-207" />
+          </div>
+          <div class="form-group">
+            <label>7. Station #</label>
+            <input type="text" id="station_no" placeholder="7" />
+          </div>
+        </div>
+
+        <!-- Dispatch (8–10) -->
+        <p class="guma-form-section">Dispatch &amp; Unit Role</p>
+        <div class="form-group">
+          <label>8. Complaint Reported By Dispatch</label>
+          <input type="text" id="complaint" placeholder="Chest Pain / Cardiac" />
+        </div>
+
+        <p class="mb-2 mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-guma-l-muted dark:text-guma-muted">
+          9. Emergency Medical Dispatch Performed
+        </p>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" id="emd_no" /> No</label>
+          <label class="checkbox-item"><input type="checkbox" id="emd_yes_with" /> Yes, With Pre-Arrival Instructions</label>
+          <label class="checkbox-item"><input type="checkbox" id="emd_yes_without" /> Yes, Without Pre-Arrival Instructions</label>
+          <label class="checkbox-item"><input type="checkbox" id="emd_yes_unknown" /> Yes, Unknown if Pre-Arrival Instructions Given</label>
+        </div>
+
+        <p class="mb-2 mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-guma-l-muted dark:text-guma-muted">
+          10. Primary Role of the Unit
+        </p>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
+          <label class="checkbox-item"><input type="checkbox" id="role_air_heli" /> Air Trans.-Helicopter</label>
+          <label class="checkbox-item"><input type="checkbox" id="role_air_fixed" /> Air Trans.-Fixed Wing</label>
+          <label class="checkbox-item"><input type="checkbox" id="role_ground" /> Ground Trans.</label>
+          <label class="checkbox-item"><input type="checkbox" id="role_nontrans_rescue" /> Non-Trans.-Rescue</label>
+          <label class="checkbox-item"><input type="checkbox" id="role_nontrans_assist" /> Non-Trans.-Assist</label>
+        </div>
+
+        <!-- Level of care (11) -->
+        <p class="guma-form-section">11. Level of Care of This Unit</p>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
+          <label class="checkbox-item"><input type="checkbox" id="loc_bls_emr" /> BLS-EMR</label>
+          <label class="checkbox-item"><input type="checkbox" id="loc_bls_emt" /> BLS-EMT</label>
+          <label class="checkbox-item"><input type="checkbox" id="loc_als_int" /> ALS-Intermediate</label>
+          <label class="checkbox-item"><input type="checkbox" id="loc_als_para" /> ALS-Paramedic</label>
+          <label class="checkbox-item"><input type="checkbox" id="loc_als_aemt" /> ALS-AEMT</label>
+          <label class="checkbox-item"><input type="checkbox" id="loc_als_nurse" /> ALS-Nurse</label>
+          <label class="checkbox-item"><input type="checkbox" id="loc_als_phys" /> ALS-Physician</label>
+          <label class="checkbox-item"><input type="checkbox" id="loc_spec_cc" /> Specialty Critical Care</label>
+        </div>
+
+        <!-- Type of service (12) -->
+        <p class="guma-form-section">12. Type of Service Requested</p>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
+          <label class="checkbox-item"><input type="checkbox" id="svc_911_scene" /> 911 Response (Scene)</label>
+          <label class="checkbox-item"><input type="checkbox" id="svc_911_interfac" /> 911 Response (Inter-Facility Transport)</label>
+          <label class="checkbox-item"><input type="checkbox" id="svc_interfac_routine" /> Inter-Facility Transport (Routine)</label>
+          <label class="checkbox-item"><input type="checkbox" id="svc_intercept" /> Intercept</label>
+          <label class="checkbox-item"><input type="checkbox" id="svc_mutual" /> Mutual Aid</label>
+          <label class="checkbox-item"><input type="checkbox" id="svc_public" /> Public Assistance/Other Not Listed</label>
+          <label class="checkbox-item"><input type="checkbox" id="svc_medical" /> Medical Transport</label>
+          <label class="checkbox-item"><input type="checkbox" id="svc_standby" /> Standby</label>
+        </div>
+
+        <!-- Response mode (13–14) -->
+        <p class="guma-form-section">13. Response Mode to Scene &nbsp;/&nbsp; 14. From Scene</p>
+        <div class="two-col">
+          <div>
+            <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">To Scene</p>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" id="rm_emergent" /> Emergent</label>
+              <label class="checkbox-item"><input type="checkbox" id="rm_non_emergent" /> Non-Emergent</label>
+              <label class="checkbox-item"><input type="checkbox" id="rm_downgraded" /> Emergent Downgraded to Non-Emergent</label>
+              <label class="checkbox-item"><input type="checkbox" id="rm_upgraded" /> Non-Emergent Upgraded to Emergent</label>
+            </div>
+          </div>
+          <div>
+            <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">From Scene</p>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" id="fs_emergent" /> Emergent</label>
+              <label class="checkbox-item"><input type="checkbox" id="fs_non_emergent" /> Non-Emergent</label>
+              <label class="checkbox-item"><input type="checkbox" id="fs_downgraded" /> Emergent Downgraded to Non-Emergent</label>
+              <label class="checkbox-item"><input type="checkbox" id="fs_upgraded" /> Non-Emergent Upgraded to Emergent</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delays dispatch (15) -->
+        <p class="guma-form-section">15. Type of Delay(s) — Dispatch</p>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
+          <label class="checkbox-item"><input type="checkbox" id="dd_none" /> None/No Delay</label>
+          <label class="checkbox-item"><input type="checkbox" id="dd_caller" /> Caller (Uncooperative)</label>
+          <label class="checkbox-item"><input type="checkbox" id="dd_volume" /> High Call Volume</label>
+          <label class="checkbox-item"><input type="checkbox" id="dd_language" /> Language Barrier</label>
+          <label class="checkbox-item"><input type="checkbox" id="dd_location" /> Location (Inability to obtain)</label>
+          <label class="checkbox-item"><input type="checkbox" id="dd_no_units" /> No EMS Unit(s) Available</label>
+          <label class="checkbox-item"><input type="checkbox" id="dd_safety" /> Safety Conditions</label>
+          <label class="checkbox-item"><input type="checkbox" id="dd_technical" /> Technical Failure</label>
+          <label class="checkbox-item"><input type="checkbox" id="dd_other" /> Other (Not Listed)</label>
+        </div>
+
+        <!-- Delays response (16) -->
+        <p class="guma-form-section">16. Type of Delay(s) — Response</p>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
+          <label class="checkbox-item"><input type="checkbox" id="dr_none" /> None/No Delay</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_mechanical" /> Mechanical Issue</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_crowd" /> Crowd</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_directions" /> Directions/Unable To Locate</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_distance" /> Distance</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_diversion" /> Diversion</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_hazmat" /> HazMat</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_scene_safety" /> Scene Safety (Not Secure for EMS)</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_staff" /> Staff Delay</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_traffic" /> Traffic</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_veh_crash" /> Vehicle Crash Involving This Unit</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_veh_failure" /> Vehicle Failure of This Unit</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_weather" /> Weather</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_rendezvous" /> Rendezvous Transport Unavailable</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_route" /> Route Obstruction (e.g., train)</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_flight" /> Flight Planning</label>
+          <label class="checkbox-item"><input type="checkbox" id="dr_other" /> Other (Not Listed)</label>
+        </div>
+
+        <!-- Transport mode (17) -->
+        <p class="guma-form-section">17. EMS Transport Mode</p>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
+          <label class="checkbox-item"><input type="checkbox" id="tm_air_fixed" /> Air Medical-Fixed Wing</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_air_rotor" /> Air Medical-Rotor Wing</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_ground_amb" /> Ground Ambulance</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_g2g" /> Ground-to-Ground Transfer</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_ground_air" /> Ground-Air Transfer</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_a2g" /> Air-to-Ground Transfer</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_grv_air" /> Ground-Rescue Vehicle-Air Transfer</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_grv_ground" /> Ground-Rescue Vehicle-Ground Transfer</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_a2a" /> Air-to-Air Transfer</label>
+          <label class="checkbox-item"><input type="checkbox" id="tm_no_transport" /> No Transport</label>
+        </div>
+
+        <!-- Run times (18–27) -->
+        <p class="guma-form-section">Run Times (Use Military Time)</p>
+        <div class="two-col">
+          <div class="form-group"><label>18. PSAP Call</label><input type="time" id="t_psap" /></div>
+          <div class="form-group"><label>22. Unit Arrived at Scene</label><input type="time" id="t_arrived_scene" /></div>
+          <div class="form-group"><label>19. EMS Dispatch Notified</label><input type="time" id="t_ems_notified" /></div>
+          <div class="form-group"><label>23. Arrived at Patient</label><input type="time" id="t_arrived_patient" /></div>
+          <div class="form-group"><label>20. Unit Notified by Dispatch</label><input type="time" id="t_unit_notified" /></div>
+          <div class="form-group"><label>24. Transfer of EMS Patient Care</label><input type="time" id="t_transfer_care" /></div>
+          <div class="form-group"><label>21. Unit En-route</label><input type="time" id="t_enroute" /></div>
+          <div class="form-group"><label>25. Unit Left Scene</label><input type="time" id="t_left_scene" /></div>
+          <div class="form-group"><label>26. Patient Arrived at Destination</label><input type="time" id="t_arrived_dest" /></div>
+          <div class="form-group"><label>27. Transfer of Care to Destination</label><input type="time" id="t_transfer_dest" /></div>
+        </div>
+        <div class="form-group mb-5"><label>Unit Back In Service</label><input type="time" id="t_back_service" /></div>
+
+        <!-- Disposition (28) -->
+        <p class="guma-form-section">28. Incident/Patient Disposition</p>
+        <div class="grid grid-cols-1 gap-y-2 mb-3">
+          <label class="checkbox-item"><input type="checkbox" id="disp_assist" /> Assist, Unit</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_cancelled_prior" /> Cancelled (Prior to Arrival at Scene)</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_no_contact" /> No Pt Contact (Cancelled on Scene)</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_dead_noresus_trans" /> Pt Dead - No Resuscitation Attempted (With Transport)</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_dead_noresus_notrans" /> Pt Dead - No Resuscitation Attempted (Without Transport)</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_dead_resus_notrans" /> Pt Dead - Resuscitation Attempted (Without Transport)</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_eval_no_treat" /> Pt Evaluated, No Treatment/Transport Required</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_refused_eval" /> Pt Refused Evaluation/Care (Without Transport)</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_treated_ama" /> Pt Treated, Released (AMA)</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_treated_this_unit" /> Pt Treated, Transported by This EMS Unit</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_treated_private" /> Pt Treated, Transported by Private Vehicle</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_treated_le" /> Pt Treated, Transported by Law Enforcement</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_treated_transferred" /> Pt Treated, Transferred Care to Another EMS Unit</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_organs" /> Transport of Body Parts or Organs Only</label>
+          <label class="checkbox-item"><input type="checkbox" id="disp_standby" /> Standby</label>
+        </div>
+        <div class="form-group mb-5">
+          <label>29. Intercept Recipient Agency</label>
+          <input type="text" id="intercept_agency" placeholder="-" />
+        </div>
+
+        <!-- Scene (30–33) -->
+        <p class="guma-form-section">Scene</p>
+        <div class="two-col">
+          <div>
+            <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">30. # of Patients at Scene</p>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" id="pts_single" /> Single</label>
+              <label class="checkbox-item"><input type="checkbox" id="pts_multiple" /> Multiple</label>
+              <label class="checkbox-item"><input type="checkbox" id="pts_none" /> None</label>
+            </div>
+          </div>
+          <div>
+            <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-guma-l-gold dark:text-guma-gold">31. Mass Casualty</p>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" id="mci_yes" /> Yes</label>
+              <label class="checkbox-item"><input type="checkbox" id="mci_no" /> No</label>
+              <label class="checkbox-item"><input type="checkbox" id="mci_na" /> NA</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>32. Incident Location Type</label>
+          <input type="text" id="location_type" placeholder="Residence / Street / Highway" />
+        </div>
+        <div class="two-col">
+          <div class="form-group"><label>33. Latitude</label><input type="text" id="gps_lat" placeholder="34.0522" /></div>
+          <div class="form-group"><label>33. Longitude</label><input type="text" id="gps_long" placeholder="-118.2437" /></div>
+        </div>
+
+        <!-- Odometer & FAC ID (34) -->
+        <p class="guma-form-section">Odometer Readings &amp; FAC ID</p>
+        <div class="four-col">
+          <div class="form-group"><label>Begin</label><input type="text" id="odo_begin" placeholder="0" /></div>
+          <div class="form-group"><label>Arrive</label><input type="text" id="odo_arrive" placeholder="0" /></div>
+          <div class="form-group"><label>Destination</label><input type="text" id="odo_dest" placeholder="0" /></div>
+          <div class="form-group"><label>End</label><input type="text" id="odo_end" placeholder="0" /></div>
+        </div>
+        <div class="form-group mb-1">
+          <label>34. Incident FAC ID</label>
+          <input type="text" id="incident_fac_id" placeholder="-" />
+        </div>
+      </div>
+
+      <!-- RIGHT: PREVIEW PANEL -->
+      <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
+        <div class="mb-4 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
+          <button
+            id="gumaHistoryBtn"
+            type="button"
+            aria-label="Open saved reports"
+            onclick="document.querySelector('guma-history-drawer')?.open()"
+            class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3v5h5" />
+              <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+              <path d="M12 7v5l4 2" />
+            </svg>
+            Saved
+            <span
+              id="gumaHistoryCount"
+              class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+            ></span>
+          </button>
+        </div>
+
+        <canvas id="docCanvas" class="h-auto w-full max-w-[640px] border border-slate-300 dark:border-slate-700 bg-white shadow-canvas"></canvas>
+
+        <div class="flex w-full max-w-[640px] flex-col gap-3 sm:flex-row sm:items-stretch">
+          <button type="button" class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadPng()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download PNG
+          </button>
+          <button class="guma-btn-outline flex-1" id="copyDiscordBtn" onclick="copyDocToClipboard()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect width="8" height="4" x="8" y="2" rx="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            </svg>
+            Copy
+          </button>
+        </div>
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60 mt-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          Generated <span id="downloadCount">0</span> times
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <guma-history-drawer></guma-history-drawer>
+
+    <script src="js/history.js"></script>
+    <script src="js/history-wiring.js"></script>
+    <script src="js/prehospital-care-report.js"></script>
+    <script src="js/counters.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GumaCounters?.initDownloadCounter("pcr", "downloadCount", "downloadBtn");
+      });
+    </script>
+  </body>
+</html>

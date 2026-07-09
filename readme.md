@@ -18,12 +18,12 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 | Traffic Collision Report        | `traffic_collision_report.html` | CHP 555-style Traffic Collision Report with dynamic party rows                                    |
 | Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file — attendance, training, commendations, discipline & medical leave |
 | Arrest Report                   | `arrest_report.html`            | LAPD-style arrest & booking report with dynamic arresting-officer rows                            |
+| Pre-Hospital Care Report        | `prehospital_care_report.html`  | EMS-style Pre-Hospital Care Report (PCR) with full incident, response, run-times & disposition    |
 
 ### Coming Soon
 
 | Generator                   | Description                                |
 | --------------------------- | ------------------------------------------ |
-| Prehospital Care Report     | EMS-style prehospital care / PCR document  |
 | Fire Code Inspection Report | Fire code compliance inspection form       |
 | Coroner Autopsy Report      | Coroner / medical examiner autopsy report  |
 
@@ -136,6 +136,20 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Occurrence section: location, RD, arrest and report date/time (24h)
 - Booking charge with Misdemeanor / Felony checkboxes
 - Dynamic rows - add/remove Arresting Officers
+- Live preview rendered on HTML Canvas
+- Download the report as a PNG file
+- **Copy to clipboard** - export the report as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
+### Pre-Hospital Care Report
+
+- Report / response numbers, incident date, EMS agency, call sign, vehicle & station
+- Dispatch details: complaint, Emergency Medical Dispatch performed, primary role of unit
+- Level of care, type of service requested and response mode (to & from scene)
+- Full delay checklists (dispatch & response) and EMS transport mode
+- Run times block in military time (18-27) plus unit back-in-service
+- Incident / patient disposition, intercept agency, patient count & mass-casualty flags
+- Scene details: incident location type, GPS latitude/longitude, odometer readings, incident FAC ID
 - Live preview rendered on HTML Canvas
 - Download the report as a PNG file
 - **Copy to clipboard** - export the report as PNG directly to the clipboard
