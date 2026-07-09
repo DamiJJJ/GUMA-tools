@@ -27,6 +27,7 @@ Wygenerowane z kodu. Update przez `/styleguide`.
 ├── traffic_collision_report.html
 ├── personnel_file_generator.html
 ├── arrest_report.html
+├── prehospital_care_report.html
 ├── readme.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
 ├── manifest.json
@@ -135,6 +136,23 @@ in use, reuse first:
   `-popular` color modifiers) — Hot/Popular trend badges, injected by
   `applyHotFlags()` in `js/counters.js`.
 
+**Report form helpers (unprefixed — deliberate exception):** report-style pages
+share a small set of non-`guma-` layout classes, also defined under
+`@layer components` in `js/guma-styles.js` and reused across `firearm_discharge`,
+`arrest_report`, `traffic_collision_report`, and `prehospital_care_report`:
+
+- `.form-group` — label-over-input field wrapper (`.form-group label` and
+  `.form-group input/select` style the children, so a bare
+  `<label>…</label><input>` inside gets the full themed treatment).
+- `.two-col` / `.three-col` / `.four-col` — 2/3/4-column form grids.
+- `.checkbox-group` / `.checkbox-item` — vertical checkbox list + a single row
+  (`<label class="checkbox-item"><input type="checkbox"> …</label>`).
+
+These predate the `guma-` prefix rule and are the established pattern for report
+forms — **reuse them as-is on new reports; don't reinvent them or rename them to
+`guma-*`.** Styling for the rendered card/document surface still goes through
+`guma-*` tokens and classes as usual.
+
 Rules of thumb:
 
 - If a class is reused in ≥ 2 places, promote it to `guma-styles.js` as a
@@ -179,15 +197,17 @@ Rules of thumb:
 | Thing                | Convention                    | Example                                                  |
 | -------------------- | ----------------------------- | -------------------------------------------------------- |
 | HTML files           | snake_case                    | `firearm_discharge.html`                                 |
-| JS files             | kebab- _or_ snake-case        | `business-card.js`, `firearm_discharge_investigation.js` |
+| JS files             | kebab-case                    | `business-card.js`, `arrest-report.js`, `prehospital-care-report.js` |
 | HTML IDs             | camelCase                     | `customFactionPanel`, `photoInput`                       |
 | Tailwind utilities   | kebab-case (Tailwind default) | `bg-guma-l-panel`                                        |
 | Custom component cls | kebab + `guma-` prefix        | `guma-input`, `guma-panel`                               |
 | JS functions         | camelCase                     | `switchFaction()`                                        |
 | JS constants         | UPPER_SNAKE_CASE              | `FACTIONS`, `GUMA_VERSION`                               |
 
-For a new JS file paired with a new HTML page, mirror the nearest existing
-sibling (snake if it's a report, kebab if it's a card — match the pattern).
+New JS files use **kebab-case** — cards *and* reports alike
+(`arrest-report.js`, `traffic-collision-report.js`, `prehospital-care-report.js`).
+`firearm_discharge_investigation.js` is a lone legacy snake_case holdover; don't
+copy it. Paired HTML pages stay `snake_case.html` regardless.
 
 ## Theming (dark / light)
 
@@ -209,8 +229,9 @@ sibling (snake if it's a report, kebab if it's a card — match the pattern).
 2. Add body class: `theme-navy-soft` (cards), `theme-red` (fire), default
    navy for index/business-card.
 3. Drop in `<guma-header>` + `<guma-footer>`.
-4. Create `js/<name>.js`. Mirror naming. Page-specific logic only —
-   shared helpers go to `js/ui-helpers.js` or a new shared file.
+4. Create `js/<name>.js` (kebab-case, even for reports). Page-specific logic
+   only — shared helpers go to `js/ui-helpers.js` or a new shared file. Reports
+   reuse the `.form-group` / `.two-col` / `.checkbox-item` form helpers.
 5. Register the page in `js/components.js` — update the `isCard` / `isReport`
    arrays and the dropdown + mobile link lists (with `data-generator-key` +
    `data-hot-flag="icon"`), so the header highlights correctly and the page
