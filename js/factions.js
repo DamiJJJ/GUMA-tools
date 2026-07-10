@@ -21,6 +21,21 @@ const FACTIONS = {
     businessCard: {
       header: "LOS SANTOS POLICE DEPARTMENT",
       badge: "assets/lspd_badge.png",
+      // Badge artwork per rank, keyed by the rank without its grade suffix
+      // ("Sergeant II" -> "Sergeant") since grades share one badge.
+      // `null` = sworn shield does not apply; the department logo is used.
+      rankBadges: {
+        "Police Officer": "assets/lspd_badge.png",
+        "Detective": "assets/lspd_badge_detective.png",
+        "Police Administrator": null,
+        "Sergeant": "assets/lspd_badge_sergeant.png",
+        "Lieutenant": "assets/lspd_badge_lieutenant.png",
+        "Captain": "assets/lspd_badge_captain.png",
+        "Commander": "assets/lspd_badge_commander.png",
+        "Deputy Chief": "assets/lspd_badge_deputy_chief.png",
+        "Assistant Chief of Police": "assets/lspd_badge_assistant_chief.png",
+        "Chief of Police": "assets/lspd_badge_chief_of_police.png",
+      },
       recruitName: "LSPD",
       recruitPhone: "(866) 444-LSPD",
       websiteMain: "www.LSPDonline.org",

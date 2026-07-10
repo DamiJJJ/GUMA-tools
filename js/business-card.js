@@ -77,6 +77,26 @@ function bcGetBcConfig(key) {
   return (typeof FACTIONS !== "undefined" ? FACTIONS[key]?.businessCard : null) || {};
 }
 
+// ── Rank -> badge artwork ────────────────────────────────────────────────
+// Grade suffixes are cosmetic on the badge itself: a "Sergeant II" wears a
+// badge reading "SERGEANT". Strip the trailing roman numeral (and "+1" style
+// pay grades) so every grade of a rank maps to the same artwork.
+const BC_RANK_GRADE_RE = /\s+I{1,3}(\+\d+)?$/;
+
+function bcBaseRank(rank) {
+  return (rank || "").replace(BC_RANK_GRADE_RE, "").trim();
+}
+
+/** Badge image for a rank, falling back to the faction default, then its logo. */
+function bcResolveBadge(bc, base, rank) {
+  const key = bcBaseRank(rank);
+  if (bc.rankBadges && key in bc.rankBadges) {
+    // A `null` entry means the rank has no shield: show the department logo.
+    return bc.rankBadges[key] || base?.icon || "";
+  }
+  return bc.badge || base?.icon || "";
+}
+
 // ── Init ─────────────────────────────────────────────────────────────────
 function bcInit() {
   const switcher = document.getElementById("bcFactionSwitcher");
@@ -230,7 +250,7 @@ async function bcRender() {
   }
 
   // ── Preload image ────────────────────────────────────────────
-  const imgSrc = isCustom ? bcCustomImage : bc.badge || base?.icon || "";
+  const imgSrc = isCustom ? bcCustomImage : bcResolveBadge(bc, base, rank);
   const img = imgSrc ? await bcLoadImage(imgSrc) : null;
   if (myToken !== bcRenderToken) return;
 
