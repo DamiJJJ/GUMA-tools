@@ -1,4 +1,4 @@
-const GUMA_VERSION = "1.7";
+const GUMA_VERSION = "1.8";
 
 // HEADER
 class GumaHeader extends HTMLElement {
@@ -6,7 +6,13 @@ class GumaHeader extends HTMLElement {
     const current = window.location.pathname.split("/").pop() || "index.html";
 
     const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html"].includes(current);
-    const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "personnel_file_generator.html", "arrest_report.html", "prehospital_care_report.html"].includes(current);
+    const isReport = [
+      "firearm_discharge.html",
+      "traffic_collision_report.html",
+      "personnel_file_generator.html",
+      "arrest_report.html",
+      "prehospital_care_report.html",
+    ].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
