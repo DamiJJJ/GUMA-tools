@@ -219,9 +219,11 @@
             ></span>
           </button>
         </div>
-        <canvas id="docCanvas" width="840" height="1200" class="h-auto w-full max-w-[660px] shadow-canvas"></canvas>
+        <div class="guma-canvas-wrap guma-scroll">
+          <canvas id="docCanvas" width="840" height="1200" class="guma-canvas-preview"></canvas>
+        </div>
 
-        <div class="flex w-full max-w-[660px] flex-col gap-3 sm:flex-row sm:items-stretch">
+        <div class="flex w-full max-w-[840px] flex-col gap-3 sm:flex-row sm:items-stretch">
           <button class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadDoc()">
             <svg
               xmlns="http://www.w3.org/2000/svg"

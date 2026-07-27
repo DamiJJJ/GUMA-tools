@@ -256,6 +256,7 @@ function fmtDatetime(raw) {
 const MARGIN = 30;
 const DOC_W = 580;
 const BODY_W = DOC_W - MARGIN * 2;
+const SCALE = 2; // internal super-sampling for crisp small text
 
 const OFF_COLS = [
   { label: "Last Name, First Name, Middle Initial", key: "name", w: 0.225, yn: false },
@@ -292,9 +293,10 @@ function drawForm() {
 
   const canvasH = Math.max(A4_HEIGHT, contentH);
   const canvas = document.getElementById("docCanvas");
-  canvas.width = DOC_W;
-  canvas.height = canvasH;
+  canvas.width = DOC_W * SCALE;
+  canvas.height = canvasH * SCALE;
   const ctx = canvas.getContext("2d");
+  ctx.scale(SCALE, SCALE);
 
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, DOC_W, canvasH);

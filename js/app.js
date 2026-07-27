@@ -108,20 +108,6 @@ for (let y = 2026; y >= 1980; y--) {
 // ── Photo preview ─────────────────────────────────────────────────────────────
 let photoDataURL = null;
 
-function previewPhoto(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    photoDataURL = ev.target.result;
-    const prev = document.getElementById("photoPreview");
-    prev.src = photoDataURL;
-    prev.style.display = "block";
-    document.getElementById("uploadText").textContent = file.name;
-  };
-  reader.readAsDataURL(file);
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n) {
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -966,6 +952,17 @@ function initGenerator({ factionType = null, defaultFaction = "lspd" } = {}) {
   populateSelects();
   randomizePay();
   generateCard();
+
+  window.GumaUpload.init({
+    zone: "photoDrop",
+    input: "photoInput",
+    text: "uploadText",
+    preview: "photoPreview",
+    onLoad: (dataURL) => {
+      photoDataURL = dataURL;
+      generateCard();
+    },
+  });
 
   document.querySelector(".guma-panel").addEventListener("input", debounce(generateCard));
 

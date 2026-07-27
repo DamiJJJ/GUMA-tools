@@ -131,6 +131,19 @@ function bcInit() {
 
   bcSelectLayout(bcCurrentLayout, { render: false });
   bcSelectFaction("lspd");
+
+  window.GumaUpload.init({
+    zone: "bcImageDrop",
+    input: "bcImageInput",
+    text: "bcUploadText",
+    preview: "bcImagePreview",
+    textAfter: "Click to change image",
+    onLoad: (dataURL) => {
+      bcCustomImage = dataURL;
+      delete bcImageCache[bcCustomImage];
+      bcRender();
+    },
+  });
 }
 
 // ── Layout selection ────────────────────────────────────────────────────
@@ -237,23 +250,6 @@ function bcSelectFaction(key) {
     if (display) display.textContent = "100%";
   }
   bcRender();
-}
-
-// ── Custom image upload ────────────────────────────────────────────────
-function bcPreviewImage(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    bcCustomImage = ev.target.result;
-    delete bcImageCache[bcCustomImage];
-    document.getElementById("bcUploadText").textContent = "Click to change image";
-    const preview = document.getElementById("bcImagePreview");
-    preview.src = bcCustomImage;
-    preview.classList.remove("hidden");
-    bcRender();
-  };
-  reader.readAsDataURL(file);
 }
 
 // ── Image loader ────────────────────────────────────────────────────────

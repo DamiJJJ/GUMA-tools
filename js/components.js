@@ -34,7 +34,7 @@ class GumaHeader extends HTMLElement {
                      dark:border-white/10 dark:bg-[#04045e]/85 guma-anim-header-drop">
 
         <!-- ── Main bar ── -->
-        <div class="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
+        <div class="mx-auto flex w-full max-w-8xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8 2xl:px-12">
 
           <!-- Logo -->
           <a href="index.html" id="gumaLogo"
@@ -268,7 +268,7 @@ class GumaHeader extends HTMLElement {
         <div id="gumaMobileMenu" class="hidden md:hidden border-t
                                         border-guma-l-border bg-guma-l-bg/95
                                         dark:border-white/10 dark:bg-[#04045e]/95">
-          <nav class="mx-auto max-w-[1400px] flex flex-col px-4 py-3 gap-0.5">
+          <nav class="mx-auto max-w-8xl flex flex-col px-4 py-3 gap-0.5">
 
             <a href="index.html"
                class="px-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-[0.12em] transition
@@ -520,8 +520,8 @@ class GumaFooter extends HTMLElement {
     this.innerHTML = `
       <footer class="mt-auto w-full border-t bg-guma-l-footer border-guma-l-border
                      dark:border-guma-border dark:bg-guma-footer">
-        <div class="mx-auto flex w-full max-w-[1400px] flex-col items-start justify-between gap-4 px-4 py-4 text-sm
-                    text-guma-l-muted dark:text-zinc-400 sm:flex-row sm:items-center">
+        <div class="mx-auto flex w-full max-w-8xl flex-col items-start justify-between gap-4 px-4 py-4 text-sm
+                    text-guma-l-muted dark:text-zinc-400 sm:flex-row sm:items-center sm:px-6 lg:px-8 2xl:px-12">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span class="text-xs sm:text-sm">GUMA Tools v${GUMA_VERSION} &copy; Dami ${new Date().getFullYear()}</span>
             <span data-guma-counter hidden class="flex items-center gap-1.5 text-[11px] border-l pl-4

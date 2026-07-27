@@ -74,12 +74,10 @@
         <!-- Photo Upload -->
         <div class="mb-4">
           <label class="guma-label">Photo</label>
-          <div
-            class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-guma-border px-4 py-5 text-center text-sm text-guma-muted transition hover:border-guma-gold hover:text-guma-gold"
-            onclick="document.getElementById('photoInput').click()"
-          >
-            <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="previewPhoto(event)" />
+          <div id="photoDrop" class="guma-drop" role="button" tabindex="0" aria-label="Upload photo">
+            <input type="file" id="photoInput" accept="image/*" class="hidden" />
             <span id="uploadText">Click to upload photo</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
             <img id="photoPreview" class="mt-2 hidden h-[120px] w-[100px] rounded object-cover" alt="preview" />
           </div>
         </div>
@@ -249,9 +247,11 @@
           </button>
         </div>
 
-        <canvas id="cardCanvas" width="840" height="680" class="w-full max-w-[500px] shadow-canvas"></canvas>
+        <div class="guma-canvas-wrap guma-scroll">
+          <canvas id="cardCanvas" width="840" height="680" class="guma-canvas-preview"></canvas>
+        </div>
 
-        <div class="flex w-full max-w-[500px] flex-col gap-3 sm:flex-row sm:items-stretch">
+        <div class="flex w-full max-w-[840px] flex-col gap-3 sm:flex-row sm:items-stretch">
           <button class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadCard()">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -319,6 +319,7 @@
     <script src="js/components.js"></script>
     <script src="js/factions.js"></script>
     <script src="js/ui-helpers.js"></script>
+    <script src="js/guma-upload.js"></script>
     <script src="js/app.js"></script>
     <script src="js/animations.js"></script>
     <script>

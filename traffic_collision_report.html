@@ -204,8 +204,10 @@
           </button>
         </div>
 
-        <canvas id="docCanvas" class="h-auto w-full max-w-[660px] border border-slate-300 dark:border-slate-700 bg-white shadow-canvas"></canvas>
-        <div class="flex w-full max-w-[660px] flex-col gap-3 sm:flex-row">
+        <div class="guma-canvas-wrap guma-scroll">
+          <canvas id="docCanvas" class="guma-canvas-preview bg-white"></canvas>
+        </div>
+        <div class="flex w-full max-w-[1280px] flex-col gap-3 sm:flex-row">
           <button type="button" class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadPng()">
             <svg
               xmlns="http://www.w3.org/2000/svg"
