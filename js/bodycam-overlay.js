@@ -144,35 +144,18 @@ function bcamSelectFaction(key) {
 }
 
 // ── Logo uploads ─────────────────────────────────────────────────────────
-/** Read a picked file into a data URL and hand it to the render state. */
-function bcamReadLogo(input, previewId, textId, apply) {
-  const file = input.files?.[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    apply(ev.target.result);
-    const preview = bcamEl(previewId);
-    if (preview) {
-      preview.src = ev.target.result;
-      preview.classList.remove("hidden");
-    }
-    const text = bcamEl(textId);
-    if (text) text.textContent = "Click to change image";
-    bcamRender();
-  };
-  reader.readAsDataURL(file);
-}
-
-function bcamBrandLogoUpload(e) {
-  bcamReadLogo(e.target, "bcamBrandLogoPreview", "bcamBrandUploadText", (src) => {
-    S().brandCustomLogo = src;
-  });
-}
-
-function bcamFactionLogoUpload(e) {
-  bcamReadLogo(e.target, "bcamFactionLogoPreview", "bcamFactionUploadText", (src) => {
-    S().factionCustomLogo = src;
+/** Wire one .guma-drop box to a custom-logo slot in the render state. */
+function bcamBindLogoUpload(zone, input, textId, previewId, apply) {
+  window.GumaUpload.init({
+    zone,
+    input,
+    text: textId,
+    preview: previewId,
+    textAfter: "Click to change image",
+    onLoad: (dataURL) => {
+      apply(dataURL);
+      bcamRender();
+    },
   });
 }
 
@@ -360,8 +343,12 @@ function bcamInit() {
   bcamEl("bcamDropzone")?.addEventListener("click", () => bcamEl("bcamFileInput")?.click());
 
   // Logo uploads
-  bcamEl("bcamBrandLogoInput")?.addEventListener("change", bcamBrandLogoUpload);
-  bcamEl("bcamFactionLogoInput")?.addEventListener("change", bcamFactionLogoUpload);
+  bcamBindLogoUpload("bcamBrandDrop", "bcamBrandLogoInput", "bcamBrandUploadText", "bcamBrandLogoPreview", (src) => {
+    S().brandCustomLogo = src;
+  });
+  bcamBindLogoUpload("bcamFactionDrop", "bcamFactionLogoInput", "bcamFactionUploadText", "bcamFactionLogoPreview", (src) => {
+    S().factionCustomLogo = src;
+  });
 
   // Burned-in data
   bcamBindText("bcamDevice", "device");

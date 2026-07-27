@@ -37,12 +37,10 @@
              switcher that reveals it. -->
         <div id="bcamFactionUploadRow" style="display: none" class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4">
           <p class="guma-form-section mb-3">Custom Agency Logo</p>
-          <div
-            class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-guma-l-border-2 px-4 py-4 text-center text-sm transition text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-border-2 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
-            onclick="document.getElementById('bcamFactionLogoInput').click()"
-          >
+          <div id="bcamFactionDrop" class="guma-drop py-4" role="button" tabindex="0" aria-label="Upload custom agency logo">
             <input type="file" id="bcamFactionLogoInput" accept="image/*" class="hidden" />
             <span id="bcamFactionUploadText">Click to upload image</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
             <img id="bcamFactionLogoPreview" class="mt-2 hidden max-h-[90px] max-w-[150px] object-contain" alt="Custom agency logo preview" />
           </div>
         </div>
@@ -58,9 +56,7 @@
             Upload Screenshot
           </button>
           <input type="file" id="bcamFileInput" accept="image/*" class="hidden" />
-          <p class="mt-2 text-[11px] leading-5 text-guma-l-muted/80 dark:text-guma-muted/70">
-            Or drag a file onto the preview, or paste from the clipboard with Ctrl+V.
-          </p>
+          <p class="guma-drop-hint">Or drag a file onto the preview, or paste from the clipboard with Ctrl+V.</p>
         </div>
 
         <!-- ── Camera ── -->
@@ -73,12 +69,10 @@
 
         <div id="bcamBrandUploadRow" style="display: none" class="mb-4 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4">
           <label class="guma-label">Custom Camera Logo</label>
-          <div
-            class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-guma-l-border-2 px-4 py-4 text-center text-sm transition text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-border-2 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
-            onclick="document.getElementById('bcamBrandLogoInput').click()"
-          >
+          <div id="bcamBrandDrop" class="guma-drop py-4" role="button" tabindex="0" aria-label="Upload custom camera logo">
             <input type="file" id="bcamBrandLogoInput" accept="image/*" class="hidden" />
             <span id="bcamBrandUploadText">Click to upload image</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
             <img id="bcamBrandLogoPreview" class="mt-2 hidden max-h-[90px] max-w-[150px] object-contain" alt="Custom camera logo preview" />
           </div>
         </div>
@@ -291,6 +285,7 @@
     <script src="js/bodycam-layers.js"></script>
     <script src="js/bodycam-render.js"></script>
     <script src="js/bodycam-stage.js"></script>
+    <script src="js/guma-upload.js"></script>
     <script src="js/bodycam-overlay.js"></script>
     <script src="js/animations.js"></script>
     <script>

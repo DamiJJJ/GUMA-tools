@@ -40,14 +40,12 @@ tailwind.config = {
       boxShadow: {
         panel: "0 12px 32px rgba(0,0,0,.28)",
         glow: "0 0 0 1px rgba(240,192,64,.15), 0 10px 30px rgba(0,0,0,.18)",
-        canvas: "0 4px 24px rgba(0,0,0,.5)",
         // ── light variants ──
         "panel-light": "0 8px 24px rgba(20,20,40,.06), 0 2px 6px rgba(20,20,40,.04)",
         "glow-light": "0 0 0 1px rgba(45,71,135,.20), 0 12px 30px rgba(20,20,40,.06)",
-        "canvas-light": "0 4px 18px rgba(20,20,40,.08)",
       },
       maxWidth: {
-        "8xl": "1400px",
+        "8xl": "2000px",
       },
       fontFamily: {
         sans: ["Segoe UI", "Arial", "sans-serif"],
@@ -151,8 +149,10 @@ tailwind.config = {
         @apply animate-guma-slide-in-left;
         animation-delay: 0.15s;
       }
+      /* From the xl breakpoint the generator layout is two columns, so the
+         preview sticks under the header while the form scrolls. */
       .guma-panel-preview {
-        @apply animate-guma-slide-in-right;
+        @apply animate-guma-slide-in-right xl:sticky xl:top-20;
         animation-delay: 0.25s;
       }
       .guma-reveal {

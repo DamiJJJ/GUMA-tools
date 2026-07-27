@@ -78,7 +78,7 @@
     @layer components {
       /* ─── Layout ─── */
       .guma-page {
-        @apply mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8;
+        @apply mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8 2xl:px-12;
       }
       .guma-topbar {
         @apply sticky top-0 z-30 border-b backdrop-blur
@@ -105,6 +105,81 @@
         @apply rounded-2xl border
                border-guma-l-border bg-guma-l-panel shadow-panel-light
                dark:border-guma-border dark:bg-guma-panel dark:shadow-panel;
+      }
+
+      /* ─── Upload dropzone ─── */
+      .guma-drop {
+        @apply flex cursor-pointer flex-col items-center justify-center rounded-xl
+               border-2 border-dashed px-4 py-5 text-center text-sm outline-none transition
+               border-guma-l-border-2 text-guma-l-muted
+               hover:border-guma-l-gold hover:text-guma-l-gold
+               focus-visible:border-guma-l-gold focus-visible:text-guma-l-gold
+               dark:border-guma-border-2 dark:text-guma-muted
+               dark:hover:border-guma-gold dark:hover:text-guma-gold
+               dark:focus-visible:border-guma-gold dark:focus-visible:text-guma-gold;
+      }
+      .guma-drop.is-hot {
+        @apply border-guma-l-gold bg-guma-l-panel-2 text-guma-l-gold
+               dark:border-guma-gold dark:bg-guma-panel-2 dark:text-guma-gold;
+      }
+      .guma-drop-hint {
+        @apply mt-1 text-[11px] leading-5 text-guma-l-muted/80 dark:text-guma-muted/70;
+      }
+
+      /* ─── Themed scrollbar ─── */
+      /* Raw hex instead of @apply — Tailwind cannot attach the dark: variant
+         to a ::-webkit-scrollbar-* selector. Values mirror the guma-l-border-2
+         / guma-l-gold and guma-border-2 / guma-gold tokens. */
+      .guma-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #bfc9dd transparent;
+      }
+      .guma-scroll::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      .guma-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .guma-scroll::-webkit-scrollbar-thumb {
+        background-color: #bfc9dd;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        border-radius: 999px;
+        transition: background-color 0.2s ease;
+      }
+      .guma-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: #2d4787;
+      }
+      .guma-scroll::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      html.dark .guma-scroll {
+        scrollbar-color: #2a2a5a transparent;
+      }
+      html.dark .guma-scroll::-webkit-scrollbar-thumb {
+        background-color: #2a2a5a;
+      }
+      html.dark .guma-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: #f0c040;
+      }
+
+      /* ─── Canvas preview ─── */
+      /* Scroll box around the canvas. From xl the preview panel is sticky,
+         so the box is capped to the viewport and tall documents scroll
+         inside it instead of stretching the page. */
+      .guma-canvas-wrap {
+        @apply flex w-full items-start justify-center overflow-y-auto overflow-x-hidden
+               xl:max-h-[calc(100vh_-_19rem)];
+      }
+      /* Auto width + height keeps the intrinsic aspect ratio and caps the
+         canvas at its native pixel size, so the preview never upscales
+         into a blurry mess. A flat hairline edge, no drop shadow — every
+         generator renders its document the same way. */
+      .guma-canvas-preview {
+        @apply block h-auto w-auto min-w-0 max-w-full border
+               border-guma-l-border-2 dark:border-guma-border-2;
       }
 
       /* ─── Section titles (index) ─── */
@@ -265,8 +340,9 @@
         line-height: 0;
       }
       .guma-bcam-canvas {
-        @apply block h-auto w-auto max-w-full rounded-md shadow-canvas;
-        max-height: 68vh;
+        @apply block h-auto w-auto max-w-full rounded-md border
+               border-guma-l-border-2 dark:border-guma-border-2;
+        max-height: calc(100vh - 19rem);
         touch-action: none;
       }
       .guma-bcam-drop {

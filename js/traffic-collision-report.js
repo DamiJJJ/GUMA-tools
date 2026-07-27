@@ -518,8 +518,6 @@ function drawForm() {
   const canvas = document.getElementById("docCanvas");
   canvas.width = DOC_W * SCALE;
   canvas.height = logicalH * SCALE;
-  canvas.style.width = DOC_W + "px";
-  canvas.style.height = logicalH + "px";
 
   const ctx = canvas.getContext("2d");
   ctx.scale(SCALE, SCALE);
