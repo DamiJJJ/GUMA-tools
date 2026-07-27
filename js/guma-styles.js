@@ -1,4 +1,4 @@
-// Wspólne style aplikacji — wszystkie warstwy @layer base/components/utilities
+// Wspólne style aplikacji - wszystkie warstwy @layer base/components/utilities
 
 (function () {
   const style = document.createElement("style");
@@ -51,7 +51,7 @@
         color: #fff;
       }
 
-      /* Date/time picker icon — invert tylko w dark */
+      /* Date/time picker icon - invert tylko w dark */
       input[type="date"]::-webkit-calendar-picker-indicator,
       input[type="time"]::-webkit-calendar-picker-indicator,
       input[type="datetime-local"]::-webkit-calendar-picker-indicator {
@@ -249,6 +249,67 @@
       .guma-seg-btn.active {
         @apply border-guma-l-gold bg-guma-l-panel-2 text-guma-l-gold
                dark:border-guma-gold dark:bg-guma-panel-2 dark:text-guma-gold;
+      }
+
+      /* ─── Bodycam overlay: preview stage ─── */
+      .guma-bcam-stage {
+        @apply relative flex w-full items-center justify-center overflow-hidden rounded-xl border p-3
+               border-guma-l-border bg-guma-l-dark
+               dark:border-guma-border dark:bg-guma-dark;
+        min-height: 280px;
+      }
+      /* Shrink-wraps the canvas so the selection overlay can be positioned
+         straight against the rendered frame. */
+      .guma-bcam-frame {
+        @apply relative inline-block max-w-full;
+        line-height: 0;
+      }
+      .guma-bcam-canvas {
+        @apply block h-auto w-auto max-w-full rounded-md shadow-canvas;
+        max-height: 68vh;
+        touch-action: none;
+      }
+      .guma-bcam-drop {
+        @apply pointer-events-none absolute inset-3 flex flex-col items-center justify-center gap-3
+               rounded-xl border-2 border-dashed px-6 text-center transition
+               border-guma-l-border-2 text-guma-l-muted
+               dark:border-guma-border-2 dark:text-guma-muted;
+      }
+      .guma-bcam-drop.is-hot {
+        @apply border-guma-l-gold text-guma-l-gold dark:border-guma-gold dark:text-guma-gold;
+      }
+      /* Dashed marquee around the picked layer. Dark rings on both sides of
+         the gold keep it readable over any screenshot. */
+      .guma-bcam-sel {
+        @apply pointer-events-none absolute;
+        outline: 2px dashed #f0c040;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45), 0 0 0 6px rgba(0, 0, 0, 0.28);
+      }
+      /* Resize grip, hung off the bottom-left corner of the selection.
+         Drag-only: there is nothing to click, so it is not a button. */
+      .guma-bcam-scale {
+        @apply pointer-events-auto absolute bottom-0 left-0 flex h-7 w-7 items-center justify-center
+               rounded-lg border text-guma-gold transition-colors;
+        transform: translate(-50%, 50%);
+        border-color: #f0c040;
+        background: #0b0b3a;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        cursor: nesw-resize;
+        touch-action: none;
+      }
+      .guma-bcam-scale:hover {
+        background: #f0c040;
+        color: #000;
+      }
+      /* Toggle row: element name on the left, checkbox on the right. */
+      .guma-bcam-switch {
+        @apply flex cursor-pointer select-none items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition
+               text-guma-l-text hover:bg-black/5
+               dark:text-guma-text dark:hover:bg-white/5;
+      }
+      .guma-bcam-slider {
+        @apply w-full cursor-pointer accent-guma-gold;
       }
 
       /* ─── Reports: dynamic rows ─── */

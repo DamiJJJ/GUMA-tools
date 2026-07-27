@@ -13,6 +13,7 @@ class GumaHeader extends HTMLElement {
       "arrest_report.html",
       "prehospital_care_report.html",
     ].includes(current);
+    const isImage = ["bodycam_overlay.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
@@ -141,6 +142,31 @@ class GumaHeader extends HTMLElement {
                   <span class="flex-1">Fire Code Inspection Report</span>
                   <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
                 </span>
+              </div>
+            </div>
+
+            <!-- Image Tools dropdown -->
+            <div class="relative" id="gumaImageDropdown">
+              <button id="gumaImageBtn"
+                class="flex items-center gap-1.5 ${navLinkBase} ${isImage ? navActive : navInactive}"
+                aria-haspopup="true" aria-expanded="false">
+                Image Tools
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round"
+                     class="transition-transform duration-200" id="gumaImageChevron">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              <div id="gumaImageMenu"
+                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                          border border-guma-l-border bg-guma-l-panel shadow-panel-light
+                          dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
+                <a href="bodycam_overlay.html" data-generator-key="bodycam" data-hot-flag="icon"
+                   class="${dropLinkBase} ${current === "bodycam_overlay.html" ? dropActive : dropInactive}">
+                  <img src="assets/bodycam.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Bodycam Overlay
+                </a>
               </div>
             </div>
 
@@ -316,6 +342,16 @@ class GumaHeader extends HTMLElement {
               <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
             </span>
 
+            <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
+              Image Tools
+            </p>
+            <a href="bodycam_overlay.html" data-generator-key="bodycam" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "bodycam_overlay.html" ? mobActive : mobInactive}">
+              <img src="assets/bodycam.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Bodycam Overlay
+            </a>
+
             <a href="about.html"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm ${isAbout ? mobActive : mobInactive}">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -430,6 +466,7 @@ class GumaHeader extends HTMLElement {
 
     setupDropdown("gumaCardsBtn", "gumaCardsMenu", "gumaCardsChevron");
     setupDropdown("gumaReportsBtn", "gumaReportsMenu", "gumaReportsChevron");
+    setupDropdown("gumaImageBtn", "gumaImageMenu", "gumaImageChevron");
 
     document.addEventListener("click", () => {
       this.querySelectorAll('[id$="Menu"]:not(#gumaMobileMenu)').forEach((m) => m.classList.add("hidden"));
@@ -464,7 +501,7 @@ class GumaHeader extends HTMLElement {
       }
     });
 
-    // ── Hot/Popular flags — decorate nav links + page elements ────
+    // ── Hot/Popular flags - decorate nav links + page elements ────
     // Deferred to DOMContentLoaded so page-level [data-generator-key]
     // targets (index tiles, page titles) are already in the DOM.
     const decorateHotFlags = () => window.GumaCounters?.applyHotFlags?.();
