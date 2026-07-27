@@ -11,6 +11,8 @@ const BC_FACTION_ORDER = ["lspd", "lssd", "bcso", "sahp", "lscofd", "lsfd"];
 
 // ── State ────────────────────────────────────────────────────────────────
 let bcCurrentFaction = "lspd";
+// 1 = full-width header + recruitment footer, 2 = masthead with rule + motto
+let bcCurrentLayout = 1;
 let bcCustomImage = null;
 const bcImageCache = {};
 let bcRenderToken = 0;
@@ -77,6 +79,11 @@ function bcGetBcConfig(key) {
   return (typeof FACTIONS !== "undefined" ? FACTIONS[key]?.businessCard : null) || {};
 }
 
+/** Layout-2 masthead defaults for a faction (empty object in Custom mode). */
+function bcGetLayout2Config(key) {
+  return bcGetBcConfig(key).layout2 || {};
+}
+
 // ── Rank -> badge artwork ────────────────────────────────────────────────
 // Grade suffixes are cosmetic on the badge itself: a "Sergeant II" wears a
 // badge reading "SERGEANT". Strip the trailing roman numeral (and "+1" style
@@ -122,7 +129,65 @@ function bcInit() {
     switcher.appendChild(btn);
   });
 
+  bcSelectLayout(bcCurrentLayout, { render: false });
   bcSelectFaction("lspd");
+}
+
+// ── Layout selection ────────────────────────────────────────────────────
+/**
+ * Switch between the two card layouts.
+ * @param {number|string} layout 1 (classic) or 2 (masthead with rule)
+ * @param {{render?: boolean}} [opts] pass `render: false` during bootstrap
+ */
+function bcSelectLayout(layout, opts = {}) {
+  bcCurrentLayout = Number(layout) === 2 ? 2 : 1;
+
+  document.querySelectorAll("#bcLayoutSwitcher .guma-seg-btn").forEach((btn) => {
+    btn.classList.toggle("active", Number(btn.dataset.layout) === bcCurrentLayout);
+  });
+
+  bcApplyLayoutVisibility();
+  if (opts.render !== false) bcRender();
+}
+
+/** Show/hide the rows that only exist in one of the two layouts. */
+function bcApplyLayoutVisibility() {
+  const isL2 = bcCurrentLayout === 2;
+  const isCustom = bcCurrentFaction === "custom";
+  // Clear the inline value instead of forcing `block` so rows keep whatever
+  // display their Tailwind classes give them (e.g. the area/role grid).
+  const show = (id, visible) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (visible) el.style.removeProperty("display");
+    else el.style.display = "none";
+  };
+
+  show("bcLayout2HeaderPanel", isL2);
+  show("bcL2StationRow", isL2);
+  show("bcL2WebsiteRow", isL2);
+  // Layout 2 prints name + rank only, so these have nowhere to go
+  show("bcBadgeRow", !isL2);
+  show("bcAreaRoleRow", !isL2);
+  // Layout 2 replaces the footer strip with the website line
+  show("bcCustomFooterPanel", isCustom && !isL2);
+}
+
+/** Reset the layout-2 masthead fields to the selected faction's defaults. */
+function bcApplyLayout2Defaults(key) {
+  const l2 = bcGetLayout2Config(key);
+  const bc = bcGetBcConfig(key);
+  const setVal = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value || "";
+  };
+
+  setVal("bcL2Prefix", l2.prefix);
+  setVal("bcL2Motto1", l2.motto1);
+  setVal("bcL2Motto2", l2.motto2);
+  setVal("bcL2Website", bc.websiteMain);
+  setVal("bcL2Head", "");
+  setVal("bcL2Station", "");
 }
 
 // ── Faction selection ───────────────────────────────────────────────────
@@ -137,10 +202,12 @@ function bcSelectFaction(key) {
 
   document.getElementById("bcCustomImagePanel").style.display = isCustom ? "block" : "none";
   document.getElementById("bcCustomHeaderPanel").style.display = isCustom ? "block" : "none";
-  document.getElementById("bcCustomFooterPanel").style.display = isCustom ? "block" : "none";
   document.getElementById("bcRankRow").style.display = isCustom ? "none" : "block";
   document.getElementById("bcCustomRankRow").style.display = isCustom ? "block" : "none";
   document.getElementById("bcBadgeOptional").classList.toggle("hidden", !isCustom);
+
+  bcApplyLayout2Defaults(key);
+  bcApplyLayoutVisibility();
 
   // Email domain hint
   const hint = document.getElementById("bcEmailHint");
@@ -214,6 +281,96 @@ function bcFitFontToWidth(ctx, text, maxW, baseSize, weight = "bold", family = "
   return size;
 }
 
+// ── Canvas drawing primitives ───────────────────────────────────────────
+const BC_INK = "#0a0a0a";
+const BC_PAD_X = 24;
+
+/** Draw an image contained (never cropped) inside a box, centred and scaled. */
+function bcDrawContained(ctx, img, box, scale = 1, alpha = 1) {
+  if (!img) return;
+  const ratio = img.width / img.height;
+  let dw, dh;
+  if (ratio > box.w / box.h) {
+    dw = box.w;
+    dh = dw / ratio;
+  } else {
+    dh = box.h;
+    dw = dh * ratio;
+  }
+  dw *= scale;
+  dh *= scale;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(img, box.x + (box.w - dw) / 2, box.y + (box.h - dh) / 2, dw, dh);
+  ctx.restore();
+}
+
+/** Draw a stack of lines anchored on its LAST baseline (`bottomY`). */
+function bcDrawLinesUp(ctx, lines, x, bottomY, lineH) {
+  lines.forEach((line, i) => {
+    ctx.fillText(line, x, bottomY - (lines.length - 1 - i) * lineH);
+  });
+}
+
+/** Faint department logo behind the bottom-right contact block. */
+function bcDrawWatermark(ctx, img, W, H) {
+  if (!img) return;
+  const box = { x: W - BC_PAD_X - 240, y: H - 30 - 220, w: 240, h: 220 };
+  bcDrawContained(ctx, img, box, 1, 0.1);
+}
+
+// ── Form -> render model ────────────────────────────────────────────────
+function bcReadForm() {
+  const val = (id) => document.getElementById(id)?.value ?? "";
+  const isCustom = bcCurrentFaction === "custom";
+  const base = bcGetBaseFaction(bcCurrentFaction);
+  const bc = bcGetBcConfig(bcCurrentFaction);
+
+  // Email: the local part gets the faction domain unless it is already full
+  const emailLocal = val("bcEmail").trim();
+  let emailFull = "";
+  if (emailLocal) {
+    if (emailLocal.includes("@") || isCustom || !base?.emailDomain) emailFull = emailLocal;
+    else emailFull = emailLocal + "@" + base.emailDomain;
+  }
+
+  const rank = isCustom ? val("bcCustomRank") : val("bcRank");
+  const customHeader = val("bcHeader");
+
+  // Contacts: "Label: value" for every filled phone field
+  const contact = (label, id) => {
+    const v = val(id).trim();
+    return v ? `${label}: ${v}` : "";
+  };
+
+  return {
+    isCustom,
+    base,
+    bc,
+    // Layout 1 prints one wide, uppercase header; layout 2 keeps the case
+    // because its title is rendered in small-caps.
+    header: isCustom ? customHeader.toUpperCase() : bc.header || "",
+    l2Title: isCustom ? customHeader : bcGetLayout2Config(bcCurrentFaction).title || bc.header || "",
+    l2Prefix: val("bcL2Prefix"),
+    l2Head: val("bcL2Head"),
+    l2Motto: [val("bcL2Motto1"), val("bcL2Motto2")].filter(Boolean),
+    l2Station: val("bcL2Station"),
+    l2Website: val("bcL2Website"),
+    rank,
+    fullName: val("bcFullName"),
+    badgeNo: val("bcBadge"),
+    area: val("bcArea"),
+    role: val("bcRole"),
+    address1: val("bcAddress1"),
+    address2: val("bcAddress2"),
+    contactLines: [contact("Tel", "bcTel"), contact("Cell", "bcCell"), contact("TDD", "bcTdd"), emailFull].filter(Boolean),
+    badgeScale: parseFloat(val("bcLogoScale")) || 1.0,
+    watermarkOn: !!document.getElementById("bcWatermark")?.checked,
+    imgSrc: isCustom ? bcCustomImage : bcResolveBadge(bc, base, rank),
+  };
+}
+
 // ── Render ─────────────────────────────────────────────────────────────
 async function bcRender() {
   const canvas = document.getElementById("bcCanvas");
@@ -223,181 +380,84 @@ async function bcRender() {
   const H = canvas.height;
 
   const myToken = ++bcRenderToken;
-  const isCustom = bcCurrentFaction === "custom";
-  const base = bcGetBaseFaction(bcCurrentFaction);
-  const bc = bcGetBcConfig(bcCurrentFaction);
+  const d = bcReadForm();
 
-  // ── Read inputs ────────────────────────────────────────────────
-  const headerText = isCustom ? (document.getElementById("bcHeader").value || "").toUpperCase() : bc.header || "";
-  const rank = isCustom ? document.getElementById("bcCustomRank").value || "" : document.getElementById("bcRank").value || "";
-  const fullName = document.getElementById("bcFullName").value || "";
-  const badgeNo = document.getElementById("bcBadge").value || "";
-  const area = document.getElementById("bcArea").value || "";
-  const role = document.getElementById("bcRole").value || "";
-  const tel = document.getElementById("bcTel").value.trim();
-  const cell = document.getElementById("bcCell").value.trim();
-  const tdd = document.getElementById("bcTdd").value.trim();
-  const emailLocal = document.getElementById("bcEmail").value.trim();
-  const address1 = document.getElementById("bcAddress1").value || "";
-  const address2 = document.getElementById("bcAddress2").value || "";
-
-  // ── Email composition ────────────────────────────────────────
-  let emailFull = "";
-  if (emailLocal) {
-    if (emailLocal.includes("@") || isCustom) emailFull = emailLocal;
-    else if (base?.emailDomain) emailFull = emailLocal + "@" + base.emailDomain;
-    else emailFull = emailLocal;
-  }
-
-  // ── Preload image ────────────────────────────────────────────
-  const imgSrc = isCustom ? bcCustomImage : bcResolveBadge(bc, base, rank);
-  const img = imgSrc ? await bcLoadImage(imgSrc) : null;
+  d.img = d.imgSrc ? await bcLoadImage(d.imgSrc) : null;
   if (myToken !== bcRenderToken) return;
 
-  // ── Background ───────────────────────────────────────────────
   ctx.drawImage(bcGetPaperTexture(W, H), 0, 0);
+  if (bcCurrentLayout === 2) bcDrawLayout2(ctx, W, H, d);
+  else bcDrawLayout1(ctx, W, H, d);
+}
 
-  const padX = 24;
-  ctx.fillStyle = "#0a0a0a";
+// ── Layout 1: wide header, rank above name, recruitment footer ──────────
+function bcDrawLayout1(ctx, W, H, d) {
+  const padX = BC_PAD_X;
+  ctx.fillStyle = BC_INK;
 
   // ── 1. HEADER ───────────────────────────────────
-  if (headerText) {
+  if (d.header) {
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    bcFitFontToWidth(ctx, headerText, W - 2 * padX, 25, "bold");
-    ctx.fillText(headerText, W / 2, 18);
+    bcFitFontToWidth(ctx, d.header, W - 2 * padX, 25, "bold");
+    ctx.fillText(d.header, W / 2, 18);
   }
 
   // ── 2. LEFT COLUMN: badge + address ──────────────────────────
-  const leftX = padX;
+  bcDrawContained(ctx, d.img, { x: padX, y: 56, w: 200, h: 224 }, d.badgeScale);
 
-  // Badge scale slider
-  const scaleSlider = document.getElementById("bcLogoScale");
-  const badgeScale = scaleSlider ? parseFloat(scaleSlider.value) || 1.0 : 1.0;
-
-  const badgeBoxX = leftX;
-  const badgeBoxY = 56;
-  const badgeBoxW = 200;
-  const badgeBoxH = 224;
-  let badgeLeftX = badgeBoxX;
-  let badgeBottomY = badgeBoxY + badgeBoxH;
-
-  if (img) {
-    const ratio = img.width / img.height;
-    let dw, dh;
-    if (ratio > badgeBoxW / badgeBoxH) {
-      dw = badgeBoxW;
-      dh = dw / ratio;
-    } else {
-      dh = badgeBoxH;
-      dw = dh * ratio;
-    }
-    dw *= badgeScale;
-    dh *= badgeScale;
-
-    const cx = badgeBoxX + badgeBoxW / 2;
-    const cy = badgeBoxY + badgeBoxH / 2;
-    const drawX = cx - dw / 2;
-    const drawY = cy - dh / 2;
-    ctx.drawImage(img, drawX, drawY, dw, dh);
-    badgeLeftX = drawX;
-    badgeBottomY = drawY + dh;
-  }
-
-  // Address
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.font = "14px 'Times New Roman', Times, serif";
-  ctx.fillStyle = "#0a0a0a";
-  const addrLines = [address1, address2].filter(Boolean);
-  const addrLineH = 19;
-  const addrBottomY = H - 38;
-  addrLines.forEach((line, i) => {
-    const y = addrBottomY - (addrLines.length - 1 - i) * addrLineH;
-    ctx.fillText(line, leftX, y);
-  });
+  ctx.fillStyle = BC_INK;
+  bcDrawLinesUp(ctx, [d.address1, d.address2].filter(Boolean), padX, H - 38, 19);
 
   // ── 3. CENTER COLUMN: rank / name / serial + area / role ─────
   const centerX = W / 2;
   const centerMaxW = 260;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillStyle = "#0a0a0a";
+  ctx.fillStyle = BC_INK;
 
   // Top group
   let cY = 92;
-  if (rank) {
-    bcFitFontToWidth(ctx, rank, centerMaxW, 24, "bold");
-    ctx.fillText(rank, centerX, cY);
+  if (d.rank) {
+    bcFitFontToWidth(ctx, d.rank, centerMaxW, 24, "bold");
+    ctx.fillText(d.rank, centerX, cY);
     cY += 32;
   }
-  if (fullName) {
+  if (d.fullName) {
     ctx.font = "italic 17px 'Times New Roman', Times, serif";
-    ctx.fillText(fullName, centerX, cY);
+    ctx.fillText(d.fullName, centerX, cY);
     cY += 26;
   }
   // Custom cards print the serial line only when a badge number is provided
-  if (!isCustom || badgeNo) {
+  if (!d.isCustom || d.badgeNo) {
     ctx.font = "18px 'Times New Roman', Times, serif";
-    ctx.fillText("Serial No. " + (badgeNo || ""), centerX, cY);
+    ctx.fillText("Serial No. " + (d.badgeNo || ""), centerX, cY);
   }
 
   // Bottom group: area + role
   let aY = 218;
-  if (area) {
-    bcFitFontToWidth(ctx, area, centerMaxW, 20, "bold");
-    ctx.fillText(area, centerX, aY);
+  if (d.area) {
+    bcFitFontToWidth(ctx, d.area, centerMaxW, 20, "bold");
+    ctx.fillText(d.area, centerX, aY);
     aY += 28;
   }
-  if (role) {
-    bcFitFontToWidth(ctx, role, centerMaxW, 16, "italic");
-    ctx.fillText(role, centerX, aY);
+  if (d.role) {
+    bcFitFontToWidth(ctx, d.role, centerMaxW, 16, "italic");
+    ctx.fillText(d.role, centerX, aY);
   }
 
   // ── 3a. WATERMARK (logo behind contacts, bottom-right) ───────
-  const watermarkOn = document.getElementById("bcWatermark")?.checked;
-  if (watermarkOn && img) {
-    const wmBoxW = 240;
-    const wmBoxH = 220;
-    const wmBoxX = W - padX - wmBoxW;
-    const wmBoxY = H - 30 - wmBoxH;
-
-    const wmRatio = img.width / img.height;
-    let wmDw, wmDh;
-    if (wmRatio > wmBoxW / wmBoxH) {
-      wmDw = wmBoxW;
-      wmDh = wmDw / wmRatio;
-    } else {
-      wmDh = wmBoxH;
-      wmDw = wmDh * wmRatio;
-    }
-    const wmCx = wmBoxX + wmBoxW / 2;
-    const wmCy = wmBoxY + wmBoxH / 2;
-
-    ctx.save();
-    ctx.globalAlpha = 0.1;
-    ctx.drawImage(img, wmCx - wmDw / 2, wmCy - wmDh / 2, wmDw, wmDh);
-    ctx.restore();
-  }
+  if (d.watermarkOn) bcDrawWatermark(ctx, d.img, W, H);
 
   // ── 4. RIGHT COLUMN: contacts (bottom-right anchored) ────────
-  const contactLines = [];
-  if (tel) contactLines.push("Tel: " + tel);
-  if (cell) contactLines.push("Cell: " + cell);
-  if (tdd) contactLines.push("TDD: " + tdd);
-  if (emailFull) contactLines.push(emailFull);
-
   ctx.textAlign = "right";
   ctx.textBaseline = "alphabetic";
   ctx.font = "14px 'Times New Roman', Times, serif";
-  ctx.fillStyle = "#0a0a0a";
-
-  const contactLineH = 19;
-  const contactBottomY = H - 38;
-  contactLines.forEach((line, i) => {
-    const y = contactBottomY - (contactLines.length - 1 - i) * contactLineH;
-    ctx.fillText(line, W - padX, y);
-  });
+  ctx.fillStyle = BC_INK;
+  bcDrawLinesUp(ctx, d.contactLines, W - padX, H - 38, 19);
 
   // ── 5. FOOTER (full width, bottom) ───────────────────────────
   ctx.textAlign = "center";
@@ -406,18 +466,103 @@ async function bcRender() {
   ctx.font = "10px 'Times New Roman', Times, serif";
 
   let footerText = "";
-  if (isCustom) {
-    const f1 = document.getElementById("bcCustomFooter1").value || "";
-    const f2 = document.getElementById("bcCustomFooter2").value || "";
-    const f3 = document.getElementById("bcCustomFooter3").value || "";
-    footerText = [f1, f2, f3].filter(Boolean).join("    ");
-  } else if (bc.recruitName) {
-    footerText = `Join the ${bc.recruitName}    ${bc.recruitPhone} Recruitment Hotline    ${bc.websiteMain}    ${bc.websiteJoin}`;
+  if (d.isCustom) {
+    const val = (id) => document.getElementById(id)?.value || "";
+    footerText = [val("bcCustomFooter1"), val("bcCustomFooter2"), val("bcCustomFooter3")].filter(Boolean).join("    ");
+  } else if (d.bc.recruitName) {
+    footerText = `Join the ${d.bc.recruitName}    ${d.bc.recruitPhone} Recruitment Hotline    ${d.bc.websiteMain}    ${d.bc.websiteJoin}`;
   }
   if (footerText) {
     bcFitFontToWidth(ctx, footerText, W - 50, 10, "normal", "'Times New Roman', Times, serif");
     ctx.fillText(footerText, W / 2, H - 14);
   }
+}
+
+// ── Layout 2: masthead with rule + motto, name above rank, no footer ────
+// Modelled on the classic LASD / county sheriff card: the badge sits alone on
+// the left while the whole masthead is right of it, closed by a full rule.
+function bcDrawLayout2(ctx, W, H, d) {
+  const padX = BC_PAD_X;
+  const mastLeft = 208;
+  const mastRight = W - padX;
+  const mastW = mastRight - mastLeft;
+  const mastCx = (mastLeft + mastRight) / 2;
+  const ruleY = 102;
+
+  ctx.fillStyle = BC_INK;
+
+  // ── 1. MASTHEAD: prefix / title / department head ────────────
+  // The whole masthead hangs off the right end of the rule.
+  ctx.textAlign = "right";
+  ctx.textBaseline = "top";
+  if (d.l2Prefix) {
+    bcFitFontToWidth(ctx, d.l2Prefix, mastW, 16, "italic");
+    ctx.fillText(d.l2Prefix, mastRight, 22);
+  }
+  if (d.l2Title) {
+    // Small-caps is what gives the county-card masthead its look; browsers
+    // without support simply fall back to the plain Title Case string.
+    bcFitFontToWidth(ctx, d.l2Title, mastW, 30, "small-caps bold");
+    ctx.fillText(d.l2Title, mastRight, 44);
+  }
+  if (d.l2Head) {
+    ctx.font = "12px 'Times New Roman', Times, serif";
+    ctx.fillText(d.l2Head, mastRight, 84);
+  }
+
+  // ── 2. RULE + motto tucked under its left end ────────────────
+  ctx.beginPath();
+  ctx.moveTo(mastLeft, ruleY);
+  ctx.lineTo(mastRight, ruleY);
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = BC_INK;
+  ctx.stroke();
+
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  d.l2Motto.forEach((line, i) => {
+    bcFitFontToWidth(ctx, line, mastW * 0.45, 14, "italic");
+    ctx.fillText(line, mastLeft + 2, ruleY + 6 + i * 18);
+  });
+
+  // ── 3. LEFT COLUMN: badge ────────────────────────────────────
+  bcDrawContained(ctx, d.img, { x: 16, y: 86, w: 190, h: 190 }, d.badgeScale);
+
+  // ── 3a. WATERMARK (logo behind contacts, bottom-right) ───────
+  if (d.watermarkOn) bcDrawWatermark(ctx, d.img, W, H);
+
+  // ── 4. IDENTITY: name above rank, nothing else ───────────────
+  // Deliberately no serial / area / role here: the county card this layout
+  // copies prints only the name and the title under it.
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = BC_INK;
+
+  let y = 166;
+  if (d.fullName) {
+    bcFitFontToWidth(ctx, d.fullName, mastW * 0.8, 28, "bold");
+    ctx.fillText(d.fullName, mastCx, y);
+    y += 34;
+  }
+  if (d.rank) {
+    bcFitFontToWidth(ctx, d.rank, mastW * 0.8, 16, "normal");
+    ctx.fillText(d.rank, mastCx, y);
+  }
+
+  // ── 5. BOTTOM: station + address (left), contacts (right) ────
+  // Layout 2 has no footer strip; the website closes the address block.
+  ctx.textBaseline = "alphabetic";
+  ctx.font = "13px 'Times New Roman', Times, serif";
+  ctx.fillStyle = BC_INK;
+
+  const bottomY = H - 26;
+  const lineH = 18;
+
+  ctx.textAlign = "left";
+  bcDrawLinesUp(ctx, [d.l2Station, d.address1, d.address2, d.l2Website].filter(Boolean), padX, bottomY, lineH);
+
+  ctx.textAlign = "right";
+  bcDrawLinesUp(ctx, d.contactLines, W - padX, bottomY, lineH);
 }
 
 // ── Download / Copy ─────────────────────────────────────────────────────
@@ -515,6 +660,7 @@ async function bcSerializeState() {
   }
   return {
     FACTION_KEY: bcCurrentFaction,
+    layout: bcCurrentLayout,
     header: val("bcHeader"),
     rank: val("bcRank"),
     customRank: val("bcCustomRank"),
@@ -531,6 +677,14 @@ async function bcSerializeState() {
     logoScale: val("bcLogoScale"),
     watermark: !!document.getElementById("bcWatermark")?.checked,
     custom: { footer1: val("bcCustomFooter1"), footer2: val("bcCustomFooter2"), footer3: val("bcCustomFooter3") },
+    layout2: {
+      prefix: val("bcL2Prefix"),
+      head: val("bcL2Head"),
+      motto1: val("bcL2Motto1"),
+      motto2: val("bcL2Motto2"),
+      station: val("bcL2Station"),
+      website: val("bcL2Website"),
+    },
     customImage, // custom faction only
   };
 }
@@ -539,7 +693,8 @@ function bcHydrateState(payload) {
   if (!payload) return;
   const setVal = GumaHistoryWiring.setVal;
   const fk = payload.FACTION_KEY || "lspd";
-  bcSelectFaction(fk); // toggles panels + populates rank select
+  bcSelectFaction(fk); // toggles panels + populates rank select + layout-2 defaults
+  bcSelectLayout(payload.layout || 1, { render: false });
 
   if (fk === "custom") {
     bcCustomImage = payload.customImage || null;
@@ -577,6 +732,17 @@ function bcHydrateState(payload) {
   setVal("bcEmail", payload.email);
   setVal("bcAddress1", payload.address1);
   setVal("bcAddress2", payload.address2);
+
+  // Layout-2 masthead: fall back to the faction defaults already applied above
+  const l2 = payload.layout2;
+  if (l2) {
+    setVal("bcL2Prefix", l2.prefix);
+    setVal("bcL2Head", l2.head);
+    setVal("bcL2Motto1", l2.motto1);
+    setVal("bcL2Motto2", l2.motto2);
+    setVal("bcL2Station", l2.station);
+    setVal("bcL2Website", l2.website);
+  }
 
   const wm = document.getElementById("bcWatermark");
   if (wm) wm.checked = !!payload.watermark;

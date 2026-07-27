@@ -132,6 +132,9 @@ in use, reuse first:
 - `guma-panel` — themed panel surface with border + shadow.
 - `guma-input`, `guma-label`, `guma-form-section` — form primitives.
 - `guma-page-title`, `guma-faction-switcher-wrap`, `guma-panel-form`, etc.
+- `guma-seg` + `guma-seg-btn` (with `.active`) — segmented control for picking
+  between a few mutually exclusive options, e.g. the card layout picker in
+  `business_card_generator.html`.
 - `guma-tile-flag` (+ `-corner` / `-icon` position modifiers, `-hot` /
   `-popular` color modifiers) — Hot/Popular trend badges, injected by
   `applyHotFlags()` in `js/counters.js`.

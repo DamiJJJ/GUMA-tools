@@ -69,6 +69,40 @@
           <input class="guma-input" type="text" id="bcHeader" placeholder="ACME CORPORATION" oninput="bcRender()" />
         </div>
 
+        <!-- Layout 2 only: masthead (prefix / department head / motto) -->
+        <div
+          id="bcLayout2HeaderPanel"
+          style="display: none"
+          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
+          <p class="guma-form-section mb-3">Masthead (Layout 2)</p>
+
+          <div class="mb-3">
+            <label class="guma-label" for="bcL2Prefix">
+              Header Prefix <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span>
+            </label>
+            <input class="guma-input" type="text" id="bcL2Prefix" placeholder="County of Los Santos" oninput="bcRender()" />
+          </div>
+
+          <div class="mb-3">
+            <label class="guma-label" for="bcL2Head">
+              Department Head <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span>
+            </label>
+            <input class="guma-input" type="text" id="bcL2Head" placeholder="Robert Luna - Sheriff" oninput="bcRender()" />
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label class="guma-label" for="bcL2Motto1">Motto Line 1</label>
+              <input class="guma-input" type="text" id="bcL2Motto1" placeholder="A Tradition of Service" oninput="bcRender()" />
+            </div>
+            <div>
+              <label class="guma-label" for="bcL2Motto2">Motto Line 2</label>
+              <input class="guma-input" type="text" id="bcL2Motto2" placeholder="Since 1850" oninput="bcRender()" />
+            </div>
+          </div>
+        </div>
+
         <!-- Logo / Badge Size -->
         <div class="mb-5">
           <label class="guma-label flex items-center justify-between" for="bcLogoScale">
@@ -124,8 +158,8 @@
           <input class="guma-input" type="text" id="bcBadge" placeholder="25486" oninput="bcRender()" />
         </div>
 
-        <!-- Area + Role -->
-        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <!-- Area + Role (layout 1 only) -->
+        <div id="bcAreaRoleRow" class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label class="guma-label" for="bcArea">Area <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span></label>
             <input class="guma-input" type="text" id="bcArea" placeholder="Central Area" oninput="bcRender()" />
@@ -166,6 +200,14 @@
         <!-- Address -->
         <p class="guma-form-section mb-4">Address</p>
 
+        <!-- Layout 2 only: station name printed above the street address -->
+        <div id="bcL2StationRow" style="display: none" class="mb-3">
+          <label class="guma-label" for="bcL2Station">
+            Station / Facility <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span>
+          </label>
+          <input class="guma-input" type="text" id="bcL2Station" placeholder="Vespucci Sheriff's Station" oninput="bcRender()" />
+        </div>
+
         <div class="mb-3">
           <label class="guma-label" for="bcAddress1">Address Line 1</label>
           <input class="guma-input" type="text" id="bcAddress1" placeholder="251 E. 6th Street" oninput="bcRender()" />
@@ -174,6 +216,14 @@
         <div class="mb-3">
           <label class="guma-label" for="bcAddress2">Address Line 2</label>
           <input class="guma-input" type="text" id="bcAddress2" value="Los Santos, SA 90014" oninput="bcRender()" />
+        </div>
+
+        <!-- Layout 2 only: website printed under the address (replaces the footer strip) -->
+        <div id="bcL2WebsiteRow" style="display: none" class="mb-3">
+          <label class="guma-label" for="bcL2Website">
+            Website <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span>
+          </label>
+          <input class="guma-input" type="text" id="bcL2Website" placeholder="www.LSSDonline.org" oninput="bcRender()" />
         </div>
 
         <!-- Custom-only: footer -->
@@ -231,6 +281,15 @@
               class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
             ></span>
           </button>
+        </div>
+
+        <!-- ── Layout picker ── -->
+        <div class="w-full max-w-[560px]">
+          <p class="guma-label mb-2">Card Layout</p>
+          <div id="bcLayoutSwitcher" class="guma-seg">
+            <button type="button" class="guma-seg-btn" data-layout="1" onclick="bcSelectLayout(1)">Layout 1</button>
+            <button type="button" class="guma-seg-btn" data-layout="2" onclick="bcSelectLayout(2)">Layout 2</button>
+          </div>
         </div>
 
         <canvas id="bcCanvas" width="684" height="390" class="h-auto w-full max-w-[560px] shadow-canvas"></canvas>
