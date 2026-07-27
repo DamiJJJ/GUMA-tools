@@ -236,6 +236,21 @@
                dark:border-guma-gold dark:bg-guma-panel-2 dark:text-guma-gold;
       }
 
+      /* ─── Segmented control (e.g. card layout picker) ─── */
+      .guma-seg {
+        @apply flex w-full gap-2;
+      }
+      .guma-seg-btn {
+        @apply flex flex-1 cursor-pointer items-center justify-center rounded-xl border-2 px-3 py-2.5
+               text-[11px] font-bold uppercase tracking-[0.14em] transition
+               border-guma-l-border bg-guma-l-panel text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border dark:bg-guma-panel dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-seg-btn.active {
+        @apply border-guma-l-gold bg-guma-l-panel-2 text-guma-l-gold
+               dark:border-guma-gold dark:bg-guma-panel-2 dark:text-guma-gold;
+      }
+
       /* ─── Reports: dynamic rows ─── */
       .dynamic-row {
         @apply relative mb-3 rounded-xl border p-4
