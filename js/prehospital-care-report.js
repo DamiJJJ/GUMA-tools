@@ -613,22 +613,43 @@ function renderBody(ctx) {
 }
 
 // ── Draw ──────────────────────────────────────────────────────────────────────
-function drawForm() {
-  // Render to an oversized offscreen canvas, then crop to the used height so the
-  // visible canvas fits the content regardless of how many boxes were drawn.
-  const off = document.createElement("canvas");
-  const MAX_H = 1600;
-  off.width = DOC_W * SCALE;
-  off.height = MAX_H * SCALE;
+// Offscreen canvas is cached at module level: allocating ~15 MB of backing
+// store on every keystroke was pure GC churn. It starts slightly above the
+// sheet height and grows only if the content ever runs past it.
+let pcrOffCanvas = null;
+
+function pcrPrepOffCtx(off) {
   const octx = off.getContext("2d");
+  octx.setTransform(1, 0, 0, 1, 0, 0); // scale() accumulates on a reused canvas
   octx.scale(SCALE, SCALE);
   octx.fillStyle = "#fff";
-  octx.fillRect(0, 0, DOC_W, MAX_H);
+  octx.fillRect(0, 0, DOC_W, off.height / SCALE);
   octx.textBaseline = "alphabetic";
-  const endY = renderBody(octx);
+  return octx;
+}
+
+function drawForm() {
+  // Render to the cached offscreen canvas, then crop to the used height so the
+  // visible canvas fits the content regardless of how many boxes were drawn.
+  const MAX_H = 1000;
+  if (!pcrOffCanvas) {
+    pcrOffCanvas = document.createElement("canvas");
+    pcrOffCanvas.width = DOC_W * SCALE;
+    pcrOffCanvas.height = MAX_H * SCALE;
+  }
+  const off = pcrOffCanvas;
+  let octx = pcrPrepOffCtx(off);
+  let endY = renderBody(octx);
+  if ((endY + 8) * SCALE > off.height) {
+    // Content outgrew the buffer: grow with headroom and render again
+    // (resizing wipes the canvas).
+    off.height = Math.ceil(endY + 40) * SCALE;
+    octx = pcrPrepOffCtx(off);
+    endY = renderBody(octx);
+  }
   // Pad to the source template's sheet proportions (519 x 690 ≈ 1.33:1).
   const SHEET_H = Math.round((DOC_W * 690) / 519);
-  const totalH = Math.min(MAX_H, Math.max(endY + 8, SHEET_H));
+  const totalH = Math.min(off.height / SCALE, Math.max(endY + 8, SHEET_H));
 
   const canvas = document.getElementById("docCanvas");
   canvas.width = DOC_W * SCALE;
