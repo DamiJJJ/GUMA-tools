@@ -1,9 +1,10 @@
 # WYSIWYG canvas editing for Report Generators
 
 > Feasibility assessment, implementation plan and running log.
-> **Phases 0 and 1 are done and verified.** Phases 2-5 are not started.
-> Read "Gotchas" before writing any code for the next phase - most of it was
-> paid for the hard way in the pilot.
+> **Phases 0, 1 and 2 are done and verified.** Phases 3-5 are not started.
+> Picking this up in a new session? Go straight to **"Next session: start
+> here"** below. Everything in "Gotchas" was paid for the hard way; none of it
+> is theoretical.
 
 ## Status
 
@@ -11,17 +12,61 @@
 | --- | --- | --- |
 | **0 - Foundation** | `js/canvas-edit.js`, `<guma-preview-modal>`, `guma-ce-*` styles, PCR offscreen-canvas fix | **Done** |
 | **1 - Arrest Report (pilot)** | Instrumented `cell()`, officer chips, preview modal, zoom | **Done, reviewed with the user, UX revised twice** |
-| **2 - Traffic Collision** | Same primitive family as arrest | Not started |
-| **3 - PCR** | 90 checkboxes + value rows | Not started |
+| **2 - Traffic Collision** | Same primitive family as arrest, plus select-backed pick-one boxes and 5 new inputs for cells that only ever printed `-` | **Done, 48/48 automated checks** |
+| **3 - PCR** | 28 text fields + exactly 90 checkboxes, no repeatable rows | **Next** |
 | **4 - Firearm** | `gridRow` funnel + `_p` prefix | Not started |
 | **5 - Randomize Character** | New branches in `js/random-character.js` | Not started |
 | **6 - Personnel File Generator** | Deferred, separate decision | Not started |
 
-Files touched so far: `js/canvas-edit.js` (new, 725 lines), `js/guma-styles.js`,
-`js/components.js`, `js/arrest-report.js`, `js/prehospital-care-report.js`,
-`arrest_report.html`, `assets/screenshots/arrest_report.png`.
+Phases 0-1 shipped as commit `2a4a757` on `feat/wysiwyg-canvas-edit`.
 
-Nothing has been committed. All of the above is uncommitted working tree.
+Phase 2 files: `js/traffic-collision-report.js`, `traffic_collision_report.html`,
+`js/canvas-edit.js` (occurrence index), `js/guma-styles.js`
+(`.guma-ce-chip-pick`), `assets/screenshots/traffic_collision_report.png`.
+Uncommitted - the user commits, never the agent.
+
+## Next session: start here
+
+**Phase 3 is the PCR.** `js/canvas-edit.js` needs no new features for it; every
+mechanism it uses already exists and is tested. The work is instrumentation plus
+page markup.
+
+Read in this order: this section, then Gotchas 12-14 (the Phase 2 ones), then
+the "Phase 3 - PCR" block under *Remaining instrumentation notes*, which has the
+file-specific traps. Gotchas 1-11 are Phase 1 material and only matter if you
+touch the editor itself.
+
+Order of work that proved efficient in Phase 2:
+
+1. **Page markup first** (`prehospital_care_report.html`) - it is mechanical and
+   identical on every page. Copy from `traffic_collision_report.html`:
+   `guma-ce-host` on the form panel, `min-w-0` + `#ceToolbar` on the preview
+   panel, canvas into `#ceFrame`/`.guma-ce-canvas` inside `.guma-ce-wrap`, the
+   Download/Copy pair replaced by one `Preview & Download` button,
+   `<guma-preview-modal>` before the scripts, `js/canvas-edit.js` **before** the
+   page script.
+2. **Instrument the funnels**, then wire `window.GumaExport` + `attach()` at the
+   end of the page JS and `cancelEdit()` at the top of `pcrHydrateState`.
+3. **Build the harness before believing anything** - see *Verification*. The
+   registry-recorder trick is what makes 90 checkboxes checkable at all.
+4. **Regenerate `assets/screenshots/prehospital_care_report.png`** with Los
+   Santos demo data (`CLAUDE.md` rule).
+5. **Re-run the arrest and traffic harnesses** if you touched
+   `js/canvas-edit.js` or `js/guma-styles.js`. Phase 2 caught nothing there, but
+   only because it was checked.
+
+The PCR has **no repeatable rows and no faction switcher**, so no `+`/`✕` chips
+and no `switchFaction` guard. It is structurally the simplest page left; the
+volume is the only hard part.
+
+Two things to raise with the user rather than decide alone:
+
+- **Gotcha 13 applies to PCR too.** Sweep the draw path for cells whose value is
+  a string literal instead of a `rv(id)` call, and confirm the same "fill in the
+  whole document" rule before adding inputs, since it grows the form.
+- Phase 5 (randomize) still has **no DOB generator** while all three
+  person-bearing pages have `dob` inputs. Decide whether `randomizeCharacter`
+  should derive a DOB from the `age` it already rolls.
 
 ## Context
 
@@ -53,7 +98,8 @@ chrome (dates especially), not in the registry.
 | --- | --- |
 | Mobile | WYSIWYG is desktop-only (`min-width: 1280px`). Below `xl` the form panel stays visible and the canvas stays a passive preview. The form markup remains in the DOM regardless. |
 | Personnel File Generator | **Out of scope for now.** Structurally it is a card generator sitting in the Report section. Revisit as an optional Phase 6. |
-| Rollout | Pilot on **Arrest Report** only, then stop and review. Done. |
+| Rollout | Pilot on **Arrest Report** only, then stop and review. Done; traffic followed and was reviewed the same way. |
+| Completeness | **If we fill in the document, we fill in all of it.** A cell printing a hard-coded `-` gets a real input rather than staying dead. See Gotcha 13. |
 | Default zoom | **100%**, not fit-to-container. Fit made the document too wide to read comfortably. `Fit` stays one click away in the zoom control. |
 | Maximum zoom | **Fit is the ceiling.** There is no fixed upper bound any more. Past Fit the document would be wider than its box, and the page scrolled sideways instead. `+`, Ctrl+wheel and `setZoom()` all clamp, and narrowing the window pulls the current zoom down with the cap. |
 | Export surface | The page carries **one** `Preview & Download` button. Download PNG, Copy and the counter live **inside** `<guma-preview-modal>`. There is no Download/Copy pair on the page any more. |
@@ -68,7 +114,7 @@ In scope (4 pages):
 | Page | JS | Repeatable rows | Checkboxes | State |
 | --- | --- | --- | --- | --- |
 | `arrest_report.html` | `js/arrest-report.js` | officers (max 4) | 2 | **Done** |
-| `traffic_collision_report.html` | `js/traffic-collision-report.js` | parties | 2 | Not started |
+| `traffic_collision_report.html` | `js/traffic-collision-report.js` | parties (no max) | 2 | **Done** |
 | `firearm_discharge.html` | `js/firearm_discharge_investigation.js` | involved + witnessing officers, civilians | 4 | Not started |
 | `prehospital_care_report.html` | `js/prehospital-care-report.js` | none | **90** | Not started |
 
@@ -100,12 +146,16 @@ field(ref, x, y, w, h, opts)
 //   minEditW  logical-px floor for the editor box
 //   fontPx  logical font size, default 8
 
-/** Non-value affordance: the +/- row chips. */
+/** Non-value affordance: the +/- row chips and pick-one boxes. */
 action(id, x, y, w, h, handler, opts)
 // opts = { label, kind, title }
-//   kind "add" | "remove" -> .guma-ce-chip-add / .guma-ce-chip-remove
+//   kind "add" | "remove" | "pick"
+//        -> .guma-ce-chip-add / -remove / -pick
+//   "pick" is transparent and only tints on hover: use it when the document
+//   already paints the control (see Gotcha 12). Each chip carries
+//   data-ce-action="<id>".
 
-/** Close the pass: re-anchor the open editor BY REF, rebuild chrome. */
+/** Close the pass: re-anchor the open editor by (ref, occ), rebuild chrome. */
 end()
 
 attach({ canvas, frame, toolbar, redraw, key, resolve, media })
@@ -119,7 +169,17 @@ attach({ canvas, frame, toolbar, redraw, key, resolve, media })
 **Divergence from the original plan:** `attach()` also takes `toolbar`, and the
 `host` key documented earlier was never needed - the breakpoint gate is pure
 CSS (`.guma-ce-host` plus a media query). `arrest-report.js` still passes
-`host`; it is inert. Drop it when convenient.
+`host`; it is inert. Drop it when convenient. `traffic-collision-report.js`
+does not pass it.
+
+**Occurrence index (added in Phase 2).** One input can legitimately be printed
+in more than one place - the traffic report prints `TOW AWAY` in both the NCIC
+row and the LOCATION row. `field()` therefore stamps each registration with an
+`occ` counter (0, 1, ... per ref within a pass), `editing` carries the `occ` it
+was opened on, and `syncChrome()` / `advance()` re-find the box by the
+`(ref, occ)` pair. Without it the editor snapped to the first printing on the
+next redraw - i.e. it jumped away from the cell the user clicked. Nothing in
+page code has to know about this; just register both boxes.
 
 Coordinate mapping, with one extra division because reports use
 `ctx.scale(SCALE, SCALE)` and bodycam does not:
@@ -243,7 +303,9 @@ window.GumaExport = { download: downloadPng, copy: copyDocToClipboard,
 
 ## Gotchas
 
-Everything below cost real debugging time in Phase 1. Read it before Phase 2.
+Everything below cost real debugging time. **1-11 came out of Phase 1, 12-14 out
+of Phase 2.** Read 12-14 before any further instrumentation; 1-11 matter mainly
+if you touch the editor itself.
 
 ### 1. `line-height: 0` on the frame clips native date/time inputs
 
@@ -280,8 +342,8 @@ themes deliberately, because gold has too little contrast on white.
 There is no attribute or CSS to change that. Editing straight over the
 document, the mismatch reads as the value having changed.
 
-Solved generically in `canvas-edit.js`, so **Phases 2-4 get it for free** by
-passing `kind: "date"`. `buildDateEditor()` produces:
+Solved generically in `canvas-edit.js`, so **the remaining phases get it for
+free** by passing `kind: "date"`. `buildDateEditor()` produces:
 
 - a `<input type="text">` in `mm/dd/yyyy` with a typing mask (8 bare digits
   auto-slash into `07/24/2026`),
@@ -317,8 +379,16 @@ Safari and Firefox reject it.
 
 The plan assumed padding rows (`while (rows.length < 2) push({...})`). The user
 wants the opposite: **a removed row disappears and the canvas shrinks.**
-`drawOfficers()` now renders exactly the collected rows. Carry this to traffic
-parties and firearm officer/civilian blocks.
+`drawOfficers()` now renders exactly the collected rows. Done for traffic
+parties too (`while (toRender.length < 3) push(emptyParty)` and the whole
+`emptyParty` literal are gone); carry it to the firearm officer/civilian
+blocks.
+
+Where the block is not the last thing on the page, the `+ Add` chip needs
+vertical room reserved for it in the flow, because chips are DOM overlay and
+paint nothing: traffic uses a named `ADD_CHIP_H = 18` between the last party and
+the footer row, counted into `contentH`. That strip is blank on the passive
+(sub-1280px) view too - it has to be, since both modes export the same canvas.
 
 Rows are identified by an id prefix carried on the collected object:
 
@@ -417,23 +487,149 @@ Two fixes, both kept:
 **Every report page needs `min-w-0` on its preview panel.** It is easy to miss
 because nothing looks wrong until someone zooms in.
 
+### 12. A pick-one control the canvas already paints needs a *transparent* chip
+
+Party type (5 boxes) and day of week (7 letter boxes) are painted from a value
+comparison but backed by a single `<select>`. Registering them as `field()` is
+wrong - clicking "PEDESTRIAN" should *set* the type, not open a dropdown over
+the row. They are `action()`s, per the original plan, but the default chip
+paints a filled button, which would double-draw the box the canvas already
+printed.
+
+Hence `kind: "pick"`: `.guma-ce-chip-pick` is fully transparent and only tints
+on hover, so it is a pure hit target. Handlers go through one helper:
+
+```js
+function setSelectVal(id, value) {
+  const el = document.getElementById(id);
+  if (!el || el.value === value) return;
+  el.value = value;
+  el.dispatchEvent(new Event("change", { bubbles: true }));
+}
+```
+
+Chips sit above the canvas with `pointer-events: auto`, so a pick target always
+wins over any `field()` hitbox underneath it. That is what you want here, but it
+means a pick chip laid over an editable cell would make that cell unclickable.
+
+**Firearm has four such blocks** (`Y/N` columns); check whether each is really
+one-of-N (pick) or a free value (field) before instrumenting.
+
+### 13. A cell printing a hard-coded `-` is a missing field, not a static cell
+
+Traffic printed `Class`, `REPORTING DISTRICT`, `BEAT`, `PHOTOGRAPHS BY` and
+`On Street or Highway / ... / PCF` as literal `-`, with no form input behind
+them. Under WYSIWYG that reads as five dead cells in the middle of an otherwise
+fully editable document. **Product rule from the user: if we are filling in the
+document, we fill in all of it.** All five got real inputs in Phase 2:
+
+| Cell | New id | Scope |
+| --- | --- | --- |
+| Class | `party_N_dl_class` | per party |
+| On Street or Highway / ... / PCF | `party_N_street_info` | per party |
+| REPORTING DISTRICT | `reporting_district` | page |
+| BEAT | `beat` | page |
+| PHOTOGRAPHS BY | `photographs_by` | page |
+
+Because `getVal()` already returns `"-"` for an empty input, an untouched
+document renders exactly as before - the change is invisible until someone
+types. Adding ids to `TC_SCALAR_FIELDS` / `TC_PARTY_FIELDS` is safe for old
+saved reports: `GumaHistoryWiring.setVal` no-ops on `v == null`, so the new
+fields simply stay empty when an older payload is hydrated.
+
+**Do the same sweep on PCR and firearm before declaring a phase done:** grep
+the draw path for cell values that are string literals rather than a `getVal`
+call. What genuinely has no source (a computed total, a printed constant) stays
+unregistered - **never invent a ref**, or `devAssertRefs()` warns on every draw.
+
+### 14. A cell shorter than 18px prints its value through its own label
+
+`cell()` puts the label baseline at a fixed `y + 7` and the value baseline at
+`y + h - 4`. 8px Arial has a ~5.8px cap height, so the value's glyph tops land
+at `y + h - 9.8`, and anything below **h = 17** drives them through the label.
+The NCIC row was `h = 16` and printed `NCIC #` straight over `1934`; location
+row 2 was `h = 17` and the two lines touched.
+
+Both are now 20. `cell()` also clamps the value baseline to
+`Math.max(y + h - 4, y + 13)` when a label is present, so a short row degrades
+to "cramped" rather than "illegible" if anyone reintroduces one.
+
+**Minimum for a labelled cell is h = 18; use 20.** Worth checking on PCR, where
+`valueRow` and `valueChecklistRow` pack many short rows. The harness asserts it
+directly: no registered field with a label may have `h < 18`.
+
+Related, found while fixing it: `drawForm()`'s `headerH` estimate was 17px short
+of what the header actually paints. Harmless while the A4 floor won, but it
+governs from the 4th party on, and would have eaten into the bottom margin. The
+harness now checks that the footer plus `PAGE 1 OF 1` fits for 1-6 parties.
+**Re-run that check after changing any row height.**
+
 ## Remaining instrumentation notes
 
-**Traffic Collision.** Same primitive family as arrest. The
-`clip` / `wrapLabel` / `cell` / `row` block lives at
-`traffic-collision-report.js:292-358`; before instrumentation it differed from
-the arrest copy by **3 lines** (arrest added a `valFont` option and an
-`if (label)` guard). The arrest copy now sits at `arrest-report.js:112-193`
-and carries the registry call, so **diff against git HEAD, not against the
-current arrest file**, if you want to confirm they are still twins. Do **not**
-extract them into a shared `js/report-primitives.js` during this work - that is
-a separate refactor with its own regression surface. One new interaction:
-party-type checkboxes are painted from `d.type === t` but backed by a
-`<select>`, so they register as `action()`, not `field()`.
+Ordered by phase, so the next one to do is first.
 
-**Firearm.** `gridRow()` is the funnel. `drawOffRow`/`drawCivBlock` receive
-plain objects, so add the `_p` prefix in `collectOfficerRows(type)` and
-`collectCivilianRows()`, then:
+### Phase 3 - PCR (`js/prehospital-care-report.js`, 743 lines)
+
+Verified against the current file, not from memory.
+
+**Inventory.** 28 ids in `PCR_TEXT_IDS`, **exactly 90** checkbox ids in
+`PCR_CHECK_IDS` (derived: `[EMD_ITEMS, ROLE_ITEMS, ...].flat().map(it => it.id)`).
+Both arrays are ready-made coverage lists - point the harness at them rather
+than hand-writing anything. Funnels: 10 `checkItem` sites, 6 `valueRow`,
+4 `combRow`, plus `valueChecklistRow` and `drawChecklistFixed`.
+
+**The one structural trap: `renderBody()` can run twice per `drawForm()`.** The
+page renders to a cached offscreen canvas and crops it; if the content outgrows
+the buffer, `drawForm()` resizes and calls `renderBody(octx)` **again**. Put
+`begin()` at the top of **`renderBody`**, not of `drawForm`, and `end()` at the
+very end of `drawForm`. A second `begin()` discards the first pass; putting
+`begin()` in `drawForm` would leave every ref registered twice, and Phase 2's
+occurrence index would happily believe it.
+
+Good news on coordinates: the crop is `drawImage(off, 0, 0, ...) -> (0, 0)`, so
+logical coordinates from the offscreen pass map **1:1** onto the visible canvas.
+No offset math. `SCALE` is 2 here as well, but note `DOC_W = 600` and
+`MARGIN = 26`, not the 640/24 of arrest and traffic.
+
+**Per-funnel notes.**
+
+- `checkItem(ctx, x, baseline, id, label, maxW)` already receives the DOM id -
+  one added line makes 90 checkboxes editable. The painted box is
+  `(x, baseline - 6, 7, 7)` with the label at `x + 10`, so the strip hitbox is
+  about `(x - 1, baseline - 8, maxW, 11)`, matching the arrest/traffic
+  "whole box-plus-label toggles" behaviour.
+- `valueRow(ctx, y, h, cells)` is the arrest `row()` equivalent: add `ref` to
+  the cell spec and register at the end. **Watch Gotcha 14 here** - PCR's own
+  metrics differ (label baseline `y + 8`, value baseline `y + h - 5`, value font
+  9px, cap height ~6.5), which puts the threshold at **h >= 19.5**. The existing
+  call sites are 26, 22, 20, 20, 20, 20 - four of them sit 0.5px from collision.
+  Check those visually at zoom before declaring the phase done.
+- `combRow` paints per-character boxes from an uppercased value. Register one
+  hitbox over the whole cell strip and give the editor an uppercase transform;
+  it is the only field on any page that needs one.
+- `valueChecklistRow` / `drawChecklistFixed` combine a value cell and checklist
+  cells; instrument the value cell as a field and let `checkItem` cover the rest.
+
+**Page + wiring.** `prehospital_care_report.html` still has the old shape: form
+panel without `guma-ce-host`, preview panel without `min-w-0`, bare
+`.guma-canvas-preview` canvas, the Download/Copy pair, no modal, no
+`canvas-edit.js`. `pcrHydrateState()` needs `GumaCanvasEdit.cancelEdit()` at the
+top. There is no faction switcher and no dynamic rows on this page.
+
+**Prerequisite already done:** the module used to allocate a fresh 15.4 MB
+offscreen canvas on every draw. It is now cached at module level, starts at
+`MAX_H = 1000` and grows only if the content outruns it. `pcrPrepOffCtx()`
+resets the transform before re-scaling, because `ctx.scale()` accumulates on a
+reused canvas. **Perf is still the open risk on this page** (Risk 4): 90
+checkbox hitboxes plus 28 fields is by far the largest registry so far. If
+typing feels heavy, `GumaCanvasEdit.schedule()` (rAF-coalesced redraw) exists
+and is currently unused by any page.
+
+### Phase 4 - Firearm (`js/firearm_discharge_investigation.js`)
+
+`gridRow()` is the funnel. `drawOffRow`/`drawCivBlock` receive plain objects, so
+add the `_p` prefix in `collectOfficerRows(type)` and `collectCivilianRows()`,
+then:
 
 ```js
 if (d._p) GumaCanvasEdit.field(d._p + "_" + col.key, x, y, cw, H,
@@ -441,21 +637,18 @@ if (d._p) GumaCanvasEdit.field(d._p + "_" + col.key, x, y, cw, H,
 ```
 
 Note `Array(3 - rows.length).fill({})` shares one object reference across
-padding rows - harmless while read-only, but see Gotcha 5 about dropping
-padding rows entirely.
+padding rows - harmless while read-only, but Gotcha 5 says drop the padding rows
+entirely, which removes the hazard along with them. This is the only remaining
+page with repeatable rows, so it is the one that needs `+`/`✕` chips and the
+`ADD_CHIP_H`-style spacing.
 
-**PCR.** `checkItem(ctx, x, baseline, id, label, maxW)` already takes the DOM
-id, so 90 checkboxes become editable with one added line. `valueRow`, `combRow`
-and `valueChecklistRow` follow the arrest pattern. The comb field wants a
-whole-strip hitbox plus an uppercase-transformed input.
+Its four `Y/N` checkbox blocks are the case Gotcha 12 warns about: decide per
+block whether it is one-of-N backed by a select (`action` with `kind: "pick"`)
+or a free value (`field`).
 
-**Prerequisite already done:** `js/prehospital-care-report.js` used to allocate
-a fresh 15.4 MB offscreen canvas on every draw. It is now cached at module
-level, starts at `MAX_H = 1000` and grows only if the content outruns it.
-`pcrPrepOffCtx()` resets the transform before re-scaling, because `ctx.scale()`
-accumulates on a reused canvas.
+### Phase 5 - Randomize Character
 
-**Randomize Character (Phase 5).** New branches in `js/random-character.js`:
+New branches in `js/random-character.js`:
 arrest (arrestee + officers), traffic (parties), firearm (officers +
 civilians). **Not PCR** - `PCR_TEXT_IDS` has no person fields at all. Note there
 is currently no DOB generator: `randomizeCharacter` rolls `age` but never a date
@@ -467,11 +660,13 @@ of birth, and all three pages have `dob` inputs.
    re-parenting anywhere, plus a dev-only `console.warn` in `end()` for any
    registered ref that does not resolve. No incidents in the pilot.
 2. **Stale editor after hydrate or faction switch.** *Mitigated:*
-   `GumaCanvasEdit.cancelEdit()` at the top of `arHydrateState`. **Do the same
-   in every `*HydrateState` and every `switchFaction` in Phases 2-4.**
-   `end()` also drops an editor whose ref vanished from the registry.
+   `GumaCanvasEdit.cancelEdit()` at the top of `arHydrateState` and
+   `tcHydrateState`. **Do the same in every remaining `*HydrateState` and every
+   `switchFaction` in Phases 3-4.** `end()` also drops an editor whose ref
+   vanished from the registry.
 3. **Export contamination.** *Resolved and measured:* byte-identical export, see
-   Verification. Keep the DOM-only-chrome invariant.
+   Verification. Keep the DOM-only-chrome invariant. Re-confirmed on traffic in
+   Phase 2.
 4. **Perf on PCR.** Still open, Phase 3. rAF coalescing, the cached offscreen
    canvas and the single-SVG chrome overlay are all in place already.
 5. **Coordinate drift.** *Mitigated:* `ResizeObserver` on the canvas, which
@@ -488,26 +683,80 @@ of birth, and all three pages have `dob` inputs.
 
 ## Verification
 
-No test suite exists. Phase 1 was verified with a throwaway headless-Chrome
-harness adapted from the capture script in `.claude/commands/screenshot.md`
-(static server + CDP over Node's global `WebSocket`/`fetch`, no npm deps).
-Rebuilding it costs about ten minutes and is worth it for every phase.
+No test suite exists, and adding one would mean build tooling the project has
+deliberately avoided. Each phase is instead verified with a **throwaway
+headless-Chrome harness** in the scratchpad, adapted from the capture script in
+`.claude/commands/screenshot.md` (static server + CDP over Node's global
+`WebSocket`/`fetch`, no npm deps). Phase 2 took it from ~10 assertions to 48;
+rebuilding it costs maybe fifteen minutes and has paid for itself twice.
 
-Useful coordinate helper inside the page, for synthesising clicks on the canvas:
+**If you keep one thing from this section, keep the recorder.** The registry is
+not exposed on `window`, so instead monkey-patch the two entry points before
+drawing. Everything else in the harness is built on the boxes it returns:
+
+```js
+window.__rec = { fields: [], actions: [] };
+const CE = window.GumaCanvasEdit, of_ = CE.field, oa = CE.action;
+CE.field  = function (ref, x, y, w, h, opts) {
+  window.__rec.fields.push({ ref, x, y, w, h, opts: opts || {} });
+  return of_.apply(this, arguments);
+};
+CE.action = function (id, x, y, w, h, handler, opts) {
+  window.__rec.actions.push({ id, x, y, w, h, opts: opts || {} });
+  return oa.apply(this, arguments);
+};
+window.__draw = function () { window.__rec = { fields: [], actions: [] }; drawForm(); return window.__rec; };
+```
+
+Page code calls `window.GumaCanvasEdit.field(...)` by property lookup at call
+time, so the patch takes effect immediately. It records **call arguments**, so
+`occ` is absent - filter by ref and index instead of reading `occ` back
+(a Phase 2 test failed on exactly that mistake).
+
+It also records *every* call, including ones the registry itself discards. On
+PCR that matters: `renderBody()` can run twice in one `drawForm()`, so the
+recorder will show two passes where the registry holds one. Dedupe on the
+recorder side, or the coverage counts will read double.
+
+Clicking a registered box, given the recorder:
 
 ```js
 const k = (canvas.clientWidth / canvas.width) * SCALE;   // CSS px per logical px
+const r = canvas.getBoundingClientRect();
 canvas.dispatchEvent(new PointerEvent("pointerdown", {
-  clientX: rect.left + logicalX * k, clientY: rect.top + logicalY * k,
-  bubbles: true, pointerId: 1, isPrimary: true }));
+  clientX: r.left + (box.x + box.w / 2) * k, clientY: r.top + (box.y + box.h / 2) * k,
+  bubbles: true, cancelable: true, pointerId: 1, isPrimary: true }));
 ```
+
+Three harness mistakes worth not repeating, all from Phase 2:
+
+- **`Enter` does not close the editor**, it commits *and advances*. Assert that
+  the next field's editor opened at the next box, not that the editor is gone.
+- **An export-purity check must not change a value.** Open the editor, raise the
+  hover, capture - then edit. Typing first makes the two captures differ for a
+  legitimate reason and the test "fails" on nothing.
+- **Assert the chrome was actually up** during the purity capture, or the test
+  passes vacuously when the overlay silently stopped rendering.
+
+Useful CDP calls beyond `Runtime.evaluate`: `Emulation.setDeviceMetricsOverride`
+/ `clearDeviceMetricsOverride` for the breakpoint gate (the `matchMedia`
+listener fires on override, so both directions are testable in one session), and
+`Page.captureScreenshot` for the two-theme visual pass.
+
+**Prefer the chrome-up/chrome-down form of the purity check from Phase 2 on.**
+Phase 1 compared against a copy of the pre-change build on a second port, which
+only works while the document layout is unchanged - Phase 2 deliberately changed
+it (padding parties dropped, add-chip strip added). The replacement is stronger
+anyway and needs no second build: capture `toDataURL()`, open an editor, move
+the pointer to raise the hover highlight, confirm outlines and chips are in the
+DOM, capture again, and require the two strings to be identical. Assert that
+the chrome really was up, or the test passes vacuously.
 
 What was checked automatically in Phase 1, all passing:
 
 1. **Export purity, byte level.** Rendered the same data on the current build
    and on a copy of the pre-change build served from a second port, compared
-   `toDataURL()` output: **identical, 128926 bytes both**. This is the strongest
-   guarantee that chrome never leaks; repeat it each phase.
+   `toDataURL()` output: **identical, 128926 bytes both**.
 2. **Breakpoint gate.** At >=1280px the form is hidden and the canvas is
    editable; below, the form is visible and the canvas inert, with the zoom
    width override cleared. `matchMedia` change handled mid-session.
@@ -530,12 +779,51 @@ What was checked automatically in Phase 1, all passing:
    the mirrored counter.
 10. **Both themes** confirmed by screenshot; zero page errors throughout.
 
+What was checked automatically in Phase 2 - **48 assertions, all passing** -
+plus a **9-assertion regression run against the arrest report**, because
+`canvas-edit.js` changed under it:
+
+1. **Registry coverage, derived rather than eyeballed.** The harness monkey-
+   patches `GumaCanvasEdit.field/action` to record every registration, then
+   asserts that all 21 `TC_SCALAR_FIELDS` and all 25 party fields x 3 parties
+   are reachable, that every registered ref resolves to a real input, and that
+   the pick/add/remove chip counts are 7 + 15 + 1 + 3. This is the check worth
+   copying verbatim to Phases 3-4; on PCR it is the only sane way to confirm
+   90 checkboxes. It is also what catches a cell you forgot to wire when you
+   add fields (Gotcha 13) - drive the assertion off the serialization arrays,
+   not off a hand-written list.
+2. **Export purity** in the chrome-up/chrome-down form described above.
+3. **Editing**: write-through, editor survives its own redraw, `Enter` commits
+   *and advances* (it does not just close - Phase 1's note is easy to misread),
+   `Shift+Tab` steps back, `cancelEdit()` removes.
+4. **Date editor**: shows `03/14/2026` for a source of `2026-03-14`, `07242026`
+   masks to `07/24/2026` and writes `2026-07-24`, `Escape` reverts.
+5. **Duplicate ref**: `tow_away` registers twice; the editor opens on the
+   clicked occurrence and stays there across a redraw.
+6. **Pick-one**: clicking a party-type box sets `party_N_type`, clicking a
+   day letter sets `day_of_week`, and the chips are computed-transparent.
+7. **Repeatable rows**: add appends, remove deletes exactly that row, the
+   canvas shrinks.
+8. **History round-trip**: serialize -> wipe -> hydrate -> serialize, identical.
+9. **Zoom**: 100% default, `setZoom(3)` and 12 `+` clicks both land on Fit, Fit
+   is the same from above and below, `wrap.scrollWidth === clientWidth` and the
+   page never scrolls sideways, persisted under `guma:zoom:traffic`.
+10. **Breakpoint gate** via `Emulation.setDeviceMetricsOverride` to 1000px:
+    editing off, zoom override cleared, form panel back, chrome layers zero-
+    height, **and the exported PNG identical to the wide-mode one**; widening
+    again re-activates through the `matchMedia` listener.
+11. **Preview modal** opens with both export buttons; no Download/Copy pair
+    left on the page.
+12. **Both themes** by screenshot; zero page errors and zero dead-ref warnings.
+
 Still **manual and unverified**, worth doing once in a real browser:
 
 - Native calendar popup in Safari and Firefox (`showPicker()` on the
   zero-opacity anchor input is the part most likely to differ).
-- `assets/screenshots/arrest_report.png` was regenerated with Los Santos demo
-  data. Per `CLAUDE.md`, regenerate the matching screenshot after each phase.
+- `assets/screenshots/arrest_report.png` and
+  `assets/screenshots/traffic_collision_report.png` were regenerated with Los
+  Santos demo data. Per `CLAUDE.md`, regenerate the matching screenshot after
+  each phase.
 
 ## Appendix: incidental findings
 
@@ -549,6 +837,10 @@ Not part of this plan, but worth logging:
   card hover lift is dead.
 - **Dead script tags.** `traffic_collision_report.html` and `arrest_report.html`
   load `js/factions.js` + `js/ui-helpers.js` but have no `#factionSwitcher`.
+- **Dead code in `traffic-collision-report.js`.** `sectionBar()` is defined and
+  never called (the LOCATION bar is drawn inline, rotated), and `getCode()` is
+  unused - `collectParties()` inlines the same `split(" ")[0]`. Left alone in
+  Phase 2 to keep the diff to the WYSIWYG work.
 - **Stale config.** `/tailwind.config.js` at repo root is a CommonJS file for a
   build step that does not exist. It still says `maxWidth: 1400px` and lacks the
   entire light palette.

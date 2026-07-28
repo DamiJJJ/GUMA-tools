@@ -43,8 +43,9 @@
   let actions = [];
   let passFields = null;
   let passActions = null;
+  let passRefSeen = null;
 
-  let editing = null; // { ref, field, kind, el, input, original }
+  let editing = null; // { ref, occ, field, kind, el, input, original }
   let pickerOpen = false; // a native calendar popup is up; blur is not an exit
   let syncRaf = 0;
   let redrawRaf = 0;
@@ -93,6 +94,7 @@
     scale = (opts && opts.scale) || scale;
     passFields = [];
     passActions = [];
+    passRefSeen = Object.create(null);
   }
 
   /**
@@ -101,7 +103,19 @@
    * label, minEditW, align ("left"|"center"), fontPx.
    */
   function field(ref, x, y, w, h, opts) {
-    if (passFields) passFields.push({ ref, x, y, w, h, opts: opts || {} });
+    if (!passFields) return;
+    // One input may legitimately be printed in more than one place (the
+    // traffic report prints TOW AWAY twice). The occurrence index is what
+    // keeps an open editor anchored to the box that was actually clicked
+    // instead of snapping to the first match on the next redraw.
+    const occ = passRefSeen[ref] || 0;
+    passRefSeen[ref] = occ + 1;
+    passFields.push({ ref, occ, x, y, w, h, opts: opts || {} });
+  }
+
+  /** The box an editor is anchored to, preferring the exact occurrence. */
+  function findField(ref, occ) {
+    return fields.find((x) => x.ref === ref && x.occ === occ) || fields.find((x) => x.ref === ref) || null;
   }
 
   /** Register a non-value affordance (e.g. a +/- row chip). */
@@ -151,7 +165,7 @@
     renderEmptyOutlines();
     renderChips();
     if (editing) {
-      const f = fields.find((x) => x.ref === editing.ref);
+      const f = findField(editing.ref, editing.occ);
       if (!f) {
         // The field vanished mid-edit (row removed, faction switched).
         cancelEdit();
@@ -213,6 +227,7 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "guma-ce-chip" + (a.opts.kind ? " guma-ce-chip-" + a.opts.kind : "");
+      b.dataset.ceAction = a.id;
       b.textContent = a.opts.label || "";
       if (a.opts.title) b.title = a.opts.title;
       b.style.left = a.x * k + "px";
@@ -377,7 +392,7 @@
       input.setAttribute("aria-label", f.opts.label);
     }
 
-    editing = { ref: f.ref, field: f, kind, el, input, original: src.value };
+    editing = { ref: f.ref, occ: f.occ, field: f, kind, el, input, original: src.value };
     pickerOpen = false;
 
     if (kind === "select") {
@@ -467,8 +482,10 @@
   function advance(dir) {
     if (!editing) return;
     const list = fields.filter((f) => (f.opts.kind || "text") !== "check");
-    const i = list.findIndex((f) => f.ref === editing.ref);
+    let i = list.findIndex((f) => f.ref === editing.ref && f.occ === editing.occ);
+    if (i < 0) i = list.findIndex((f) => f.ref === editing.ref);
     commitEdit();
+    if (i < 0) return;
     const next = list[i + dir];
     if (next) openEditor(next, false);
   }
@@ -521,7 +538,7 @@
   function onPointerMove(e) {
     if (!active) return;
     const f = hitTest(toLogical(e));
-    if (!f || (editing && editing.ref === f.ref)) {
+    if (!f || (editing && editing.ref === f.ref && editing.occ === f.occ)) {
       hideHover();
       cfg.canvas.style.cursor = "";
       return;

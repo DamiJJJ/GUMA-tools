@@ -556,6 +556,17 @@
         background: #2d4787;
         color: #fff;
       }
+      /* Pick-one affordance the document already paints itself (party type,
+         day of week): an invisible hit target that only tints on hover, so
+         the printed checkbox is never drawn twice. */
+      .guma-ce-chip-pick {
+        border-color: transparent;
+        background: transparent;
+      }
+      .guma-ce-chip-pick:hover {
+        border-color: rgba(45, 71, 135, 0.7);
+        background: rgba(45, 71, 135, 0.14);
+      }
       /* The single floating editor, mounted inside the frame. */
       .guma-ce-editor {
         position: absolute;
