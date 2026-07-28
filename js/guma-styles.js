@@ -446,6 +446,208 @@
         @apply flex cursor-pointer items-center gap-2 text-sm select-none
                text-guma-l-text dark:text-guma-text;
       }
+
+      /* ─── WYSIWYG canvas editing (report generators) ─── */
+      /* The form panel stays in the DOM as the state store; from xl it is
+         visually hidden but focusable. Never display:none - a hidden input
+         cannot be focused and native pickers refuse to open on it. */
+      @media (min-width: 1280px) {
+        .guma-ce-host {
+          position: absolute !important;
+          width: 1px !important;
+          height: 1px !important;
+          margin: -1px !important;
+          padding: 0 !important;
+          border: 0 !important;
+          overflow: hidden !important;
+          clip-path: inset(50%);
+          white-space: nowrap;
+        }
+      }
+      /* Scroll box override: the shared wrap hides overflow-x, but a zoomed
+         document must scroll horizontally on the editing pages.
+         min-width:0 is load-bearing - without it the flex chain sizes itself
+         to the zoomed canvas, the panel stretches the page instead of
+         scrolling, and any fit-to-width measurement reads back the current
+         zoom rather than the available width. */
+      .guma-ce-wrap {
+        @apply xl:justify-start xl:overflow-x-auto;
+        min-width: 0;
+      }
+      /* Shrink-wraps the canvas so all edit chrome can be positioned straight
+         against the rendered document (same trick as .guma-bcam-frame). The
+         hairline border lives here, not on the canvas, so hit-test math never
+         has to subtract it. */
+      .guma-ce-frame {
+        @apply relative mx-auto inline-block max-w-full border
+               border-guma-l-border-2 dark:border-guma-border-2;
+        line-height: 0;
+      }
+      .guma-ce-canvas {
+        @apply block h-auto w-auto max-w-full;
+      }
+      @media (min-width: 1280px) {
+        .guma-ce-frame {
+          max-width: none;
+        }
+        .guma-ce-canvas {
+          max-width: none;
+        }
+      }
+      /* Chrome layers exist only while editing is active (xl+). The document
+         itself is white paper in both app themes, so all chrome over it uses
+         the navy accent in both - gold has too little contrast on white. */
+      .guma-ce-layer {
+        display: none;
+      }
+      .guma-ce-active .guma-ce-layer {
+        display: block;
+      }
+      .guma-ce-svg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .guma-ce-svg rect {
+        fill: none;
+        stroke: #2d4787;
+        stroke-opacity: 0.45;
+        stroke-width: 1;
+        stroke-dasharray: 3 2;
+      }
+      .guma-ce-hover {
+        position: absolute;
+        pointer-events: none;
+        background: rgba(45, 71, 135, 0.08);
+        outline: 1px solid rgba(45, 71, 135, 0.55);
+      }
+      .guma-ce-chips {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .guma-ce-chip {
+        position: absolute;
+        pointer-events: auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid rgba(45, 71, 135, 0.7);
+        border-radius: 4px;
+        background: #e8eef9;
+        color: #2d4787;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .guma-ce-chip:hover {
+        background: #2d4787;
+        color: #fff;
+      }
+      .guma-ce-chip-add {
+        border-style: dashed;
+        background: transparent;
+      }
+      .guma-ce-chip-add:hover {
+        border-style: solid;
+        background: #2d4787;
+        color: #fff;
+      }
+      /* The single floating editor, mounted inside the frame. */
+      .guma-ce-editor {
+        position: absolute;
+        z-index: 10;
+        box-sizing: border-box;
+        padding: 0 2px;
+        border: 1px solid #2d4787;
+        border-radius: 2px;
+        background: #fff;
+        color: #000;
+        font-family: Arial, sans-serif;
+        /* Explicit, because .guma-ce-frame zeroes line-height to shrink-wrap
+           the canvas. WebKit lays out the segments of a date/time input along
+           that line box, so inheriting 0 clips the digits to slivers. */
+        line-height: normal;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(45, 71, 135, 0.25), 0 4px 14px rgba(0, 0, 0, 0.25);
+      }
+      /* The editor always sits on white paper, whichever app theme is active,
+         so the global dark-mode invert would wash its picker icon out. */
+      html.dark .guma-ce-editor::-webkit-calendar-picker-indicator {
+        filter: none;
+      }
+      /* Date editor: a text field in the document's own mm/dd/yyyy format
+         (a native date input would render in the browser's locale instead),
+         plus a button that opens the real calendar on demand. */
+      .guma-ce-editor-date {
+        display: flex;
+        align-items: stretch;
+        padding: 0;
+      }
+      .guma-ce-date-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 0 2px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        text-align: inherit;
+        line-height: normal;
+        outline: none;
+      }
+      /* Rendered, so showPicker() has something to anchor the popup to, but
+         invisible and never focusable or clickable. */
+      .guma-ce-date-native {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 1px;
+        padding: 0;
+        border: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .guma-ce-date-pick {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        padding: 0;
+        border: 0;
+        border-left: 1px solid rgba(45, 71, 135, 0.35);
+        background: transparent;
+        color: #2d4787;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .guma-ce-date-pick:hover {
+        background: rgba(45, 71, 135, 0.14);
+      }
+      /* Toolbar above the canvas: zoom seg (injected) + hint + preview. */
+      .guma-ce-toolbar {
+        @apply items-center justify-between gap-3;
+      }
+      .guma-ce-zoom {
+        @apply flex items-center gap-1;
+      }
+      .guma-ce-zoom-btn {
+        @apply inline-flex h-8 min-w-[2.25rem] cursor-pointer items-center justify-center
+               rounded-lg border-2 px-2 text-[11px] font-bold uppercase tracking-wider transition
+               border-guma-l-border bg-guma-l-panel text-guma-l-muted
+               hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border dark:bg-guma-panel dark:text-guma-muted
+               dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-ce-hint {
+        @apply text-[11px] text-guma-l-muted dark:text-guma-muted;
+      }
     }
 
     @layer utilities {

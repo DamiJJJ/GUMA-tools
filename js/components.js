@@ -885,3 +885,153 @@ class GumaHistoryDrawer extends HTMLElement {
 }
 
 customElements.define("guma-history-drawer", GumaHistoryDrawer);
+
+// ── PREVIEW MODAL (WYSIWYG report pages) ─────────────────────────
+// The single export surface of a WYSIWYG page: shows the current document
+// canvas as an <img> (object URL - cheaper than a second canvas and gives
+// native right-click Save/Copy for free), with the page's canonical export
+// buttons inside. The buttons carry the conventional ids (#downloadBtn,
+// #copyDiscordBtn) so initDownloadCounter and copyDocToClipboard keep working
+// unchanged; the "Generated N times" row mirrors the page's #downloadCount.
+class GumaPreviewModal extends HTMLElement {
+  connectedCallback() {
+    this._build();
+  }
+
+  disconnectedCallback() {
+    if (this._onKey) document.removeEventListener("keydown", this._onKey);
+    if (this._countObs) this._countObs.disconnect();
+    this._revoke();
+  }
+
+  _build() {
+    this.innerHTML = `
+      <div data-pm-root class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+        <div data-pm-overlay class="absolute inset-0 bg-black/50"></div>
+        <div role="dialog" aria-modal="true" aria-label="Document preview"
+             class="relative flex max-h-[94vh] w-full max-w-5xl flex-col rounded-2xl border shadow-2xl
+                    bg-guma-l-panel border-guma-l-border text-guma-l-text
+                    dark:bg-guma-panel dark:border-guma-border dark:text-guma-text">
+          <div class="flex items-center justify-between gap-3 border-b px-5 py-4 border-guma-l-border dark:border-guma-border">
+            <h3 class="text-sm font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Document Preview</h3>
+            <button data-pm-close aria-label="Close preview"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg transition
+                           text-guma-l-muted hover:bg-guma-l-panel-2 hover:text-guma-l-text
+                           dark:text-guma-muted dark:hover:bg-guma-panel-2 dark:hover:text-guma-text">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                   stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="guma-scroll min-h-0 flex-1 overflow-auto p-4">
+            <img data-pm-img alt="Report preview"
+                 class="mx-auto h-auto max-w-full border bg-white
+                        border-guma-l-border-2 dark:border-guma-border-2" />
+          </div>
+          <div class="border-t px-5 py-4 border-guma-l-border dark:border-guma-border">
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button id="downloadBtn" type="button" class="guma-btn-primary flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download PNG
+              </button>
+              <button id="copyDiscordBtn" type="button" class="guma-btn-outline flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="8" height="4" x="8" y="2" rx="1"/>
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <div data-pm-counter hidden class="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                   stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+                <line x1="6" y1="15" x2="10" y2="15"/>
+                <line x1="6" y1="18" x2="14" y2="18"/>
+              </svg>
+              Generated <span data-pm-count>0</span> times
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this._open = false;
+    this._url = null;
+
+    this.querySelector("[data-pm-overlay]").addEventListener("click", () => this.close());
+    this.querySelector("[data-pm-close]").addEventListener("click", () => this.close());
+    // Export delegates to the page; "Copied!" feedback and the counter bump
+    // come from copyDocToClipboard / initDownloadCounter via the ids above.
+    this.querySelector("#downloadBtn").addEventListener("click", () => window.GumaExport?.download?.());
+    this.querySelector("#copyDiscordBtn").addEventListener("click", () => window.GumaExport?.copy?.());
+
+    // Mirror the page counter (#downloadCount) into the modal.
+    const src = document.getElementById("downloadCount");
+    if (src && typeof MutationObserver !== "undefined") {
+      this._countObs = new MutationObserver(() => this._syncCount());
+      this._countObs.observe(src, { childList: true, characterData: true, subtree: true });
+      const srcWrap = src.closest("[data-guma-counter]");
+      if (srcWrap) this._countObs.observe(srcWrap, { attributes: true, attributeFilter: ["hidden"] });
+    }
+    this._syncCount();
+
+    this._onKey = (e) => {
+      if (e.key === "Escape" && this._open) this.close();
+    };
+    document.addEventListener("keydown", this._onKey);
+  }
+
+  _syncCount() {
+    const src = document.getElementById("downloadCount");
+    const wrap = this.querySelector("[data-pm-counter]");
+    const dst = this.querySelector("[data-pm-count]");
+    if (!src || !wrap || !dst) return;
+    dst.textContent = src.textContent;
+    const srcWrap = src.closest("[data-guma-counter]");
+    if (srcWrap && !srcWrap.hasAttribute("hidden")) wrap.removeAttribute("hidden");
+  }
+
+  open() {
+    const canvas = window.GumaExport?.canvas?.();
+    if (!canvas) return;
+    const img = this.querySelector("[data-pm-img]");
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      this._revoke();
+      this._url = URL.createObjectURL(blob);
+      img.src = this._url;
+    }, "image/png");
+    this._syncCount();
+    const root = this.querySelector("[data-pm-root]");
+    root.classList.remove("hidden");
+    root.classList.add("flex");
+    this._open = true;
+  }
+
+  close() {
+    const root = this.querySelector("[data-pm-root]");
+    root.classList.add("hidden");
+    root.classList.remove("flex");
+    this._open = false;
+    this._revoke();
+  }
+
+  _revoke() {
+    if (this._url) {
+      URL.revokeObjectURL(this._url);
+      this._url = null;
+    }
+  }
+}
+customElements.define("guma-preview-modal", GumaPreviewModal);
