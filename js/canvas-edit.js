@@ -100,7 +100,7 @@
   /**
    * Register an editable value box, in logical coordinates.
    * ref = DOM id (or CSS selector). opts: kind (text|check|select|date|time),
-   * label, minEditW, align ("left"|"center"), fontPx.
+   * label, minEditW, align ("left"|"center"), fontPx, transform ("upper").
    */
   function field(ref, x, y, w, h, opts) {
     if (!passFields) return;
@@ -391,6 +391,10 @@
       el.title = f.opts.label;
       input.setAttribute("aria-label", f.opts.label);
     }
+    // Purely visual: a cell the document prints uppercased (PCR's comb rows)
+    // would otherwise show lowercase under the editor, reading as a changed
+    // value. The source keeps whatever the user typed.
+    if (f.opts.transform === "upper") el.style.textTransform = "uppercase";
 
     editing = { ref: f.ref, occ: f.occ, field: f, kind, el, input, original: src.value };
     pickerOpen = false;
@@ -567,24 +571,25 @@
   /**
    * Zoom that makes the document exactly fill its scroll box.
    *
-   * Measured with the canvas collapsed, then restored before the next paint.
-   * A container that sizes itself to its content would otherwise report the
-   * current zoom straight back, making Fit a no-op whenever the document is
-   * already wider than the box. Collapsing also keeps scrollbars out of the
-   * reading, so Fit does not oscillate by a scrollbar's width.
+   * Measured with the canvas collapsed **horizontally only**, then restored
+   * before the next paint. A container that sizes itself to its content would
+   * otherwise report the current zoom straight back, making Fit a no-op
+   * whenever the document is already wider than the box.
+   *
+   * The height is frozen rather than collapsed: taking a ~1600px document out
+   * of the flow entirely can drop the page below the fold, which removes the
+   * window's own scrollbar and makes the panel measure ~15px wider than it
+   * will be once the document comes back. Keeping the height also keeps the
+   * wrap's vertical scrollbar up, so clientWidth already excludes it.
    */
   function trueFit() {
     const wrap = cfg.frame.parentElement;
     if (!wrap || !cfg.canvas.width) return 1;
-    // Room a vertical scrollbar takes right now. Measured before collapsing,
-    // because collapsing removes the scrollbar and we still have to leave
-    // space for the one the fitted document will bring back.
-    const scrollbar = Math.max(0, wrap.offsetWidth - wrap.clientWidth);
     const prevW = cfg.canvas.style.width;
     const prevH = cfg.canvas.style.height;
+    cfg.canvas.style.height = cfg.canvas.getBoundingClientRect().height + "px";
     cfg.canvas.style.width = "0px";
-    cfg.canvas.style.height = "0px";
-    const avail = wrap.clientWidth - scrollbar - 2; // scrollbar + frame border
+    const avail = wrap.clientWidth - 2; // frame border, 1px a side
     cfg.canvas.style.width = prevW;
     cfg.canvas.style.height = prevH;
     return avail > 0 ? avail / cfg.canvas.width : 1;
@@ -603,16 +608,24 @@
   }
 
   function setZoom(z) {
-    z = clampZoom(z);
-    zoom = z;
-    try {
-      localStorage.setItem("guma:zoom:" + cfg.key, String(z));
-    } catch {}
-    if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + "%";
+    zoom = clampZoom(z);
     if (active) {
       applyZoom();
-      syncChrome();
+      // Applying the zoom changes the box it had to fit into: a taller document
+      // pushes the page past the fold and brings back the window's scrollbar,
+      // which narrows the panel under it. Re-clamp against the box as it now
+      // is. One pass converges, because clamping only ever shrinks.
+      const capped = clampZoom(zoom);
+      if (capped < zoom) {
+        zoom = capped;
+        applyZoom();
+      }
     }
+    try {
+      localStorage.setItem("guma:zoom:" + cfg.key, String(zoom));
+    } catch {}
+    if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + "%";
+    if (active) syncChrome();
   }
 
   function fitZoom() {

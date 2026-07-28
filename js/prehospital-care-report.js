@@ -13,7 +13,7 @@ const PCR_TEXT_IDS = [
   "odo_begin", "odo_arrive", "odo_dest", "odo_end", "incident_fac_id",
 ];
 
-// Checkbox groups — reused by the canvas renderer AND the check-id catalog.
+// Checkbox groups - reused by the canvas renderer AND the check-id catalog.
 const EMD_ITEMS = [
   { id: "emd_no", label: "No" },
   { id: "emd_yes_with", label: "Yes, With Pre-Arrival Instructions" },
@@ -129,7 +129,7 @@ const MCI_ITEMS = [
   { id: "mci_na", label: "NA" },
 ];
 
-// Flat catalog of every checkbox id (derived — no duplicated list to maintain).
+// Flat catalog of every checkbox id (derived - no duplicated list to maintain).
 const PCR_CHECK_IDS = [
   EMD_ITEMS, ROLE_ITEMS, LOC_ITEMS, SVC_ITEMS, RESP_TO_ITEMS, RESP_FROM_ITEMS,
   DELAY_DISPATCH_ITEMS, DELAY_RESPONSE_ITEMS, TRANSPORT_ITEMS, DISPOSITION_ITEMS,
@@ -149,6 +149,13 @@ function fmtDate(v) {
   const p = v.split("-");
   return p.length === 3 ? `${p[1]}/${p[2]}/${p[0]}` : v;
 }
+
+// ── Cell specs bound to an input ──────────────────────────────────────────────
+// Value and hitbox ref are declared once, so a valueRow cell can never end up
+// printing one field and editing another.
+const vcell = (label, id, w, opts) => ({ label, value: rv(id), w, opts: { ref: id, ...opts } });
+const vdate = (label, id, w) => ({ label, value: fmtDate(rv(id)), w, opts: { ref: id, kind: "date" } });
+const vtime = (label, id, w) => ({ label, value: rv(id), w, opts: { ref: id, kind: "time" } });
 
 // ── Canvas geometry ───────────────────────────────────────────────────────────
 // DOC_W is tuned so the finished document lands on ~A4 portrait proportions
@@ -184,10 +191,13 @@ function checkItem(ctx, x, baseline, id, label, maxW) {
   ctx.font = "6px Arial";
   ctx.textAlign = "left";
   ctx.fillText(clip(ctx, label, maxW - 11), x + 10, baseline);
+  // Box plus label is one hit strip, so clicking anywhere on the item toggles
+  // it. Items are 11px apart, so the strips tile without overlapping.
+  window.GumaCanvasEdit?.field(id, x - 1, baseline - 8, maxW, 11, { kind: "check", label });
 }
 
 // Bold arrow from x1 to x2 at height y with a solid filled head. `head` is
-// "left" or "right" — which end carries the arrowhead. Matches the template's
+// "left" or "right" - which end carries the arrowhead. Matches the template's
 // heavy directional arrows (not a thin hairline).
 function blockArrow(ctx, x1, x2, y, head) {
   if (x2 <= x1 + 6) return; // not enough room
@@ -216,7 +226,7 @@ function blockArrow(ctx, x1, x2, y, head) {
 
 // Comb / segmented character-cell field (as on the template's report-number rows).
 // Label sits top-left; the value's characters drop into individual boxes below.
-function combRow(ctx, x, y, w, h, label, value, cells) {
+function combRow(ctx, x, y, w, h, label, value, cells, ref) {
   ctx.strokeStyle = "#000";
   ctx.lineWidth = 1;
   ctx.strokeRect(x, y, w, h);
@@ -241,9 +251,19 @@ function combRow(ctx, x, y, w, h, label, value, cells) {
       ctx.fillText(val[i], cx + cellW / 2, cy + cellH - 3);
     }
   }
+  // The comb is one editable value, not N cells: a single strip over the
+  // character boxes. The editor is plain text, uppercased so what it shows
+  // matches what the comb prints.
+  if (ref) {
+    window.GumaCanvasEdit?.field(ref, x + 4, cy - 2, w - 8, cellH + 4, {
+      label,
+      fontPx: 9,
+      transform: "upper",
+    });
+  }
 }
 
-// ── Sections 13–17 band ───────────────────────────────────────────────────────
+// ── Sections 13-17 band ───────────────────────────────────────────────────────
 // One three-column band, exactly as on the template:
 //   left column  : 13/14 Response Mode (top)  +  17 EMS Transport Mode (below)
 //   middle column: 15 Type of Delay(s) - Dispatch
@@ -309,6 +329,10 @@ function drawResponseMode(ctx, x, y, w, h) {
     const by = startY + rowH * i + rowH / 2 + 2;
     chk(ctx, lx, by, isChecked(m.to));
     chk(ctx, rx, by, isChecked(m.from));
+    // The label between the two boxes belongs to both, so each box gets its
+    // own hit target rather than a box-plus-label strip.
+    window.GumaCanvasEdit?.field(m.to, lx - 2, by - 8, 11, 11, { kind: "check", label: "To Scene: " + m.label });
+    window.GumaCanvasEdit?.field(m.from, rx - 2, by - 8, 11, 11, { kind: "check", label: "From Scene: " + m.label });
     ctx.fillStyle = "#000";
     ctx.font = "5.5px Arial";
     ctx.textAlign = "center";
@@ -363,7 +387,7 @@ function drawTransport(ctx, x, y, w, cols) {
   });
 }
 
-// One row for sections 30–33 (patients | mass casualty | location type | GPS).
+// One row for sections 30-33 (patients | mass casualty | location type | GPS).
 function sceneRow(ctx, y) {
   const h = 48;
   const ws = [0.2, 0.17, 0.29, 0.34].map((f) => Math.round(BODY_W * f));
@@ -393,6 +417,11 @@ function sceneRow(ctx, y) {
   ctx.font = "9px Arial";
   ctx.textAlign = "left";
   ctx.fillText(clip(ctx, rv("location_type"), ws[2] - 8), x + 4, y + h - 8);
+  // Value strip only: the cell is 48px tall and its top belongs to the title.
+  window.GumaCanvasEdit?.field("location_type", x + 2, y + h - 26, ws[2] - 4, 20, {
+    label: "32. Incident Location Type",
+    fontPx: 9,
+  });
   x += ws[2];
   // 33 scene GPS location
   ctx.strokeRect(x, y, ws[3], h);
@@ -406,6 +435,8 @@ function sceneRow(ctx, y) {
   ctx.font = "9px Arial";
   ctx.fillText(clip(ctx, rv("gps_lat"), halfg - 6), x + 4, y + h - 8);
   ctx.fillText(clip(ctx, rv("gps_long"), halfg - 6), x + halfg + 2, y + h - 8);
+  window.GumaCanvasEdit?.field("gps_lat", x + 2, y + h - 26, halfg - 4, 20, { label: "33. Latitude", fontPx: 9 });
+  window.GumaCanvasEdit?.field("gps_long", x + halfg, y + h - 26, halfg - 4, 20, { label: "33. Longitude", fontPx: 9 });
   return y + h;
 }
 
@@ -466,8 +497,14 @@ function valueRow(ctx, y, h, cells) {
   let x = MARGIN;
   const widths = cells.map((c) => Math.round(BODY_W * c.w));
   widths[widths.length - 1] += BODY_W - widths.reduce((a, b) => a + b, 0);
+  // The value baseline normally sits 5px off the bottom border, but in a short
+  // cell that rides up into the label: 9px Arial has a ~6.5px cap height, so
+  // anything above y+15 puts the glyph tops through the label baseline at y+8.
+  // Clamp instead of letting the two overlap. Every call site is already >= 20.
+  const valBase = Math.max(y + h - 5, y + 15);
   cells.forEach((c, i) => {
     const cw = widths[i];
+    const opts = c.opts || {};
     ctx.strokeStyle = "#000";
     ctx.lineWidth = 1;
     ctx.strokeRect(x, y, cw, h);
@@ -477,13 +514,22 @@ function valueRow(ctx, y, h, cells) {
     ctx.fillText(clip(ctx, c.label, cw - 4), x + 3, y + 8);
     ctx.fillStyle = "#000";
     ctx.font = "9px Arial";
-    ctx.fillText(clip(ctx, c.value, cw - 5), x + 4, y + h - 5);
+    ctx.fillText(clip(ctx, c.value, cw - 5), x + 4, valBase);
+    // The cell already knows the exact box an editor needs - hand it over.
+    if (opts.ref) {
+      window.GumaCanvasEdit?.field(opts.ref, x, y, cw, h, {
+        kind: opts.kind,
+        label: c.label,
+        minEditW: opts.minEditW,
+        fontPx: 9,
+      });
+    }
     x += cw;
   });
   return y + h;
 }
 
-// A value cell + two checklist cells sharing one row (sections 8–10). Returns next y.
+// A value cell + two checklist cells sharing one row (sections 8-10). Returns next y.
 function valueChecklistRow(ctx, y, valueCell, mid, right) {
   const rows = Math.max(Math.ceil(mid.items.length / mid.cols), Math.ceil(right.items.length / right.cols));
   const h = 11 + rows * 11 + 4;
@@ -500,6 +546,13 @@ function valueChecklistRow(ctx, y, valueCell, mid, right) {
   ctx.fillText(clip(ctx, valueCell.title, w1 - 6), MARGIN + 4, y + 8);
   ctx.font = "9px Arial";
   ctx.fillText(clip(ctx, valueCell.value, w1 - 8), MARGIN + 5, y + 22);
+  // Value strip only: the box is as tall as the checklists beside it.
+  if (valueCell.ref) {
+    window.GumaCanvasEdit?.field(valueCell.ref, MARGIN + 2, y + 12, w1 - 4, 18, {
+      label: valueCell.title,
+      fontPx: 9,
+    });
+  }
   // checklists
   drawChecklistFixed(ctx, MARGIN + w1, y, w2, h, mid.title, mid.items, mid.cols);
   drawChecklistFixed(ctx, MARGIN + w1 + w2, y, w3, h, right.title, right.items, right.cols);
@@ -521,6 +574,10 @@ function sectionBar(ctx, text, y) {
 
 // ── Body layout ───────────────────────────────────────────────────────────────
 function renderBody(ctx) {
+  // The pass opens here, not in drawForm(): the body is rendered again when the
+  // content outgrows the offscreen buffer, and a second begin() is what keeps
+  // that from registering every ref twice.
+  window.GumaCanvasEdit?.begin({ scale: SCALE });
   let y = 30;
 
   // Title (title case, per template)
@@ -530,26 +587,26 @@ function renderBody(ctx) {
   ctx.fillText("Pre-Hospital Care Report", DOC_W / 2, y);
   y += 13;
 
-  // 1–2 Report numbers (comb / character cells, per template)
+  // 1-2 Report numbers (comb / character cells, per template)
   const halfW = Math.round(BODY_W / 2);
-  combRow(ctx, MARGIN, y, halfW, 30, "1. Patient Care Report #", rv("pcr_report_no"), 22);
-  combRow(ctx, MARGIN + halfW, y, BODY_W - halfW, 30, "2. EMS Response #", rv("ems_response_no"), 22);
+  combRow(ctx, MARGIN, y, halfW, 30, "1. Patient Care Report #", rv("pcr_report_no"), 22, "pcr_report_no");
+  combRow(ctx, MARGIN + halfW, y, BODY_W - halfW, 30, "2. EMS Response #", rv("ems_response_no"), 22, "ems_response_no");
   y += 30;
 
-  // 3–7 Incident & unit
+  // 3-7 Incident & unit
   y = valueRow(ctx, y, 26, [
-    { label: "3. Incident Date", value: fmtDate(rv("incident_date")), w: 0.24 },
-    { label: "4. EMS Agcy #", value: rv("ems_agcy"), w: 0.18 },
-    { label: "5. EMS Unit Call Sign", value: rv("unit_callsign"), w: 0.22 },
-    { label: "6. EMS Unit (Vehicle) #", value: rv("unit_vehicle"), w: 0.21 },
-    { label: "7. Station #", value: rv("station_no"), w: 0.15 },
+    vdate("3. Incident Date", "incident_date", 0.24),
+    vcell("4. EMS Agcy #", "ems_agcy", 0.18),
+    vcell("5. EMS Unit Call Sign", "unit_callsign", 0.22),
+    vcell("6. EMS Unit (Vehicle) #", "unit_vehicle", 0.21),
+    vcell("7. Station #", "station_no", 0.15),
   ]);
 
-  // 8–10 Complaint / EMD / Primary role
+  // 8-10 Complaint / EMD / Primary role
   y = valueChecklistRow(
     ctx,
     y,
-    { title: "8. Complaint Reported By Dispatch", value: rv("complaint") },
+    { title: "8. Complaint Reported By Dispatch", value: rv("complaint"), ref: "complaint" },
     { title: "9. Emergency Medical Dispatch Performed", items: EMD_ITEMS, cols: 1 },
     { title: "10. Primary Role of the Unit", items: ROLE_ITEMS, cols: 2 },
   );
@@ -566,7 +623,7 @@ function renderBody(ctx) {
   // as one three-column band (13/14 over 17 on the left, 15 middle, 16 right).
   y = delaysTransportBand(ctx, y);
 
-  // Run times (18–27)
+  // Run times (18-27)
   y = sectionBar(ctx, "Run Times  —  Use Military Time", y);
   const times = [
     ["18. PSAP Call", "t_psap", "22. Unit Arrived at Scene", "t_arrived_scene"],
@@ -576,34 +633,31 @@ function renderBody(ctx) {
     ["26. Patient Arrived at Destination", "t_arrived_dest", "27. Transfer of Care to Destination", "t_transfer_dest"],
   ];
   times.forEach((r) => {
-    y = valueRow(ctx, y, 20, [
-      { label: r[0], value: rv(r[1]), w: 0.5 },
-      { label: r[2], value: rv(r[3]), w: 0.5 },
-    ]);
+    y = valueRow(ctx, y, 20, [vtime(r[0], r[1], 0.5), vtime(r[2], r[3], 0.5)]);
   });
-  y = valueRow(ctx, y, 20, [{ label: "Unit Back In Service", value: rv("t_back_service"), w: 1 }]);
+  y = valueRow(ctx, y, 20, [vtime("Unit Back In Service", "t_back_service", 1)]);
 
   // 28 Disposition
   y = checklistBox(ctx, y, "28. Incident/Patient Disposition", DISPOSITION_ITEMS, 2);
 
   // 29 Intercept recipient agency
-  y = valueRow(ctx, y, 20, [{ label: "29. Intercept Recipient Agency", value: rv("intercept_agency"), w: 1 }]);
+  y = valueRow(ctx, y, 20, [vcell("29. Intercept Recipient Agency", "intercept_agency", 1)]);
 
-  // 30–33 patients / mass casualty / location type / GPS — one row
+  // 30-33 patients / mass casualty / location type / GPS - one row
   y = sceneRow(ctx, y);
 
   // Odometer + 34 FAC ID
   y = sectionBar(ctx, "Odometer Readings", y);
   y = valueRow(ctx, y, 22, [
-    { label: "Begin", value: rv("odo_begin"), w: 0.25 },
-    { label: "Arrive", value: rv("odo_arrive"), w: 0.25 },
-    { label: "Destination", value: rv("odo_dest"), w: 0.25 },
-    { label: "End", value: rv("odo_end"), w: 0.25 },
+    vcell("Begin", "odo_begin", 0.25),
+    vcell("Arrive", "odo_arrive", 0.25),
+    vcell("Destination", "odo_dest", 0.25),
+    vcell("End", "odo_end", 0.25),
   ]);
-  combRow(ctx, MARGIN, y, BODY_W, 30, "34. Incident FAC ID", rv("incident_fac_id"), 14);
+  combRow(ctx, MARGIN, y, BODY_W, 30, "34. Incident FAC ID", rv("incident_fac_id"), 14, "incident_fac_id");
   y += 30;
 
-  // Footer — page marker only (no logo / institution names, per template opt-out)
+  // Footer - page marker only (no logo / institution names, per template opt-out)
   y += 4;
   ctx.fillStyle = "#000";
   ctx.font = "8px Arial";
@@ -657,7 +711,11 @@ function drawForm() {
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Cropped 1:1 from (0,0), so logical coordinates recorded during the
+  // offscreen pass land on the visible canvas untouched.
   ctx.drawImage(off, 0, 0, DOC_W * SCALE, totalH * SCALE, 0, 0, DOC_W * SCALE, totalH * SCALE);
+
+  window.GumaCanvasEdit?.end();
 }
 
 function refreshPreview() {
@@ -708,6 +766,9 @@ function pcrSerializeState() {
 
 function pcrHydrateState(payload) {
   if (!payload) return;
+  // Every field is about to be overwritten; an open editor would keep showing
+  // the value it was opened on and write it back on commit.
+  window.GumaCanvasEdit?.cancelEdit();
   const text = payload.text || {};
   PCR_TEXT_IDS.forEach((id) => {
     if (id in text) GumaHistoryWiring.setVal(id, text[id]);
@@ -741,3 +802,19 @@ GumaHistoryWiring.register({
   });
   refreshPreview();
 })();
+
+// ── WYSIWYG editing wiring ────────────────────────────────────────────────────
+// The preview modal delegates export here so counters and history keep firing.
+window.GumaExport = {
+  download: downloadPng,
+  copy: copyDocToClipboard,
+  canvas: () => document.getElementById("docCanvas"),
+};
+
+window.GumaCanvasEdit?.attach({
+  canvas: document.getElementById("docCanvas"),
+  frame: document.getElementById("ceFrame"),
+  toolbar: document.getElementById("ceToolbar"),
+  redraw: drawForm,
+  key: "pcr",
+});
