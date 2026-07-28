@@ -85,7 +85,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 
 ### Firearm Discharge Investigation
 
-- Faction switcher with custom faction name input
+- Agency name edited directly in the document header (no faction switcher)
 - Incident type checkboxes (Tactical, Non-Tactical, Animal Shooting, Warning Shot)
 - Section I - General Information (FID No., DR No., date, time, location, RD)
 - Day of Week dropdown, datetime-local picker for report date/time

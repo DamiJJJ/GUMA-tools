@@ -28,6 +28,7 @@
   // clip badly below these widths (worst on macOS).
   const SELECT_MIN_W = 120;
   const DATE_MIN_W = 170;
+  const DATETIME_MIN_W = 210;
   const TIME_MIN_W = 130;
   const HINT_KEY = "guma:ce-hint-done";
   const SVG_NS = "http://www.w3.org/2000/svg";
@@ -99,8 +100,9 @@
 
   /**
    * Register an editable value box, in logical coordinates.
-   * ref = DOM id (or CSS selector). opts: kind (text|check|select|date|time),
-   * label, minEditW, align ("left"|"center"), fontPx, transform ("upper").
+   * ref = DOM id (or CSS selector). opts: kind (text|check|select|date|
+   * datetime|time), label, minEditW, align ("left"|"center"), fontPx,
+   * transform ("upper").
    */
   function field(ref, x, y, w, h, opts) {
     if (!passFields) return;
@@ -253,6 +255,8 @@
   // (dd.mm.rrrr on a Polish Chrome). Editing straight over the document, that
   // mismatch reads as the value having changed. So the date editor is a plain
   // text field in the printed format, and these three convert.
+  // <input type="datetime-local"> has the same problem one step worse, and
+  // gets the same treatment via DATE_KINDS below.
 
   function dateToDisplay(v) {
     const m = String(v || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -281,27 +285,81 @@
     return out;
   }
 
+  /** "2026-07-24T22:41" -> "07/24/2026 22:41". */
+  function datetimeToDisplay(v) {
+    const m = String(v || "").match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    return m ? `${m[2]}/${m[3]}/${m[1]} ${m[4]}:${m[5]}` : "";
+  }
+
+  /** "7/4/2026 9:05" -> "2026-07-04T09:05". Anything incomplete returns "". */
+  function displayToDatetime(s) {
+    const m = String(s || "").match(/^\s*(\d{1,2}\D+\d{1,2}\D+\d{4})\D+(\d{1,2}):(\d{2})\s*$/);
+    if (!m) return "";
+    const date = displayToDate(m[1]);
+    const hh = +m[2];
+    const mi = +m[3];
+    if (!date || hh > 23 || mi > 59) return "";
+    return `${date}T${String(hh).padStart(2, "0")}:${String(mi).padStart(2, "0")}`;
+  }
+
+  /** Slash and colon in the separators so typing 12 digits is enough. */
+  function maskDisplayDatetime(raw) {
+    const d = raw.replace(/\D/g, "").slice(0, 12);
+    let out = d.slice(0, 2);
+    if (d.length > 2) out += "/" + d.slice(2, 4);
+    if (d.length > 4) out += "/" + d.slice(4, 8);
+    if (d.length > 8) out += " " + d.slice(8, 10);
+    if (d.length > 10) out += ":" + d.slice(10, 12);
+    if (/\D$/.test(raw)) {
+      if (d.length === 2 || d.length === 4) out += "/";
+      else if (d.length === 8) out += " ";
+      else if (d.length === 10) out += ":";
+    }
+    return out;
+  }
+
+  // The two composite editors, keyed by kind. Same three-node shape (masked
+  // text field + invisible native anchor + picker button); only the format
+  // converters and the anchor's type differ.
+  const DATE_KINDS = {
+    date: {
+      toDisplay: dateToDisplay,
+      fromDisplay: displayToDate,
+      mask: maskDisplayDate,
+      placeholder: "mm/dd/yyyy",
+      native: "date",
+    },
+    datetime: {
+      toDisplay: datetimeToDisplay,
+      fromDisplay: displayToDatetime,
+      mask: maskDisplayDatetime,
+      placeholder: "mm/dd/yyyy hh:mm",
+      native: "datetime-local",
+    },
+  };
+
   const CAL_ICON =
     '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" ' +
     'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>' +
     '<line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 
-  function buildDateEditor(src) {
+  function buildDateEditor(src, kind) {
+    const spec = DATE_KINDS[kind] || DATE_KINDS.date;
     const wrap = document.createElement("span");
     wrap.className = "guma-ce-editor guma-ce-editor-date";
 
     const text = document.createElement("input");
     text.type = "text";
     text.className = "guma-ce-date-text";
-    text.placeholder = "mm/dd/yyyy";
+    text.placeholder = spec.placeholder;
     text.inputMode = "numeric";
-    text.value = dateToDisplay(src.value);
+    text.value = spec.toDisplay(src.value);
 
     // Rendered but invisible: it exists only so the native calendar popup has
     // something to anchor to, right under the button that opens it.
     const native = document.createElement("input");
-    native.type = "date";
+    native.type = spec.native;
     native.className = "guma-ce-date-native";
     native.tabIndex = -1;
     native.setAttribute("aria-hidden", "true");
@@ -317,10 +375,10 @@
 
     text.addEventListener("input", () => {
       if (text.selectionStart === text.value.length) {
-        const masked = maskDisplayDate(text.value);
+        const masked = spec.mask(text.value);
         if (masked !== text.value) text.value = masked;
       }
-      src.value = displayToDate(text.value);
+      src.value = spec.fromDisplay(text.value);
       dispatchOn(src, "input");
     });
 
@@ -338,7 +396,7 @@
       pickerOpen = false;
       src.value = native.value;
       dispatchOn(src, "input");
-      text.value = dateToDisplay(native.value);
+      text.value = spec.toDisplay(native.value);
       text.focus({ preventScroll: true });
     });
 
@@ -346,12 +404,22 @@
     return { el: wrap, input: text };
   }
 
+  /** The editor a source element needs when the call site did not say. */
+  function inferKind(src) {
+    if (src.tagName === "SELECT") return "select";
+    if (src.type === "date" || src.type === "time") return src.type;
+    // A text editor over a datetime-local input would write a string it
+    // silently rejects, blanking the field.
+    if (src.type === "datetime-local") return "datetime";
+    return "text";
+  }
+
   function openEditor(f, viaPointer) {
     const src = cfg.resolve(f.ref);
     if (!src) return;
     markHintSeen();
 
-    const kind = f.opts.kind || (src.tagName === "SELECT" ? "select" : src.type === "date" || src.type === "time" ? src.type : "text");
+    const kind = f.opts.kind || inferKind(src);
 
     // Checkboxes get no editor: a click toggles the source and redraws.
     if (kind === "check") {
@@ -366,8 +434,8 @@
     // for everything except the composite date editor.
     let el;
     let input;
-    if (kind === "date") {
-      const built = buildDateEditor(src);
+    if (kind === "date" || kind === "datetime") {
+      const built = buildDateEditor(src, kind);
       el = built.el;
       input = built.input;
     } else if (kind === "select") {
@@ -385,6 +453,10 @@
       el.type = kind === "time" ? "time" : "text";
       el.value = src.value;
       if (src.placeholder) el.placeholder = src.placeholder;
+      // Carry the source's length cap: a page that limits a field because the
+      // document cannot print more than N characters must limit it here too,
+      // or typing over the canvas quietly bypasses the rule.
+      if (src.maxLength > 0) el.maxLength = src.maxLength;
       el.className = "guma-ce-editor";
     }
     if (f.opts.label) {
@@ -405,7 +477,7 @@
         dispatchOn(src, "change");
         commitEdit();
       });
-    } else if (kind !== "date") {
+    } else if (kind !== "date" && kind !== "datetime") {
       input.addEventListener("input", () => {
         src.value = input.value;
         dispatchOn(src, "input");
@@ -444,6 +516,7 @@
     let w = Math.max(f.w, f.opts.minEditW || 0) * k;
     if (editing.kind === "select") w = Math.max(w, SELECT_MIN_W);
     else if (editing.kind === "date") w = Math.max(w, DATE_MIN_W);
+    else if (editing.kind === "datetime") w = Math.max(w, DATETIME_MIN_W);
     else if (editing.kind === "time") w = Math.max(w, TIME_MIN_W);
     // Never run past the right edge of the document.
     w = Math.min(w, Math.max(24, cfg.canvas.clientWidth - f.x * k - 2));

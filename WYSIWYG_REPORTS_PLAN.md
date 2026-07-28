@@ -1,7 +1,9 @@
 # WYSIWYG canvas editing for Report Generators
 
 > Feasibility assessment, implementation plan and running log.
-> **Phases 0, 1, 2 and 3 are done and verified.** Phases 4-5 are not started.
+> **Phases 0-4 are done and verified. All four in-scope report pages are now
+> WYSIWYG.** Next up is **4b**: firearm no longer ellipsizes anything it prints,
+> and the other three reports still do. Phase 5 is not started.
 > Picking this up in a new session? Go straight to **"Next session: start
 > here"** below. Everything in "Gotchas" was paid for the hard way; none of it
 > is theoretical.
@@ -14,67 +16,56 @@
 | **1 - Arrest Report (pilot)** | Instrumented `cell()`, officer chips, preview modal, zoom | **Done, reviewed with the user, UX revised twice** |
 | **2 - Traffic Collision** | Same primitive family as arrest, plus select-backed pick-one boxes and 5 new inputs for cells that only ever printed `-` | **Done, 48/48 automated checks** |
 | **3 - PCR** | 28 text fields + exactly 90 checkboxes, no repeatable rows | **Done, 58/58 automated checks + a 46-check arrest/traffic regression run** |
-| **4 - Firearm** | `gridRow` funnel + `_p` prefix | **Next** |
+| **4 - Firearm** | `gridRow` funnel + `_p` prefix, three repeatable blocks, `datetime` editor, faction switcher replaced by an editable header | **Done, 107/107 automated checks + 46-check arrest/traffic and 58-check PCR regression runs** |
+| **4b - No ellipsis on arrest / traffic / PCR** | Carry the firearm shrink + wrap + input-cap rule to the other three reports | **Next** |
 | **5 - Randomize Character** | New branches in `js/random-character.js` | Not started |
 | **6 - Personnel File Generator** | Deferred, separate decision | Not started |
 
 Phases 0-1 shipped as commit `2a4a757` on `feat/wysiwyg-canvas-edit`;
-Phase 2 as `28b7d36`.
+Phase 2 as `28b7d36`; Phase 3 as `fd0ad2d`.
 
-Phase 3 files: `js/prehospital-care-report.js`, `prehospital_care_report.html`,
-`js/canvas-edit.js` (`transform: "upper"` opt, plus the `trueFit()` /
-`setZoom()` fix in Gotcha 15), `assets/screenshots/prehospital_care_report.png`.
-No `js/guma-styles.js` change was needed. Uncommitted - the user commits, never
-the agent.
+Phase 4 files: `js/firearm_discharge_investigation.js`, `firearm_discharge.html`,
+`js/canvas-edit.js` (the `datetime` composite editor), `readme.md` (one stale
+bullet), `assets/screenshots/firearm_discharge.png`. No `js/guma-styles.js`
+change was needed - the datetime editor reuses the `guma-ce-editor-date`
+classes. Uncommitted - the user commits, never the agent.
 
 ## Next session: start here
 
-**Phase 4 is the Firearm Discharge Investigation.** It is the last in-scope page
-and the only remaining one with **repeatable rows**, so it is the one that needs
-`+`/`✕` chips and `ADD_CHIP_H`-style spacing again (Gotcha 5). `js/canvas-edit.js`
-needs no new features for it.
+**Phase 4b: carry the no-ellipsis rule to arrest, traffic and PCR.** The user's
+rule, stated plainly on firearm and meant for all of them: *this is a report, so
+no printed value may end in an ellipsis.* Firearm is done and is the worked
+example; the other three still clip. Nothing in `js/canvas-edit.js` changes for
+this beyond what firearm already needed (it copies `maxLength` onto its editor).
 
-Read in this order: this section, then Gotchas 12-16, then the "Phase 4 -
-Firearm" block under *Remaining instrumentation notes*. Gotchas 1-11 are Phase 1
-material and only matter if you touch the editor itself.
+Read in this order: this section, the **"Nothing is ellipsized"** block under
+*Phase 4 - Firearm: what was built*, then **"Phase 4b"** under *Remaining
+instrumentation notes* - it lists what clips on each page and the one design
+decision to take first.
 
-Order of work, unchanged across three phases now:
+After 4b, **Phase 5 is Randomize Character**; its block is further down the same
+section. The Gotchas are editor and instrumentation material - only relevant if
+Phase 6 (Personnel File) is later approved.
 
-1. **Page markup first** (`firearm_discharge.html`) - mechanical and identical
-   on every page. Copy from `prehospital_care_report.html` or
-   `traffic_collision_report.html`: `guma-ce-host` on the form panel, `min-w-0`
-   + `#ceToolbar` on the preview panel, canvas into `#ceFrame`/`.guma-ce-canvas`
-   inside `.guma-ce-wrap`, the Download/Copy pair replaced by one
-   `Preview & Download` button, `<guma-preview-modal>` before the scripts,
-   `js/canvas-edit.js` **before** the page script.
-2. **Instrument the funnels** (`gridRow`, the four `Y/N` blocks, the officer and
-   civilian row builders), then wire `window.GumaExport` + `attach()` at the end
-   of the page JS and `cancelEdit()` at the top of the hydrate function **and**
-   of `switchFaction` - firearm is the one remaining page with a faction
-   switcher.
-3. **Build the harness before believing anything** - see *Verification*. Drive
-   the coverage assertion off the serialization arrays, never off a hand-written
-   list.
-4. **Regenerate `assets/screenshots/firearm_discharge.png`** with Los Santos
-   demo data (`CLAUDE.md` rule).
-5. **Re-run the arrest, traffic and PCR harnesses** if you touched
-   `js/canvas-edit.js` or `js/guma-styles.js`. Phase 3 did touch it, and the
-   regression run is what caught Gotcha 15.
+Two open questions for the user before starting Phase 5:
 
-Two things to raise with the user rather than decide alone:
+- There is still **no DOB generator**: `randomizeCharacter` rolls `age` but
+  never a date of birth, and all three person-bearing pages have `dob` inputs.
+  Decide whether it should derive a DOB from the age it already rolls.
+- Firearm has **three** repeatable blocks (involved officers, witnessing
+  officers, civilians) and two of them hold people. Decide whether randomize
+  fills every row or only the first.
 
-- **Gotcha 13 sweep on firearm.** PCR's sweep came back empty - every cell it
-  prints already reads from an input - so no new fields were added there. Do the
-  same grep on the firearm draw path and confirm the "fill in the whole
-  document" rule before adding inputs, since it grows the form.
-- Phase 5 (randomize) still has **no DOB generator** while all three
-  person-bearing pages have `dob` inputs. Decide whether `randomizeCharacter`
-  should derive a DOB from the `age` it already rolls.
+Cosmetic calls the user may still want to make:
 
-One cosmetic call the user may want to make on PCR: the five run-time rows are
-`h = 20`, which clears the value/label collision threshold by 0.5px (Gotcha 14).
-Legible, verified at 5x, but visibly tight. Bumping them to 22 would relax it at
-the cost of changing every exported PNG's height.
+- **PCR**: the five run-time rows are `h = 20`, which clears the value/label
+  collision threshold by 0.5px (Gotcha 14). Legible, verified at 5x, but
+  visibly tight. Bumping them to 22 would relax it at the cost of changing every
+  exported PNG's height.
+- **Firearm**: nothing on this page is ellipsized any more - see the
+  no-ellipsis note below. The caps in `FD_MAXLEN` are the lever if a field turns
+  out to be too tight in practice; changing one means re-running the harness,
+  which is what proves the cap still fits its column.
 
 ## Context
 
@@ -114,6 +105,7 @@ chrome (dates especially), not in the registry.
 | Repeatable rows | A removed row **disappears** from the document. No empty padding rows to keep a minimum count. Default is 1 row. |
 | Date editing | The editor shows the document's own **mm/dd/yyyy**, not the browser locale's format. See Gotcha 3. |
 | Native pickers | **Only `<select>` auto-opens its picker on click.** Dates open the calendar from their own button. See Gotcha 4. |
+| Faction on firearm | **Switcher removed in Phase 4.** The document's own header line is the control (`#agency_name`, default `LOS SANTOS POLICE DEPARTMENT`), edited in place from xl and through the form input below it. Reports saved under the old switcher still hydrate - see Gotcha 18. |
 
 ## Scope
 
@@ -123,7 +115,7 @@ In scope (4 pages):
 | --- | --- | --- | --- | --- |
 | `arrest_report.html` | `js/arrest-report.js` | officers (max 4) | 2 | **Done** |
 | `traffic_collision_report.html` | `js/traffic-collision-report.js` | parties (no max) | 2 | **Done** |
-| `firearm_discharge.html` | `js/firearm_discharge_investigation.js` | involved + witnessing officers, civilians | 4 | Not started |
+| `firearm_discharge.html` | `js/firearm_discharge_investigation.js` | involved + witnessing officers, civilians | 4 | **Done** |
 | `prehospital_care_report.html` | `js/prehospital-care-report.js` | none | **90** | **Done** |
 
 Deferred: `personnel_file_generator.html`.
@@ -148,7 +140,8 @@ begin({ scale })                      // scale = the page's SCALE (2 everywhere 
 field(ref, x, y, w, h, opts)
 // ref  = DOM id (or CSS selector, see Phase 6)
 // opts = { kind, label, align, minEditW, fontPx, transform }
-//   kind    text | check | select | date | time   (default: inferred from the source element)
+//   kind    text | check | select | date | datetime | time
+//           (default: inferred from the source element by inferKind())
 //   label   tooltip + aria-label
 //   align   "left" | "center"                     (default "left")
 //   minEditW  logical-px floor for the editor box
@@ -320,8 +313,8 @@ window.GumaExport = { download: downloadPng, copy: copyDocToClipboard,
 ## Gotchas
 
 Everything below cost real debugging time. **1-11 came out of Phase 1, 12-14 out
-of Phase 2, 15-16 out of Phase 3.** Read 12-16 before any further
-instrumentation; 1-11 matter mainly if you touch the editor itself.
+of Phase 2, 15-16 out of Phase 3, 17-18 out of Phase 4.** Read 12-18 before any
+further instrumentation; 1-11 matter mainly if you touch the editor itself.
 
 ### 1. `line-height: 0` on the frame clips native date/time inputs
 
@@ -638,6 +631,70 @@ the empty-field dashed outline hugs the value instead of boxing a 48px-tall
 cell. The harness asserts no two hitboxes overlap, which is what keeps those
 hand-written strips honest.
 
+### 17. A text editor over `<input type="datetime-local">` silently blanks it
+
+Firearm's `report_datetime` is the app's only `datetime-local`. `openEditor()`
+inferred `"text"` for it (the old inference only knew `date` and `time`), so the
+editor wrote `"07/24/2026 09:30"` straight into the source - which the input
+rejects, storing `""`. The document then printed `-` while the editor still
+showed the typed value. **A silently-rejected write is worse than a crash**;
+nothing warned.
+
+Fixed generically, so nothing else has to think about it:
+
+- `inferKind(src)` now maps `datetime-local` to `kind: "datetime"`.
+- `buildDateEditor(src, kind)` is driven by a `DATE_KINDS` table -
+  `{ toDisplay, fromDisplay, mask, placeholder, native }` per kind. The three
+  nodes (masked text field, invisible native anchor, picker button) and the
+  whole blur/`pickerOpen` dance are shared with `date`; only the converters and
+  the anchor's `type` differ. `.guma-ce-editor-date` styling is reused as is, so
+  `js/guma-styles.js` needed no change.
+- Typing 12 bare digits masks to `07/24/2026 09:30`; anything incomplete writes
+  `""`, exactly like the date editor.
+
+**If a new input type ever appears, check `inferKind()` first.** The fallback is
+a text editor, and a text editor is only safe over inputs that accept arbitrary
+strings.
+
+### 18. Removing a faction switcher is a serialization change
+
+Phase 4 dropped firearm's faction switcher for an editable header line
+(`#agency_name`). Three things had to move together, and missing any one of them
+is silent:
+
+1. **The payload.** `FACTION_KEY` / `custom` left `fdSerializeState()`, and
+   `agency_name` joined `FD_GENERAL_IDS`, so the generic
+   `FD_GENERAL_IDS.forEach(setVal)` hydrate loop carries it for free.
+2. **Old saves.** Reports already in `localStorage` carry a `FACTION_KEY` and no
+   `agency_name`. `fdLegacyAgency(payload)` maps the key (or the custom name)
+   back to an agency name, and `js/factions.js` stays loaded **only** for that
+   lookup. `js/ui-helpers.js` was dropped - `buildFactionSwitcher` was its only
+   caller here.
+3. **`buildFaction`** was removed from the `GumaHistoryWiring.register` call.
+   It is evaluated at *save* time, so old records keep the badge they were
+   stored with; only new ones have none.
+
+The header registers like traffic's `STATE OF ...` line: its own `field()` with
+an explicit box, `fontPx: 10`, `align: "center"` and `transform: "upper"` - the
+input keeps whatever case was typed while the document prints caps. **It is not
+a table cell, so the h >= 18 rule (Gotcha 14) does not apply to it** - the
+harness excludes it from that assertion by ref rather than weakening the rule.
+
+**The source input ships empty, and that is load-bearing.** The dashed
+empty-field outline is drawn per *empty* source (`isEmptyValue`), so an input
+carrying `value="LOS SANTOS POLICE DEPARTMENT"` printed the same header but with
+no outline - the line did not read as editable. Traffic solves this by leaving
+`state_name` empty and painting a fallback, and firearm now does the same:
+`agencyName()` returns `DEFAULT_AGENCY` when the input is blank, the input
+carries only a `placeholder`, and the box hugs the printed line
+(`measureText(...) + 10`, floor 140) instead of spanning the body width, so the
+outline wraps the text rather than boxing empty paper.
+
+One consequence to keep in mind: an untouched report serializes
+`agency_name: ""`. The hydrate fallback is therefore gated on
+`payload.FACTION_KEY` - writing the default into the input for a *current*
+payload would silently kill the outline on every load.
+
 ## Remaining instrumentation notes
 
 Ordered by phase, so the next one to do is first.
@@ -685,26 +742,169 @@ registrations, chrome rebuild - measures **~0.8 ms** averaged over 20 redraws in
 headless Chrome. `GumaCanvasEdit.schedule()` was not needed and is still unused
 by any page.
 
-### Phase 4 - Firearm (`js/firearm_discharge_investigation.js`)
+### Phase 4 - Firearm: what was built (done)
 
-`gridRow()` is the funnel. `drawOffRow`/`drawCivBlock` receive plain objects, so
-add the `_p` prefix in `collectOfficerRows(type)` and `collectCivilianRows()`,
-then:
+**Inventory as instrumented,** with one row per repeatable block: **11 page
+fields + 4 checkboxes + 14 x 2 officer columns + 17 civilian fields = 56
+registrations, plus 6 chips** (3 `+ Add`, 3 `✕`). `DOC_W = 580`, `MARGIN = 30`,
+`SCALE = 2`.
 
-```js
-if (d._p) GumaCanvasEdit.field(d._p + "_" + col.key, x, y, cw, H,
-  { kind: col.yn ? "select" : "text", label: col.label });
-```
+The coverage assertion is derived, not written out: `FD_OFFICER_FIELDS` (now
+`OFF_COLS.map(c => c.key)`) and `FD_CIVILIAN_FIELDS` were extracted so the draw
+path, both collectors and the serializer read one list. That refactor removed
+four hand-maintained copies of the same key set.
 
-Note `Array(3 - rows.length).fill({})` shares one object reference across
-padding rows - harmless while read-only, but Gotcha 5 says drop the padding rows
-entirely, which removes the hazard along with them. This is the only remaining
-page with repeatable rows, so it is the one that needs `+`/`✕` chips and the
-`ADD_CHIP_H`-style spacing.
+**Per-funnel, as it landed.**
 
-Its four `Y/N` checkbox blocks are the case Gotcha 12 warns about: decide per
-block whether it is one-of-N backed by a select (`action` with `kind: "pick"`)
-or a free value (`field`).
+- `gridRow()` takes `opts` on the cell spec (`ref`, `kind`, `minEditW`) and
+  registers the whole cell. Specs come from `fdCell` / `fdDateCell` /
+  `fdRowCell` - the arrest `f`/`fd`/`pf` pattern, renamed because this page
+  shares its top-level scope with `factions.js`, `counters.js` and
+  `components.js` (Gotcha 6).
+- `drawOffRow()` registers all 14 columns of a row. The column labels live in
+  `drawOffHeader` (`wrapText`, never instrumented - Gotcha 10), so `label` here
+  is only the editor's tooltip. `minEditW: 44` keeps the 21px `Age` / `IOD`
+  cells from opening 21px editors.
+- **The `Y/N` columns are `field`s, not pick chips.** Gotcha 12 asked the
+  question; the answer here is that the document prints a *value* (`Y`/`N`/`-`)
+  from a 3-option `<select>`, rather than painting one-of-N boxes. The same goes
+  for `Sex`. Only a control the canvas already draws needs `kind: "pick"`, and
+  this page has none.
+- **The four incident-type boxes are ordinary checkboxes**, each with its own
+  source input, registered as a box-plus-label strip clamped to its own column
+  so the left one cannot swallow the right one's boxes.
+- `drawCivBlock()` uses `fdRowCell` throughout and hangs a `✕` chip off the
+  block's top-right.
+- The three 18px civilian rows became **20px** (`CIV_ROW_H`). `gridRow` prints
+  its value in 9px Arial at `y + h - 5`, so the Gotcha 14 threshold on this page
+  is h >= 19.5, not 18: at 18 the value's glyph tops ran into the label's
+  descenders on `Foreign Language Spoken`. `gridRow` also got the clamp
+  (`Math.max(y + h - 5, y + 14)`) as defence.
+
+**Nothing is ellipsized. This is the page's rule now** (the user's, stated
+plainly: it is a report, and an ellipsis silently drops what somebody typed).
+`Wt.` is 26 logical px and `195lbs` measures ~25px at the 8.5px body size, so a
+perfectly ordinary value printed as `195…`. Three mechanisms together, and all
+three are needed - none of them is sufficient alone:
+
+- **Shrink.** `fitFont()` steps the size down in 0.5px increments until the
+  value fits. The size is computed **per column across every officer row in the
+  document** (`offColFonts`, fed `involvedRows.concat(witnessingRows)`), never
+  per cell: per cell, two adjacent rows would print the same column at different
+  sizes, which reads as a rendering bug rather than as a fitted table.
+- **Wrap.** The two free-text officer columns carry `lines: 2` and go through
+  `fitBlock()` / `wrapLines()`, which greedily word-wraps and hard-breaks a word
+  too long to stand alone. `Area/ Division/ Detail` also starts smaller
+  (`basePx: OFF_WRAP_PX`): it is the narrowest free-text column on the form and
+  reads better small and wrapped than large and cut. Labelled `gridRow` cells
+  stay single-line - the label owns the top of the cell - so they only shrink.
+- **Cap the input.** Shrinking has a floor (4.5px, deliberately below anything
+  readable so it is never actually reached), so the form refuses text a column
+  cannot print: `FD_MAXLEN` maps page ids and row-field suffixes to a
+  `maxLength`, applied by `fdApplyCaps()` at init and on every new dynamic row.
+  `FD_MAXLEN_CIV` overrides where the same suffix means a different cell - a
+  civilian `name` is one line under a label, an officer `name` is two.
+  **`canvas-edit.js` copies `maxLength` onto its editor**, or typing over the
+  document would quietly bypass the whole rule.
+
+The harness fills every text input to its cap at once with all-caps words and
+asserts `clip()` never fires. It is patched, not inspected: `clip` is a page
+global, so the test replaces it and records any truncation. Note the sample is
+*words*, not a single repeated capital - an unbroken run of `W`s is harsher than
+anything a report receives and would force caps far below what these fields are
+for (it is what first flagged `wt: 8` and the civilian `name`).
+
+**Padding rows are gone** (Gotcha 5). `Math.max(3, rows.length)` and the
+`Array(n).fill({})` shared-reference hazard went with them; the document now
+renders exactly the collected rows and **starts with one row per block** (the
+user's call - `addOfficerRow` twice plus `addCivilianRow` at init). Each block
+reserves an `ADD_CHIP_H = 18` strip for its `+ Add` chip.
+
+**Dates now print `mm/dd/yyyy`** (the user's call). The page used to print raw
+ISO, which no other report does and which the date editor cannot honestly show.
+`fmtDate` was added and `fmtDatetime` reworked; `report_datetime` prints
+`mm/dd/yyyy hh:mm` and edits through the new `datetime` composite (Gotcha 17).
+
+**The faction switcher was replaced by an editable header** (Gotcha 18).
+
+**Gotcha 13 sweep: clean.** Every value the firearm draw path prints already
+reads from an input; the only string literals are the form number, `Page 1 of 1`
+and the section titles, none of which has a source. No new form fields.
+
+**Height estimate fixed.** `contentH` was 30px short - it never counted the
+incident-type checkbox strip - and the old `+6` inter-section gap became the
+chip strip. Invisible while the A4 floor won, which is why it survived; the
+harness now asserts the footer still fits for 1-6 rows in every block.
+
+**Perf:** ~0.4-1.8 ms per full redraw over 20 redraws in headless Chrome.
+
+### Phase 4b - No ellipsis on arrest, traffic and PCR (next)
+
+Firearm's rule applies to all four reports: a value that does not fit is a
+**form** problem, not a print problem. Shrink it, wrap it where the cell has
+room, and cap the input so the floor is never reached. The mechanism, the
+reasoning and the harness assertion are written up in **"Nothing is ellipsized"**
+under *Phase 4 - Firearm*; this block is only what differs per page.
+
+**Take this decision first.** The four helpers (`fitFont`, `fitBlock`,
+`wrapLines`, plus `FD_MAXLEN` / `fdApplyCaps`) currently live in
+`js/firearm_discharge_investigation.js`. Copying them into three more page
+scripts would make a fifth copy of the same family as `clip()` (see the
+duplication inventory in the appendix). **Extract them to `js/guma-fit.js`
+first** - a classic global script like every other file here, loaded before the
+page script. Two constraints:
+
+- **No ES modules**, so it exposes one global (`window.GumaFit = { fitFont,
+  fitBlock, wrapLines, applyCaps }`) rather than bare top-level names. Bare
+  names would collide across page scripts - Gotcha 6, and `clip`/`getVal`
+  already came close.
+- The cap **table** stays per page: `FD_MAXLEN` encodes one document's column
+  widths and has no meaning on another. Only the applier is shared.
+
+**What clips today, per page.**
+
+| Page | Funnel | Call sites |
+| --- | --- | --- |
+| `js/arrest-report.js` | `cell()` | 2 (centred + left value) |
+| `js/traffic-collision-report.js` | `cell()` | 2 (centred + left value) |
+| `js/prehospital-care-report.js` | `valueRow` / `valueChecklistRow` / `sceneRow` | 5 value sites |
+
+Arrest and traffic are the easy ones: a single `cell()` each, the same shape
+firearm's `gridRow` had, so the change is one `fitFont()` call plus a cap table.
+**Their cells are labelled and single-line** (the label owns the top of the
+cell, Gotcha 14), so they shrink and never wrap.
+
+PCR needs more care, in three ways:
+
+1. **Separate values from labels.** Most of PCR's `clip()` calls truncate
+   *static* labels and section titles, not user data (`checkItem`, the checklist
+   headers, `drawChecklistFixed`). The no-ellipsis rule is about data - but a
+   clipped static label is a layout bug in its own right, so log any you find
+   rather than shrinking them silently.
+2. **`combRow` does something worse than an ellipsis.** It prints `val[i]` for
+   `i < maxCells` and simply **drops every character past the last box, with no
+   visual sign at all**. There is nothing to shrink - the comb's geometry is the
+   limit - so this is purely a cap: `maxLength` = the number of boxes the row
+   draws (`Math.min(cells, Math.floor((w - 12) / 11))`, i.e. compute it, do not
+   hand-count it).
+3. **`sceneRow`'s location / GPS** clip against hand-written widths rather than
+   a funnel; they need the same treatment inline.
+
+**Verification.** Copy the two Phase 4 assertions verbatim - they are cheap and
+they are what found the three bad caps on firearm:
+
+- Patch the page's global `clip` in the harness, fill **every** text input to
+  its cap at once with all-caps *words*, redraw, and assert `clip` never fired.
+  Words, not a run of `W` - see the note under Phase 4 for why.
+- Assert every text input actually carries a cap, so a field added later cannot
+  quietly opt out.
+
+For PCR add one more: fill each comb row past its box count and assert the
+source value still round-trips through serialize/hydrate unchanged (the cap must
+prevent the input, not silently truncate what is already stored).
+
+Re-run all four page harnesses afterwards, and regenerate every showcase
+screenshot whose columns visibly re-flow.
 
 ### Phase 5 - Randomize Character
 
@@ -719,11 +919,11 @@ of birth, and all three pages have `dob` inputs.
 1. **DOM collectors return empty after a structural change.** *Mitigated:* no
    re-parenting anywhere, plus a dev-only `console.warn` in `end()` for any
    registered ref that does not resolve. No incidents in the pilot.
-2. **Stale editor after hydrate or faction switch.** *Mitigated:*
-   `GumaCanvasEdit.cancelEdit()` at the top of `arHydrateState`,
-   `tcHydrateState` and `pcrHydrateState`. **Do the same in the firearm hydrate
-   and in its `switchFaction` - it is the last page with either.** `end()` also
-   drops an editor whose ref vanished from the registry.
+2. **Stale editor after hydrate.** *Closed:* `GumaCanvasEdit.cancelEdit()` at
+   the top of `arHydrateState`, `tcHydrateState`, `pcrHydrateState` and
+   `fdHydrateState`. `end()` also drops an editor whose ref vanished from the
+   registry. No page has a faction switcher any more, so the second trigger is
+   gone.
 3. **Export contamination.** *Resolved and measured:* byte-identical export, see
    Verification. Keep the DOM-only-chrome invariant. Re-confirmed on traffic in
    Phase 2.
@@ -935,14 +1135,97 @@ The regression run re-checked, on arrest and traffic: zoom (including a
 panel narrowed to 800px), export purity with chips up, editing, the date editor,
 and the breakpoint gate in both directions.
 
+What was checked automatically in Phase 4 - **107 assertions on firearm, all
+passing** - plus the **46-assertion arrest/traffic** and **58-assertion PCR**
+runs re-executed unchanged, because `canvas-edit.js` changed under them again:
+
+1. **Registry coverage**, derived from `FD_GENERAL_IDS`, `INCIDENT_TYPES`,
+   `FD_OFFICER_FIELDS` and `FD_CIVILIAN_FIELDS` crossed with the live rows: all
+   56 value fields and 4 checkboxes reachable, nothing registered twice, nothing
+   registered outside the catalogs, every ref resolving, every value field
+   labelled, and the `date`/`datetime`/`time`/`select` kinds landing where
+   intended (2/1/1/16).
+2. **Chips**: exactly `add_involved`, `add_witnessing`, `add_civilian` plus one
+   `rm_*` per row, three `add` and three `remove`, no `pick`.
+3. **Geometry**: no two of the 62 hitboxes *or chips* overlap, everything lies
+   inside the canvas, no value box below 18 logical px (the agency header is
+   excluded by ref - see Gotcha 18).
+4. **Height estimate**: for 1-6 rows in every block, the drawn content still
+   clears the footer line. This is the check the old 30px-short estimate would
+   have failed.
+5. **Nothing is ellipsized**: with two officer rows carrying `195lbs` and
+   `210lbs` no narrow column clips, the `Wt.` column really did drop below the
+   base size while a column that already fits keeps it, every text input carries
+   a cap, **filling all of them to their cap at once truncates nothing**, and
+   `Area/ Division/ Detail` wraps a real division name over two lines at a
+   smaller size with every word intact.
+6. **Export purity** in the chrome-up/chrome-down form, asserting the editor,
+   the outlines *and* all six chips were really up during the capture.
+7. **Editing**: write-through, editor survives its own redraw, `Enter` commits
+   and advances to the next *column*, `Shift+Tab` steps back, `Escape` reverts,
+   `cancelEdit()` removes.
+8. **Date**: `03/14/2026` shown for `2026-03-14`, `07242026` masks and writes
+   back, `Escape` restores.
+9. **Datetime**: the document prints `03/15/2026 01:20`, the editor shows the
+   same, the anchor is a `datetime-local`, `072420260930` masks to
+   `07/24/2026 09:30` and writes `2026-07-24T09:30`, **incomplete input blanks
+   the source rather than writing garbage**, `Escape` restores.
+10. **Time** opens a native `type="time"` prefilled from the source.
+11. **Y/N column** opens a `<select>` mirroring the source's options and writes
+    through.
+12. **Checkboxes**: click toggles the source and opens no editor.
+13. **Repeatable rows**: the add chip appends and the document grows by exactly
+    one row height; the remove chip deletes *that* row while the sibling keeps
+    its hitboxes; past the A4 floor the canvas backing store itself grows
+    monotonically and shrinks back. **Assert content bottom, not canvas height,
+    at small row counts** - the A4 floor otherwise makes both directions
+    vacuously true.
+14. **History round-trip**: serialize -> wipe -> hydrate -> serialize identical,
+    with the wipe asserted to have changed something.
+15. **Agency header**: no switcher or custom panel left in the DOM, the source
+    ships empty with a placeholder while the document falls back to
+    `LOS SANTOS POLICE DEPARTMENT`, the input sits in the collapsed form host,
+    the hitbox hugs the printed line, **the untouched header carries the dashed
+    outline, the outline disappears once a name is typed and comes back on
+    Escape**, the editor is computed-uppercase and carries the source
+    placeholder, the source keeps what was typed.
+16. **Legacy vs current payloads**: a saved `FACTION_KEY` (or custom faction
+    name) hydrates into the agency input, while an untouched current payload
+    stays empty so the outline survives a round trip.
+17. **Zoom**: 100% default, `setZoom(3)` lands on Fit, Fit identical from above
+    and below, `wrap.scrollWidth <= clientWidth` immediately after the first Fit
+    from 100% (Gotcha 15), page never scrolls sideways, persisted under
+    `guma:zoom:firearm`.
+18. **Breakpoint gate** at 1000px: editing off, zoom override cleared, form
+    panel back, chrome layers zero-height, **exported PNG identical to the
+    wide-mode one**; widening re-activates through the `matchMedia` listener.
+19. **Preview modal**: present, both export buttons inside it and exactly one of
+    each on the page, `window.GumaExport` wired.
+20. **Perf**, and zero page errors / zero dead-ref warnings throughout.
+21. **Both themes** by screenshot: the untouched header outline, and the editor
+    open with the hover raised.
+
+Two harness mistakes worth not repeating, both from Phase 4:
+
+- **Row indices keep counting up.** `involvedCount` never resets, so a test that
+  adds a row after any earlier row churn cannot assume `involved_2`. Read the
+  surviving `data-idx` values out of the DOM instead.
+- **A4 floor hides height changes.** On a document whose content sits under the
+  A4 minimum, `canvas.height` does not move when a row is added. Assert the
+  registry's content bottom for the small cases and add rows past the floor for
+  the backing-store case.
+
 Still **manual and unverified**, worth doing once in a real browser:
 
 - Native calendar popup in Safari and Firefox (`showPicker()` on the
   zero-opacity anchor input is the part most likely to differ).
-- `assets/screenshots/arrest_report.png`,
-  `traffic_collision_report.png` and `prehospital_care_report.png` were
-  regenerated with Los Santos demo data. Per `CLAUDE.md`, regenerate the
-  matching screenshot after each phase.
+- `assets/screenshots/arrest_report.png`, `traffic_collision_report.png`,
+  `prehospital_care_report.png` and `firearm_discharge.png` were regenerated
+  with Los Santos demo data. Per `CLAUDE.md`, regenerate the matching screenshot
+  after each phase.
+- `readme.md` still documents none of the WYSIWYG behaviour on any of the four
+  pages (only the now-false firearm faction bullet was corrected in Phase 4).
+  `/readme` is user-invoked; run it when the branch is ready to merge.
 
 ## Appendix: incidental findings
 
@@ -956,6 +1239,9 @@ Not part of this plan, but worth logging:
   card hover lift is dead.
 - **Dead script tags.** `traffic_collision_report.html` and `arrest_report.html`
   load `js/factions.js` + `js/ui-helpers.js` but have no `#factionSwitcher`.
+  Firearm dropped `ui-helpers.js` in Phase 4 and keeps `factions.js` only for
+  legacy payload hydration (Gotcha 18), so those two pages are now the only
+  ones carrying both for nothing.
 - **Dead code in `traffic-collision-report.js`.** `sectionBar()` is defined and
   never called (the LOCATION bar is drawn inline, rotated), and `getCode()` is
   unused - `collectParties()` inlines the same `split(" ")[0]`. Left alone in
@@ -970,6 +1256,10 @@ Not part of this plan, but worth logging:
   it got more attractive in the pilot: the WYSIWYG pages now also need
   `window.GumaExport` and the `<guma-preview-modal>` element, so the
   boilerplate per page grew rather than shrank. Still deliberately out of scope.
+  Phase 4b adds a fifth member to that family (`fitFont` / `fitBlock` /
+  `wrapLines` / the cap applier, currently firearm-only) - which is why 4b
+  starts by extracting them to `js/guma-fit.js` rather than copying them three
+  more times.
 - **`window.GumaToast(...)`** is called in `js/history.js:88` and `:97` behind a
   `typeof` guard, but nothing in the repo defines it. A ready-made extension
   point.
