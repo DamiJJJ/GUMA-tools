@@ -170,10 +170,37 @@ function _makeHotFlag(flag, variant) {
   return el;
 }
 
+/**
+ * First link of the run of generator links this one sits in. A run is bounded
+ * by anything that is not a generator link - the dropdown's own edges, or the
+ * category heading above a group in the mobile menu - which is exactly what
+ * makes "its category" mean the right thing in both menus.
+ */
+function _navGroupStart(el) {
+  let first = el;
+  while (first.previousElementSibling && first.previousElementSibling.matches("a[data-generator-key]")) {
+    first = first.previousElementSibling;
+  }
+  return first;
+}
+
+/**
+ * The desktop dropdowns draw their dividers as a top border on every link but
+ * the first, so after a reorder the borders have to follow the new order.
+ */
+function _restripeDropdown(menu) {
+  const links = [...menu.children].filter((n) => n.matches("a"));
+  links.forEach((a, i) => {
+    a.classList.toggle("border-t", i > 0);
+    a.classList.toggle("border-guma-l-border", i > 0);
+    a.classList.toggle("dark:border-guma-border", i > 0);
+  });
+}
+
 // Decorates every [data-generator-key] element on the page. Index tiles get a
-// corner pill and float to the front of their own grid (Hot first, Popular
-// second); data-hot-flag="icon" (nav links) gets a bare icon. Only plain
-// tiles are reordered.
+// corner pill; data-hot-flag="icon" (nav links) gets a bare icon. Both are
+// reordered so the trending generator comes first in its own group - the tile
+// grid for tiles, the dropdown or mobile category for nav links.
 async function applyHotFlags() {
   const targets = [...document.querySelectorAll("[data-generator-key]")];
   if (!targets.length) return;
@@ -183,18 +210,28 @@ async function applyHotFlags() {
   if (!top || !top.length) return;
 
   const trendingTiles = [];
+  const trendingNav = [];
   targets.forEach((el) => {
     const rank = top.indexOf(el.dataset.generatorKey);
     if (rank === -1) return;
     const variant = el.dataset.hotFlag;
     el.appendChild(_makeHotFlag(HOT_FLAGS[rank], variant));
-    if (!variant) trendingTiles.push({ el, rank });
+    if (variant === "icon" && el.matches("a[data-generator-key]")) trendingNav.push({ el, rank });
+    else if (!variant) trendingTiles.push({ el, rank });
   });
 
   // Prepend worst rank first so the best ends up leftmost in its grid.
   trendingTiles
     .sort((a, b) => b.rank - a.rank)
     .forEach(({ el }) => el.parentElement.prepend(el));
+
+  trendingNav
+    .sort((a, b) => b.rank - a.rank)
+    .forEach(({ el }) => {
+      const first = _navGroupStart(el);
+      if (first !== el) first.parentElement.insertBefore(el, first);
+    });
+  document.querySelectorAll("#gumaCardsMenu, #gumaReportsMenu").forEach(_restripeDropdown);
 }
 
 window.GumaCounters = {
