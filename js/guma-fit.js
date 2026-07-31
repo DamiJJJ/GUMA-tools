@@ -123,6 +123,17 @@
   // means the same thing on every input a document prints.
   const NO_MAXLENGTH = new Set(["number", "range", "color"]);
 
+  /**
+   * A cap may only ever tighten. The tables encode what a COLUMN can print,
+   * while the markup may carry a stricter semantic limit on the same field (a
+   * DL state is 2 characters, a DL class 3). Overwriting maxLength with the
+   * column figure would quietly widen those. Idempotent, so re-running
+   * applyCaps on a rebuilt row is a no-op.
+   */
+  function tighten(el, n) {
+    el.maxLength = el.maxLength > 0 ? Math.min(el.maxLength, n) : n;
+  }
+
   /** Clamp an input whose type ignores maxLength. Idempotent. */
   function clampLength(el, n) {
     if (el.dataset.gumaCap === String(n)) return; // applyCaps re-runs on rebuilt rows
@@ -143,7 +154,7 @@
     Object.keys(map).forEach((sel) => {
       root.querySelectorAll(sel).forEach((el) => {
         if (el.tagName === "INPUT" && NO_MAXLENGTH.has(el.type)) clampLength(el, map[sel]);
-        else el.maxLength = map[sel];
+        else tighten(el, map[sel]);
       });
     });
   }
@@ -182,7 +193,7 @@
       const cap = capFor(el.id, table, variants);
       if (cap == null) return;
       if (NO_MAXLENGTH.has(el.type)) clampLength(el, cap);
-      else el.maxLength = cap;
+      else tighten(el, cap);
     });
   }
 

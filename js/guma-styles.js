@@ -456,21 +456,24 @@
       }
 
       /* ─── WYSIWYG canvas editing (report generators) ─── */
-      /* The form panel stays in the DOM as the state store; from xl it is
-         visually hidden but focusable. Never display:none - a hidden input
-         cannot be focused and native pickers refuse to open on it. */
-      @media (min-width: 1280px) {
-        .guma-ce-host {
-          position: absolute !important;
-          width: 1px !important;
-          height: 1px !important;
-          margin: -1px !important;
-          padding: 0 !important;
-          border: 0 !important;
-          overflow: hidden !important;
-          clip-path: inset(50%);
-          white-space: nowrap;
-        }
+      /* The form panel stays in the DOM as the state store; while in-canvas
+         editing is active it is visually hidden but focusable. Never
+         display:none - a hidden input cannot be focused and native pickers
+         refuse to open on it.
+         The gate is .guma-ce-on, put on <html> by js/canvas-edit.js once it
+         has attached and its media query matches. A bare media query here
+         would hide the form even on a page where that script never loaded,
+         leaving a dead canvas and no way to enter anything. */
+      .guma-ce-on .guma-ce-host {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+        clip-path: inset(50%);
+        white-space: nowrap;
       }
       /* Scroll box override: the shared wrap hides overflow-x, but a zoomed
          document must scroll horizontally on the editing pages.
@@ -484,7 +487,7 @@
          it wastes ~40px on every report, sized for the reports the cards hang
          below the fold. This override is the report half of that pair; the card
          half is .guma-canvas-wrap's own max-h. Both are measured so the box
-         ends just above the fold — a box that runs past it has to be scrolled
+         ends just above the fold - a box that runs past it has to be scrolled
          to, which defeats the point of making it tall. */
       .guma-ce-wrap {
         @apply xl:max-h-[calc(100vh_-_18.5rem)] xl:justify-start xl:overflow-x-auto;
@@ -658,7 +661,7 @@
         background: rgba(45, 71, 135, 0.14);
       }
       /* Toolbar above the canvas: zoom seg (injected) + one-time hint.
-         Centred rather than pushed to the edges — the seg is the only control
+         Centred rather than pushed to the edges - the seg is the only control
          here most of the time, and left-aligned it read as page furniture
          rather than as something to use. Kept to a SINGLE ROW: stacking the
          hint under the seg cost 22px of document height on every first visit,

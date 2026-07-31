@@ -151,12 +151,20 @@
   }
 
   // ── Hit testing ──────────────────────────────────────────────────────
+  // Two passes, exact before slopped. The grab margin is there for thin
+  // isolated cells, but checkbox strips are registered edge to edge (PCR's
+  // comb rows, the traffic day-of-week strip): with one slopped pass the top
+  // sliver of every box overlaps the box above it, and since the first match
+  // wins, clicking a row would toggle its neighbour.
   function hitTest(pt) {
-    const slop = HIT_SLOP / cssPerLogical();
+    const inside = (f, s) => pt.x >= f.x - s && pt.x <= f.x + f.w + s && pt.y >= f.y - s && pt.y <= f.y + f.h + s;
     for (const f of fields) {
-      if (pt.x >= f.x - slop && pt.x <= f.x + f.w + slop && pt.y >= f.y - slop && pt.y <= f.y + f.h + slop) {
-        return f;
-      }
+      if (inside(f, 0)) return f;
+    }
+    const slop = HIT_SLOP / cssPerLogical();
+    if (!(slop > 0)) return null;
+    for (const f of fields) {
+      if (inside(f, slop)) return f;
     }
     return null;
   }
@@ -399,6 +407,17 @@
       text.value = spec.toDisplay(native.value);
       text.focus({ preventScroll: true });
     });
+    // A picker dismissed without a pick (Escape, click outside) fires no
+    // change, so the blur guard below would stay armed forever and the editor
+    // could never commit. "cancel" covers browsers that fire it; the blur
+    // covers the rest, and onDocPointerDown is the final backstop.
+    native.addEventListener("cancel", () => {
+      pickerOpen = false;
+      text.focus({ preventScroll: true });
+    });
+    native.addEventListener("blur", () => {
+      pickerOpen = false;
+    });
 
     wrap.append(text, native, pick);
     return { el: wrap, input: text };
@@ -421,14 +440,17 @@
 
     const kind = f.opts.kind || inferKind(src);
 
+    // Close the previous editor first, checkbox or not: onPointerDown
+    // preventDefaults, so a click landing on a checkbox fires no blur and an
+    // editor left open here would hang over the document.
+    if (editing) commitEdit();
+
     // Checkboxes get no editor: a click toggles the source and redraws.
     if (kind === "check") {
       src.checked = !src.checked;
       dispatchOn(src, "change");
       return;
     }
-
-    if (editing) commitEdit();
 
     // el = the positioned box, input = what takes focus and keys. Same node
     // for everything except the composite date editor.
@@ -635,6 +657,20 @@
     if (cfg) cfg.canvas.style.cursor = "";
   }
 
+  /**
+   * Backstop: any pointer press outside the editor ends the edit. blur alone
+   * cannot carry that, because the two most common exits suppress it - a press
+   * on the canvas is preventDefault()ed, and a native calendar that was
+   * dismissed rather than used leaves pickerOpen armed. Capture phase, so it
+   * runs before the canvas handler that may open the next editor.
+   */
+  function onDocPointerDown(e) {
+    if (!editing || !active) return;
+    if (editing.el.contains(e.target)) return;
+    pickerOpen = false;
+    commitEdit();
+  }
+
   // ── Zoom: CSS display size, never a bigger SCALE ─────────────────────
   function applyZoom() {
     cfg.canvas.style.width = Math.round(cfg.canvas.width * zoom) + "px";
@@ -777,6 +813,11 @@
   function setActive(on) {
     active = on;
     cfg.frame.classList.toggle("guma-ce-active", on);
+    // The root class is what hides the form panel (.guma-ce-host). It is set
+    // from here rather than from a bare media query so that a page whose
+    // canvas-edit.js failed to load keeps a usable form instead of a dead
+    // canvas with no inputs.
+    document.documentElement.classList.toggle("guma-ce-on", on);
     if (!on) {
       cancelEdit();
       hideHover();
@@ -827,6 +868,7 @@
     cfg.canvas.addEventListener("pointermove", onPointerMove);
     cfg.canvas.addEventListener("pointerleave", onPointerLeave);
     cfg.frame.addEventListener("wheel", onWheel, { passive: false });
+    document.addEventListener("pointerdown", onDocPointerDown, true);
 
     if (cfg.toolbar) buildToolbar(cfg.toolbar);
 

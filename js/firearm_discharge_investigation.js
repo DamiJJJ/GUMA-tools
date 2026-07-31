@@ -392,7 +392,7 @@ function drawForm() {
 
   let y = MARGIN;
 
-  // ── Header — the agency line is itself an editable field ──────────────────
+  // ── Header - the agency line is itself an editable field ──────────────────
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
   ctx.font = "bold 10px Arial";
@@ -958,7 +958,7 @@ function fdBuildLabel(payload) {
   const dr = (payload.general?.dr_no || "").trim();
   const date = (payload.general?.date_incident || "").trim();
   const who = name || dr || "Firearm Discharge";
-  return date ? `${who} — ${date}` : who;
+  return date ? `${who} - ${date}` : who;
 }
 
 GumaHistoryWiring.register({
