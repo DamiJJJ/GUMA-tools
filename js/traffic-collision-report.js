@@ -18,7 +18,7 @@ function addPartyRow() {
     <div class="row-title">Party ${idx}</div>
     <button class="btn-remove-row" onclick="this.parentElement.remove();refreshPreview()">&#10005;</button>
 
-    <div class="three-col">
+    <div class="four-col">
       <div class="form-group">
         <label>Party Type</label>
         <select id="${prefix}_type">
@@ -36,6 +36,10 @@ function addPartyRow() {
       <div class="form-group">
         <label>DL State</label>
         <input type="text" id="${prefix}_dl_state" placeholder="SA" maxlength="2" />
+      </div>
+      <div class="form-group">
+        <label>DL Class</label>
+        <input type="text" id="${prefix}_dl_class" placeholder="C" maxlength="3" />
       </div>
     </div>
 
@@ -68,13 +72,13 @@ function addPartyRow() {
         <label>Race</label>
         <select id="${prefix}_race">
           <option value="-">-</option>
-          <option value="W">W – White</option>
-          <option value="B">B – Black</option>
-          <option value="H">H – Hispanic</option>
-          <option value="A">A – Asian</option>
-          <option value="P">P – Pacific Islander</option>
-          <option value="I">I – Indian/Alaska Native</option>
-          <option value="O">O – Other</option>
+          <option value="W">W - White</option>
+          <option value="B">B - Black</option>
+          <option value="H">H - Hispanic</option>
+          <option value="A">A - Asian</option>
+          <option value="P">P - Pacific Islander</option>
+          <option value="I">I - Indian/Alaska Native</option>
+          <option value="O">O - Other</option>
         </select>
       </div>
       <div class="form-group">
@@ -107,17 +111,17 @@ function addPartyRow() {
         <label>Safety Equip.</label>
         <select id="${prefix}_safety">
           <option value="-">-</option>
-          <option value="A">A – None in vehicle</option>
-          <option value="B">B – Unknown</option>
-          <option value="C">C – Lap belt used</option>
-          <option value="D">D – Lap belt not used</option>
-          <option value="E">E – Shoulder harness used</option>
-          <option value="F">F – Shoulder harness not used</option>
-          <option value="G">G – Lap/shoulder harness used</option>
-          <option value="H">H – Lap/shoulder harness not used</option>
-          <option value="M">M – Air bag deployed</option>
-          <option value="N">N – Air bag not deployed</option>
-          <option value="X">X – Not applicable</option>
+          <option value="A">A - None in vehicle</option>
+          <option value="B">B - Unknown</option>
+          <option value="C">C - Lap belt used</option>
+          <option value="D">D - Lap belt not used</option>
+          <option value="E">E - Shoulder harness used</option>
+          <option value="F">F - Shoulder harness not used</option>
+          <option value="G">G - Lap/shoulder harness used</option>
+          <option value="H">H - Lap/shoulder harness not used</option>
+          <option value="M">M - Air bag deployed</option>
+          <option value="N">N - Air bag not deployed</option>
+          <option value="X">X - Not applicable</option>
         </select>
       </div>
       <div class="form-group">
@@ -178,6 +182,11 @@ function addPartyRow() {
       </div>
     </div>
 
+    <div class="form-group">
+      <label>On Street / Hwy, Dir. of Travel, Speed Limit, PCF</label>
+      <input type="text" id="${prefix}_street_info" placeholder="Vespucci Blvd, N/B, 35 MPH, VC 22350" />
+    </div>
+
     <div class="two-col">
       <div class="form-group">
         <label>Home Phone</label>
@@ -191,6 +200,7 @@ function addPartyRow() {
   `;
 
   container.appendChild(div);
+  tcApplyCaps(div);
 
   // Auto-fill Age from DOB (registered before the generic refresh listeners
   // so the age is already set when the preview re-renders)
@@ -208,11 +218,25 @@ function addPartyRow() {
   refreshPreview();
 }
 
+function removePartyRow(prefix) {
+  const idx = prefix.replace("party_", "");
+  document.querySelector(`#parties-container .dynamic-row[data-idx="${idx}"]`)?.remove();
+  refreshPreview();
+}
+
+/** Write through to a source <select> the way the canvas editor would. */
+function setSelectVal(id, value) {
+  const el = document.getElementById(id);
+  if (!el || el.value === value) return;
+  el.value = value;
+  el.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function getVal(id) {
   const el = document.getElementById(id);
   if (!el) return "-";
-  // For select: return only the code part (before " – ")
+  // For select: return only the code part (before " - ")
   const v = el.value.trim();
   return v || "-";
 }
@@ -250,9 +274,11 @@ function collectParties() {
     const raceEl = document.getElementById(p + "_race");
     const safetyEl = document.getElementById(p + "_safety");
     return {
+      _p: p, // input id prefix, doubles as the hitbox ref base
       type: getVal(p + "_type"),
       dl: getVal(p + "_dl"),
       dl_state: getVal(p + "_dl_state"),
+      dl_class: getVal(p + "_dl_class"),
       name: getVal(p + "_name"),
       address: getVal(p + "_address"),
       city: getVal(p + "_city"),
@@ -273,13 +299,31 @@ function collectParties() {
       speed: getVal(p + "_speed"),
       damage: getVal(p + "_damage"),
       defects: getVal(p + "_defects"),
+      street_info: getVal(p + "_street_info"),
       phone_h: getVal(p + "_phone_h"),
       phone_b: getVal(p + "_phone_b"),
     };
   });
 }
 
-// ── Canvas layout constants (logical pixels — rendered ×SCALE) ───────────────
+// ── Cell specs bound to an input: value and hitbox ref declared once ────────
+// f/fd read a page-level input by id; pf reads an already-collected party
+// object and derives the id from the row prefix carried on it.
+const f = (label, id, w, opts) => ({ label, value: getVal(id), w, opts: { ref: id, ...opts } });
+const fd = (label, id, w, opts) => ({
+  label,
+  value: fmtDate(tcRawVal(id)),
+  w,
+  opts: { ref: id, kind: "date", ...opts },
+});
+const pf = (label, d, key, w, opts) => ({
+  label,
+  value: d[key],
+  w,
+  opts: { ref: d._p ? d._p + "_" + key : undefined, ...opts },
+});
+
+// ── Canvas layout constants (logical pixels - rendered ×SCALE) ───────────────
 const MARGIN = 24;
 const DOC_W = 640;
 const BODY_W = DOC_W - MARGIN * 2;
@@ -287,6 +331,69 @@ const LINE_W = 0.6;
 const CELL_BG = "#f9f9f9";
 const HEAD_BG = "#d8d8d8";
 const SECT_BG = "#b0b0b0";
+
+// ── No printed value ends in an ellipsis ─────────────────────────────────────
+// This is a report: an ellipsis silently drops information somebody typed. Two
+// mechanisms together (see js/guma-fit.js) - the value shrinks down to a floor,
+// and every input is capped at what its column carries, so the floor is never
+// actually reached. Cells here are labelled and one line by construction (the
+// label owns the top of the cell, Gotcha 14), so they shrink and never wrap.
+const TC_VAL_PX = 8;
+const TC_VAL_MIN_PX = 4.5; // safety net, unreachable with the caps in place
+const TC_READ_PX = 6; // the size the cell caps below were measured at
+
+// Input length caps, keyed by page-level id or by party-row field suffix (the
+// longest matching suffix wins, so `owner_name` beats `name`). Each number is
+// the character count its cell carries at TC_READ_PX, measured against a
+// realistic all-caps sample. The harness fills every input to its cap at once
+// and asserts clip() never fires, so narrowing a column means re-running it.
+// state_name is the exception: the header line is painted at a fixed bold 7px
+// and never shrinks, so its cap is what "STATE OF <name>" fits across BODY_W.
+const TC_MAXLEN = {
+  // page-level
+  // These two are type="number", where maxLength does nothing at all and the
+  // min/max attributes are only checked at form validation - GumaFit installs a
+  // live clamp instead. They are casualty counts; three digits is generous.
+  num_injured: 3,
+  num_killed: 3,
+  state_name: 120,
+  judicial_district: 26,
+  local_report_no: 34,
+  ncic: 18,
+  officer_id: 18,
+  reporting_district: 36,
+  beat: 36,
+  collision_street: 50,
+  photographs_by: 18,
+  intersection_with: 72,
+  distance_from: 72,
+  preparer_name: 44,
+  reviewer_name: 52,
+  // party rows
+  dl: 32,
+  dl_state: 6,
+  dl_class: 6,
+  name: 82,
+  owner_name: 68,
+  address: 82,
+  owner_addr: 68,
+  city: 82,
+  veh_year: 8,
+  veh_make: 50,
+  veh_plate: 28,
+  insurance: 40,
+  policy: 24,
+  age: 6,
+  phone_h: 26,
+  phone_b: 26,
+  speed: 8,
+  street_info: 74,
+};
+
+/** Apply the caps to every text input under a root (page or a fresh row). */
+function tcApplyCaps(root) {
+  GumaFit.applyCaps(root, TC_MAXLEN);
+}
 
 // ── Primitive: clipped text ───────────────────────────────────────────────────
 function clip(ctx, text, maxW) {
@@ -331,15 +438,32 @@ function cell(ctx, x, y, w, h, label, value, opts = {}) {
   ctx.textAlign = "left";
   wrapLabel(ctx, label, x + 2, y + 7, w - 4, 6.5);
 
-  // Value
+  // Value. The baseline normally sits 4px off the bottom border, but in a
+  // short cell that rides up into the label: 8px Arial has a ~5.8px cap
+  // height, so anything above y+13 puts the glyph tops through the label
+  // baseline at y+7. Clamp instead of letting the two overlap.
+  const valBase = label ? Math.max(y + h - 4, y + 13) : y + h - 4;
+  const shown = value || "-";
   ctx.fillStyle = "#000";
-  ctx.font = bold ? "bold 8px Arial" : "8px Arial";
+  // Shrunk to fit rather than clipped - see TC_MAXLEN above.
+  const mkFont = bold ? (px) => "bold " + px + "px Arial" : (px) => px + "px Arial";
+  GumaFit.fitFont(ctx, shown, w - 4, TC_VAL_PX, TC_VAL_MIN_PX, mkFont);
   if (center) {
     ctx.textAlign = "center";
-    ctx.fillText(clip(ctx, value, w - 4), x + w / 2, y + h - 4);
+    ctx.fillText(clip(ctx, shown, w - 4), x + w / 2, valBase);
   } else {
     ctx.textAlign = "left";
-    ctx.fillText(clip(ctx, value, w - 4), x + 2, y + h - 4);
+    ctx.fillText(clip(ctx, shown, w - 4), x + 2, valBase);
+  }
+
+  // The cell already knows the exact box an editor needs - hand it over.
+  if (opts.ref && window.GumaCanvasEdit) {
+    window.GumaCanvasEdit.field(opts.ref, x, y, w, h, {
+      kind: opts.kind,
+      label,
+      align: center ? "center" : "left",
+      minEditW: opts.minEditW,
+    });
   }
 }
 
@@ -394,7 +518,17 @@ function drawParty(ctx, d, num, y) {
   ctx.lineTo(MARGIN + PARTY_TAG_W, y + hH);
   ctx.stroke();
 
-  // Type checkboxes
+  if (d._p) {
+    const p = d._p;
+    window.GumaCanvasEdit?.action("rm_" + p, DOC_W - MARGIN + 3, y + 8, 18, 14, () => removePartyRow(p), {
+      label: "✕",
+      kind: "remove",
+      title: "Remove this party",
+    });
+  }
+
+  // Type checkboxes. They are painted from d.type but backed by a <select>,
+  // so each one registers as a pick-one action, not an editable value.
   const types = ["DRIVER", "PEDESTRIAN", "PARKED VEH.", "BICYCLIST", "OTHER"];
   let tx = MARGIN + PARTY_TAG_W + 4;
   const ty = y + 16;
@@ -413,7 +547,15 @@ function drawParty(ctx, d, num, y) {
     ctx.font = "6.5px Arial";
     ctx.textAlign = "left";
     ctx.fillText(t, tx + 9, ty);
-    tx += ctx.measureText(t).width + 18;
+    const tw = ctx.measureText(t).width;
+    if (d._p) {
+      const p = d._p;
+      window.GumaCanvasEdit?.action(p + "_type_" + t, tx - 2, ty - 9, tw + 13, 12, () => setSelectVal(p + "_type", t), {
+        kind: "pick",
+        title: "Party type: " + t,
+      });
+    }
+    tx += tw + 18;
   });
 
   y += hH;
@@ -422,13 +564,13 @@ function drawParty(ctx, d, num, y) {
   y = row(
     ctx,
     [
-      { label: "Driver's License Number", value: d.dl, w: 0.23 },
-      { label: "State", value: d.dl_state, w: 0.05 },
-      { label: "Class", value: "-", w: 0.05 },
-      { label: "Safety Equip.", value: d.safety, w: 0.07 },
-      { label: "Veh. Year", value: d.veh_year, w: 0.07 },
-      { label: "Make / Model / Color", value: d.veh_make, w: 0.33 },
-      { label: "License Number", value: d.veh_plate, w: 0.2 },
+      pf("Driver's License Number", d, "dl", 0.23),
+      pf("State", d, "dl_state", 0.05),
+      pf("Class", d, "dl_class", 0.05),
+      pf("Safety Equip.", d, "safety", 0.07, { kind: "select" }),
+      pf("Veh. Year", d, "veh_year", 0.07),
+      pf("Make / Model / Color", d, "veh_make", 0.33),
+      pf("License Number", d, "veh_plate", 0.2),
     ],
     y,
     26,
@@ -437,32 +579,21 @@ function drawParty(ctx, d, num, y) {
   // Row 2: Name / Owner name
   y = row(
     ctx,
-    [
-      { label: "Name (First, Middle, Last)", value: d.name, w: 0.55 },
-      { label: "Owner's Name", value: d.owner_name, w: 0.45 },
-    ],
+    [pf("Name (First, Middle, Last)", d, "name", 0.55), pf("Owner's Name", d, "owner_name", 0.45)],
     y,
     24,
   );
 
   // Row 3: Address / Owner address
-  y = row(
-    ctx,
-    [
-      { label: "Street Address", value: d.address, w: 0.55 },
-      { label: "Owner's Address", value: d.owner_addr, w: 0.45 },
-    ],
-    y,
-    22,
-  );
+  y = row(ctx, [pf("Street Address", d, "address", 0.55), pf("Owner's Address", d, "owner_addr", 0.45)], y, 22);
 
   // Row 4: City / Insurance / Policy
   y = row(
     ctx,
     [
-      { label: "City / State / ZIP", value: d.city, w: 0.55 },
-      { label: "Insurance Carrier", value: d.insurance, w: 0.28 },
-      { label: "Policy Number", value: d.policy, w: 0.17 },
+      pf("City / State / ZIP", d, "city", 0.55),
+      pf("Insurance Carrier", d, "insurance", 0.28),
+      pf("Policy Number", d, "policy", 0.17),
     ],
     y,
     22,
@@ -472,15 +603,15 @@ function drawParty(ctx, d, num, y) {
   y = row(
     ctx,
     [
-      { label: "Sex", value: d.sex, w: 0.05, opts: { center: true } },
-      { label: "Race", value: d.race, w: 0.06, opts: { center: true } },
-      { label: "Age", value: d.age, w: 0.05, opts: { center: true } },
-      { label: "DOB (MO/DA/YR)", value: d.dob, w: 0.12 },
-      { label: "Home Phone", value: d.phone_h, w: 0.18 },
-      { label: "Business Phone", value: d.phone_b, w: 0.18 },
-      { label: "Dir. of Travel", value: d.dir, w: 0.08, opts: { center: true } },
-      { label: "Speed Limit", value: d.speed, w: 0.07, opts: { center: true } },
-      { label: "Vehicle Damage", value: d.damage, w: 0.21 },
+      pf("Sex", d, "sex", 0.05, { center: true, kind: "select" }),
+      pf("Race", d, "race", 0.06, { center: true, kind: "select" }),
+      pf("Age", d, "age", 0.05, { center: true }),
+      pf("DOB (MO/DA/YR)", d, "dob", 0.12, { kind: "date" }),
+      pf("Home Phone", d, "phone_h", 0.18),
+      pf("Business Phone", d, "phone_b", 0.18),
+      pf("Dir. of Travel", d, "dir", 0.08, { center: true, kind: "select" }),
+      pf("Speed Limit", d, "speed", 0.07, { center: true }),
+      pf("Vehicle Damage", d, "damage", 0.21, { kind: "select" }),
     ],
     y,
     26,
@@ -490,8 +621,8 @@ function drawParty(ctx, d, num, y) {
   y = row(
     ctx,
     [
-      { label: "Prior Mechanical Defects", value: d.defects, w: 0.5 },
-      { label: "On Street or Highway / Dir. of Travel / Speed Limit / PCF", value: "-", w: 0.5 },
+      pf("Prior Mechanical Defects", d, "defects", 0.5, { kind: "select" }),
+      pf("On Street or Highway / Dir. of Travel / Speed Limit / PCF", d, "street_info", 0.5),
     ],
     y,
     22,
@@ -501,18 +632,24 @@ function drawParty(ctx, d, num, y) {
 }
 
 // ── Main draw ─────────────────────────────────────────────────────────────────
+// Clear strip below the last party that the "+ Add Party" chip is drawn into.
+const ADD_CHIP_H = 18;
+
 function drawForm() {
+  window.GumaCanvasEdit?.begin({ scale: SCALE });
   const stateName = (document.getElementById("state_name")?.value.trim() || "San Andreas").toUpperCase();
   const parties = collectParties();
-  const effCount = Math.max(3, parties.length);
 
-  // Height estimation (logical px)
+  // Height estimation (logical px). headerH covers everything from the top
+  // margin down to the LOCATION block; it was 17px short of what the header
+  // actually paints, which only mattered from the 4th party on, once the A4
+  // floor stopped winning.
   const partyH = 30 + 26 + 24 + 22 + 22 + 26 + 22 + 3;
-  const headerH = 60;
-  const locationH = 20 + 17 + 6;
+  const headerH = 77;
+  const locationH = 20 + 20 + 6;
   const footerH = 18 + 20;
   const A4_H = Math.round(DOC_W * 1.4142);
-  const contentH = MARGIN + headerH + locationH + effCount * partyH + footerH + MARGIN;
+  const contentH = MARGIN + headerH + locationH + parties.length * partyH + ADD_CHIP_H + footerH + MARGIN;
   const logicalH = Math.max(A4_H, contentH);
 
   const canvas = document.getElementById("docCanvas");
@@ -532,7 +669,14 @@ function drawForm() {
   ctx.fillStyle = "#000";
   ctx.font = "bold 7px Arial";
   ctx.textAlign = "left";
-  ctx.fillText(`STATE OF ${stateName}`, MARGIN, y + 7);
+  const stateLine = `STATE OF ${stateName}`;
+  ctx.fillText(stateLine, MARGIN, y + 7);
+  // Header text, not a table cell, so it registers its own hitbox. The
+  // document falls back to "San Andreas" when the input is blank.
+  window.GumaCanvasEdit?.field("state_name", MARGIN - 2, y - 1, Math.max(96, ctx.measureText(stateLine).width + 6), 11, {
+    label: "State Name",
+    fontPx: 7,
+  });
 
   ctx.font = "bold 14px Arial";
   ctx.fillText("TRAFFIC COLLISION REPORT", MARGIN, y + 20);
@@ -561,8 +705,8 @@ function drawForm() {
   ctx.strokeRect(MARGIN, y, cbBoxW, metaH);
 
   [
-    { label: "HIT & RUN (MISDEMEANOR)", checked: hitRunMisd },
-    { label: "HIT & RUN (FELONY)", checked: hitRunFelony },
+    { id: "cb_hit_run_misdemeanor", label: "HIT & RUN (MISDEMEANOR)", checked: hitRunMisd },
+    { id: "cb_hit_run_felony", label: "HIT & RUN (FELONY)", checked: hitRunFelony },
   ].forEach((item, i) => {
     const cy = y + i * cbRowH + 9;
     ctx.strokeStyle = "#000";
@@ -578,22 +722,24 @@ function drawForm() {
     ctx.font = "7px Arial";
     ctx.textAlign = "left";
     ctx.fillText(item.label, MARGIN + 13, cy);
+    // Whole box-plus-label strip toggles on click.
+    window.GumaCanvasEdit?.field(item.id, MARGIN + 1, cy - 9, cbBoxW - 2, cbRowH, { kind: "check", label: item.label });
   });
 
   // Meta cells
   const metaX = MARGIN + cbBoxW;
   const metaW = BODY_W - cbBoxW;
   const mCols = [
-    { label: "NUMBER INJURED", value: getVal("num_injured"), w: 0.2 },
-    { label: "NUMBER KILLED", value: getVal("num_killed"), w: 0.2 },
-    { label: "JUDICIAL DISTRICT", value: getVal("judicial_district"), w: 0.25 },
-    { label: "LOCAL REPORT NO.", value: getVal("local_report_no"), w: 0.35 },
+    f("NUMBER INJURED", "num_injured", 0.2),
+    f("NUMBER KILLED", "num_killed", 0.2),
+    f("JUDICIAL DISTRICT", "judicial_district", 0.25),
+    f("LOCAL REPORT NO.", "local_report_no", 0.35),
   ];
   const mWidths = mCols.map((c) => Math.round(metaW * c.w));
   mWidths[mWidths.length - 1] += metaW - mWidths.reduce((a, b) => a + b, 0);
   let mx = metaX;
   mCols.forEach((c, i) => {
-    cell(ctx, mx, y, mWidths[i], metaH, c.label, c.value, { bg: CELL_BG });
+    cell(ctx, mx, y, mWidths[i], metaH, c.label, c.value, { bg: CELL_BG, ...c.opts });
     mx += mWidths[i];
   });
   y += metaH;
@@ -602,21 +748,26 @@ function drawForm() {
   y = row(
     ctx,
     [
-      { label: "NCIC #", value: getVal("ncic"), w: 0.13 },
-      { label: "OFFICER I.D.", value: getVal("officer_id"), w: 0.13 },
-      { label: "TOW AWAY", value: getVal("tow_away"), w: 0.1, opts: { center: true } },
-      { label: "STATE HWY RELATED", value: getVal("state_hwy_rel"), w: 0.14, opts: { center: true } },
-      { label: "REPORTING DISTRICT", value: "-", w: 0.25 },
-      { label: "BEAT", value: "-", w: 0.25 },
+      f("NCIC #", "ncic", 0.13),
+      f("OFFICER I.D.", "officer_id", 0.13),
+      f("TOW AWAY", "tow_away", 0.1, { center: true, kind: "select" }),
+      f("STATE HWY RELATED", "state_hwy_rel", 0.14, { center: true, kind: "select" }),
+      f("REPORTING DISTRICT", "reporting_district", 0.25),
+      f("BEAT", "beat", 0.25),
     ],
     y,
-    16,
+    20,
   );
 
   y += 4;
 
   // ── LOCATION section ──────────────────────────────────────────────────────
-  const locSectH = 20 + 17;
+  // The rotated label bar spans both location rows, so its height is derived
+  // from them rather than restated - it was written out as 20 + 17 and went
+  // 3px short the moment row 2 grew to 20 (Gotcha 14).
+  const locR1H = 20;
+  const locR2H = 20;
+  const locSectH = locR1H + locR2H;
   const locLabelW = 14;
 
   ctx.fillStyle = SECT_BG;
@@ -642,16 +793,16 @@ function drawForm() {
   const selectedDay = dowEl ? dowEl.value : "-";
   let lx;
 
-  // ── Location Row 1 — fixed fractions summing to exactly 1.0 ──────────────
-  const locR1H = 20;
-
+  // ── Location Row 1 - fixed fractions summing to exactly 1.0 ──────────────
   const r1spec = [
-    { label: "Collision Occurred On", value: getVal("collision_street"), frac: 0.34 },
-    { label: "MO / DAY / YEAR", value: fmtDate(rawDate), frac: 0.14 },
-    { label: "TIME (24h)", value: rawTime || "-", frac: 0.09 },
+    { label: "Collision Occurred On", value: getVal("collision_street"), frac: 0.34, opts: { ref: "collision_street" } },
+    { label: "MO / DAY / YEAR", value: fmtDate(rawDate), frac: 0.14, opts: { ref: "collision_date", kind: "date" } },
+    { label: "TIME (24h)", value: rawTime || "-", frac: 0.09, opts: { ref: "collision_time", kind: "time" } },
     { label: "DAY OF WEEK", value: "__DOW__", frac: 0.2 },
-    { label: "TOW AWAY", value: getVal("tow_away"), frac: 0.1, center: true },
-    { label: "PHOTOGRAPHS BY", value: "-", frac: 0.13 },
+    // Second printing of tow_away; the registry keeps each occurrence
+    // anchored to its own box.
+    { label: "TOW AWAY", value: getVal("tow_away"), frac: 0.1, center: true, opts: { ref: "tow_away", kind: "select" } },
+    { label: "PHOTOGRAPHS BY", value: getVal("photographs_by"), frac: 0.13, opts: { ref: "photographs_by" } },
   ];
 
   // Convert fractions → pixel widths, dump rounding remainder into last column
@@ -678,88 +829,79 @@ function drawForm() {
         ctx.font = "bold 7px Arial";
         ctx.textAlign = "center";
         ctx.fillText(dl, dx + 3.5, y + locR1H - 4);
+        // One-of-seven, backed by the day_of_week <select>.
+        const key = dayKeys[di];
+        window.GumaCanvasEdit?.action("dow_" + key, dx - 2, y + 7, 11, 11, () => setSelectVal("day_of_week", key), {
+          kind: "pick",
+          title: "Day of week: " + key,
+        });
         dx += 11;
       });
     } else {
-      cell(ctx, lx, y, w, locR1H, s.label, s.value, { bg: CELL_BG, center: !!s.center });
+      cell(ctx, lx, y, w, locR1H, s.label, s.value, { bg: CELL_BG, center: !!s.center, ...s.opts });
     }
     lx += w;
   });
 
   y += locR1H;
 
-  // ── Location Row 2 — intersection / distance ──────────────────────────────
-  const locR2H = 17;
+  // ── Location Row 2 - intersection / distance ──────────────────────────────
   const r2spec = [
-    { label: "At Intersection With", value: getVal("intersection_with"), frac: 0.5 },
-    { label: "OR: Distance / Direction from", value: getVal("distance_from"), frac: 0.5 },
+    { label: "At Intersection With", value: getVal("intersection_with"), frac: 0.5, opts: { ref: "intersection_with" } },
+    { label: "OR: Distance / Direction from", value: getVal("distance_from"), frac: 0.5, opts: { ref: "distance_from" } },
   ];
   const r2widths = r2spec.map((s) => Math.floor(locW * s.frac));
   r2widths[r2widths.length - 1] += locW - r2widths.reduce((a, b) => a + b, 0);
 
   lx = locX;
   r2spec.forEach((s, i) => {
-    cell(ctx, lx, y, r2widths[i], locR2H, s.label, s.value, { bg: CELL_BG });
+    cell(ctx, lx, y, r2widths[i], locR2H, s.label, s.value, { bg: CELL_BG, ...s.opts });
     lx += r2widths[i];
   });
   y += locR2H;
   y += 6;
 
   // ── Parties ───────────────────────────────────────────────────────────────
-  const emptyParty = {
-    type: "DRIVER",
-    dl: "-",
-    dl_state: "-",
-    safety: "-",
-    veh_year: "-",
-    veh_make: "-",
-    veh_plate: "-",
-    name: "-",
-    owner_name: "-",
-    owner_addr: "-",
-    address: "-",
-    city: "-",
-    insurance: "-",
-    policy: "-",
-    sex: "-",
-    race: "-",
-    age: "-",
-    dob: "-",
-    phone_h: "-",
-    phone_b: "-",
-    dir: "-",
-    speed: "-",
-    damage: "NONE",
-    defects: "NONE APPARENT",
-  };
-
-  const toRender = [...parties];
-  while (toRender.length < 3) toRender.push(emptyParty);
-
-  toRender.forEach((p, i) => {
-    y = drawParty(ctx, p || emptyParty, i + 1, y);
+  // Exactly the collected parties: a removed one disappears and the document
+  // shrinks, rather than lingering as an empty padding block.
+  parties.forEach((p, i) => {
+    y = drawParty(ctx, p, i + 1, y);
   });
+
+  window.GumaCanvasEdit?.action("add_party", MARGIN, y + 2, 100, 14, () => addPartyRow(), {
+    label: "+ Add Party",
+    kind: "add",
+    title: "Add another involved party",
+  });
+  y += ADD_CHIP_H;
 
   // ── Footer row ────────────────────────────────────────────────────────────
   const dispMap = { YES: "YES", NO: "NO", NA: "N/A" };
   y = row(
     ctx,
     [
-      { label: "Preparer's Name", value: getVal("preparer_name"), w: 0.3 },
-      { label: "Dispatch Notified", value: dispMap[getVal("dispatch_notified")] || "-", w: 0.15, opts: { center: true } },
-      { label: "Reviewer's Name", value: getVal("reviewer_name"), w: 0.35 },
-      { label: "Date Reviewed", value: fmtDate(document.getElementById("date_reviewed")?.value || ""), w: 0.2 },
+      f("Preparer's Name", "preparer_name", 0.3),
+      {
+        label: "Dispatch Notified",
+        value: dispMap[getVal("dispatch_notified")] || "-",
+        w: 0.15,
+        opts: { center: true, ref: "dispatch_notified", kind: "select" },
+      },
+      f("Reviewer's Name", "reviewer_name", 0.35),
+      fd("Date Reviewed", "date_reviewed", 0.2),
     ],
     y,
     18,
   );
 
-  // ── PAGE 1 OF 1 — bottom right, plain text ───────────────────────────────
+  // ── PAGE 1 OF 1 - bottom right, plain text ───────────────────────────────
   y += 8;
   ctx.fillStyle = "#000";
   ctx.font = "7px Arial";
   ctx.textAlign = "right";
   ctx.fillText("PAGE 1 OF 1", DOC_W - MARGIN, y + 8);
+
+  window.GumaCanvasEdit?.end();
 }
 
 // ── Preview & Download ────────────────────────────────────────────────────────
@@ -800,6 +942,7 @@ async function copyDocToClipboard() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
+tcApplyCaps(document);
 document.querySelectorAll("input,select").forEach((el) => {
   el.addEventListener("input", refreshPreview);
   el.addEventListener("change", refreshPreview);
@@ -817,6 +960,8 @@ const TC_SCALAR_FIELDS = [
   "local_report_no",
   "ncic",
   "officer_id",
+  "reporting_district",
+  "beat",
   "tow_away",
   "state_hwy_rel",
   "collision_street",
@@ -825,6 +970,7 @@ const TC_SCALAR_FIELDS = [
   "day_of_week",
   "intersection_with",
   "distance_from",
+  "photographs_by",
   "preparer_name",
   "dispatch_notified",
   "reviewer_name",
@@ -834,6 +980,7 @@ const TC_PARTY_FIELDS = [
   "type",
   "dl",
   "dl_state",
+  "dl_class",
   "name",
   "address",
   "city",
@@ -853,6 +1000,7 @@ const TC_PARTY_FIELDS = [
   "speed",
   "damage",
   "defects",
+  "street_info",
   "phone_h",
   "phone_b",
 ];
@@ -891,6 +1039,9 @@ function tcSerializeState() {
 
 function tcHydrateState(payload) {
   if (!payload) return;
+  // The container is rebuilt below; an open editor would write into a
+  // detached node.
+  window.GumaCanvasEdit?.cancelEdit();
   const setVal = GumaHistoryWiring.setVal;
 
   const f = payload.fields || {};
@@ -918,7 +1069,7 @@ function tcBuildLabel(payload) {
   const date = (f.collision_date || "").trim();
   const party = ((payload.parties && payload.parties[0] && payload.parties[0].name) || "").trim();
   const head = rep ? "Report " + rep : party || "Traffic Collision";
-  return date ? `${head} — ${date}` : head;
+  return date ? `${head} - ${date}` : head;
 }
 
 GumaHistoryWiring.register({
@@ -927,5 +1078,21 @@ GumaHistoryWiring.register({
   serialize: tcSerializeState,
   hydrate: tcHydrateState,
   buildLabel: tcBuildLabel,
-  // no buildFaction — traffic report has no faction
+  // no buildFaction - traffic report has no faction
+});
+
+// ── WYSIWYG editing wiring ────────────────────────────────────────────────────
+// The preview modal delegates export here so counters and history keep firing.
+window.GumaExport = {
+  download: downloadPng,
+  copy: copyDocToClipboard,
+  canvas: () => document.getElementById("docCanvas"),
+};
+
+window.GumaCanvasEdit?.attach({
+  canvas: document.getElementById("docCanvas"),
+  frame: document.getElementById("ceFrame"),
+  toolbar: document.getElementById("ceToolbar"),
+  redraw: drawForm,
+  key: "traffic",
 });

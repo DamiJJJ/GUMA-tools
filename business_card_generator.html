@@ -247,8 +247,8 @@
       </div>
 
       <!-- ════ PREVIEW PANEL ════ -->
-      <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
-        <div class="mb-4 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+      <div class="guma-panel flex flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
           <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
           <button
             id="gumaHistoryBtn"
@@ -290,8 +290,16 @@
           </div>
         </div>
 
-        <div class="guma-canvas-wrap guma-scroll">
-          <canvas id="bcCanvas" width="684" height="390" class="guma-canvas-preview"></canvas>
+        <!-- The layout picker above the canvas costs ~77px the other generators
+             do not pay, so this page reserves more of the viewport than the
+             21rem default in .guma-canvas-wrap. Only binds below ~810px tall. -->
+        <div class="guma-canvas-wrap guma-scroll xl:max-h-[calc(100vh_-_26rem)]">
+          <canvas
+            id="bcCanvas"
+            width="684"
+            height="390"
+            class="guma-canvas-preview xl:max-h-[calc(100vh_-_26rem)]"
+          ></canvas>
         </div>
 
         <div class="flex w-full max-w-[684px] flex-col gap-3 sm:flex-row sm:items-stretch">

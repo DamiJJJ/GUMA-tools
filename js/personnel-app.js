@@ -70,6 +70,7 @@ function addPfRow(containerId, labelPrefix, fields) {
     </div>
     <div class="grid ${gridClass} gap-2">${fieldsHTML}</div>`;
   container.appendChild(row);
+  pfApplyCaps(row);
   generateDoc();
 }
 
@@ -232,6 +233,64 @@ const DOC_MUTED = "#7a7568";
 const DOC_RULE_FAINT = "#cdc29a";
 const DOC_SEC_BG = "#efe6c9";
 
+// ── No printed value ends in an ellipsis, and none runs past its box ─────────
+// drawTable used to chop a value and add "…"; drawInfoRow and drawAttendanceRow
+// had no width guard at all and let a long value run off the paper, which is
+// worse - nothing on the page says anything was lost. All three now shrink to
+// fit, and every text input is capped at what its box carries at the floor.
+//
+// Courier is monospace, so a box's capacity is exactly floor(maxW / charW) and
+// charW is 0.6 x the size. The numbers below are that arithmetic at the floor,
+// not guesses. Column widths come from the drawTable call sites, against
+// tableW = 840 - 48 = 792, with 14px of padding per cell.
+const PF_FONT_FAMILY = "'Courier New', monospace";
+const PF_TABLE_PX = 12.5;
+// The caps below are sized so a full-length value still prints at PF_CAP_PX.
+// The shrink floor sits under that on purpose: it is the net for values that
+// arrive past the cap (a hydrated legacy record, a paste), never a normal size.
+const PF_TABLE_MIN_PX = 9;
+const PF_CAP_PX = 10;
+const PF_INFO_PX = 12.5;
+const PF_ATT_PX = 13;
+const PF_SUBJECT_PX = 15; // the SUBJECT: line, sized to the rule it sits on
+const pfFont = (px) => px + "px " + PF_FONT_FAMILY;
+
+const PF_MAXLEN = {
+  // floor(available / 6.001), where 6.001px is one Courier character at
+  // PF_CAP_PX. Round DOWN - 31 chars in 186px is 186.03px, which is over by
+  // three hundredths of a pixel and costs the whole column half a point.
+  ".pf-ec-name": 37, // 226px available
+  ".pf-ec-rel": 30, // 186px
+  ".pf-ec-phone": 56, // 338px
+  ".pf-tr-course": 59, // 356px
+  ".pf-tr-inst": 49, // 298px
+  ".pf-cm-award": 57, // 346px
+  ".pf-cm-issued": 51, // 308px
+  ".pf-di-violation": 37, // 226px
+  ".pf-di-penalty": 30, // 186px
+  ".pf-ml-reason": 92, // 558px
+  ".pf-wc-claim": 19, // 116px
+  ".pf-wc-incident": 54, // 326px
+  // Header lines. These two are not monospace arithmetic - the agency name is
+  // Georgia and the subject line's budget depends on the width of the "SUBJECT:"
+  // label - so both were measured against the same all-caps sample.
+  "#customAgencyName": 52, // centred across 792px at bold 22px Georgia
+  "#subjectName": 80, // 721px of rule at PF_SUBJECT_PX
+  // Page-level fields. The attendance cells are counts, so their caps are about
+  // keeping a fat-fingered paste out of the neighbouring column.
+  "#pfAddress": 60,
+  "#pfAttScheduled": 10,
+  "#pfAttPresent": 10,
+  "#pfAttSick": 10,
+  "#pfAttLate": 10,
+  "#pfBgDate": 24,
+};
+
+/** Apply the caps to a fresh .pf-row, or to the whole page at init. */
+function pfApplyCaps(root) {
+  GumaFit.applyCapsBySelector(root, PF_MAXLEN);
+}
+
 function drawDocHeader(ctx, W, data, accent) {
   const margin = 24;
   let y = 0;
@@ -263,7 +322,10 @@ function drawDocHeader(ctx, W, data, accent) {
   y += 14;
 
   // Agency name (serif title)
-  ctx.font = "bold 22px 'Georgia', 'Times New Roman', serif";
+  // Agency name: centred on the page, so an over-long one used to run off BOTH
+  // edges. Georgia is proportional, so this one is measured rather than counted.
+  GumaFit.fitFont(ctx, (faction?.name || "AGENCY").toUpperCase(), W - margin * 2, 22, 12,
+    (p) => "bold " + p + "px 'Georgia', 'Times New Roman', serif");
   ctx.fillStyle = DOC_INK;
   ctx.textAlign = "center";
   ctx.fillText((faction?.name || "AGENCY").toUpperCase(), W / 2, y + 22);
@@ -302,10 +364,14 @@ function drawDocHeader(ctx, W, data, accent) {
   ctx.textAlign = "left";
   ctx.fillText("SUBJECT:", margin + 4, y + 22);
   const lw = ctx.measureText("SUBJECT:").width;
-  ctx.font = "bold 15px 'Courier New', monospace";
   ctx.fillStyle = DOC_INK;
   const nameTxt = (data.subjectName || "—").toUpperCase();
-  ctx.fillText(nameTxt, margin + 4 + lw + 10, y + 22);
+  // The name sits on a rule that runs to the right margin, so that rule is its
+  // budget. It used to be painted at a fixed 15px and simply crossed the edge.
+  const nameX = margin + 4 + lw + 10;
+  GumaFit.fitFont(ctx, nameTxt, W - margin - 4 - nameX, PF_SUBJECT_PX, PF_TABLE_MIN_PX,
+    (p) => "bold " + p + "px " + PF_FONT_FAMILY);
+  ctx.fillText(nameTxt, nameX, y + 22);
   ctx.strokeStyle = DOC_INK;
   ctx.lineWidth = 0.8;
   ctx.beginPath();
@@ -361,6 +427,14 @@ function drawTable(ctx, W, y, accent, headers, colWidths, rows) {
   });
   y += HDR_H;
 
+  // Value sizes, one per column across every row. This is a personnel record:
+  // an ellipsis silently drops what somebody typed, and on this document that
+  // could be a disciplinary finding or a claim number. Values shrink instead,
+  // and PF_MAXLEN keeps the inputs inside what each column carries at the
+  // floor. See js/guma-fit.js.
+  const valueW = colWidths.map((w) => w - 14);
+  const colFonts = GumaFit.colFonts(ctx, rows, valueW, PF_TABLE_PX, PF_TABLE_MIN_PX, pfFont);
+
   const display = rows.length > 0 ? rows : [null];
   display.forEach((row, ri) => {
     ctx.fillStyle = ri % 2 === 0 ? DOC_PAPER_LITE : DOC_PAPER_ALT;
@@ -392,14 +466,10 @@ function drawTable(ctx, W, y, accent, headers, colWidths, rows) {
       ctx.fillText("— No records on file —", cx, y + 18);
     } else {
       row.forEach((val, vi) => {
-        const maxW = colWidths[vi] - 14;
-        let text = val || "—";
-        ctx.font = "12.5px 'Courier New', monospace";
+        ctx.font = pfFont(colFonts[vi]);
         ctx.fillStyle = val ? DOC_INK : DOC_MUTED;
         ctx.textAlign = "left";
-        while (ctx.measureText(text).width > maxW && text.length > 1) text = text.slice(0, -1);
-        if (text.length < (val || "—").length) text += "…";
-        ctx.fillText(text, cx, y + 18);
+        ctx.fillText(val || "—", cx, y + 18);
         cx += colWidths[vi];
       });
     }
@@ -425,17 +495,30 @@ function drawInfoRow(ctx, W, y, pairs) {
   ctx.lineWidth = 0.8;
   ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 29);
 
+  // The row lays its pairs out left to right with no fixed columns, so each
+  // value's budget is what is left of the box after the labels and the pairs
+  // already placed - measured as we go rather than assumed.
+  const rightEdge = margin + tableW - 14;
   let cx = margin + 14;
-  pairs.forEach(([label, val]) => {
-    ctx.font = "bold 10.5px 'Courier New', monospace";
+  pairs.forEach(([label, val], i) => {
+    ctx.font = "bold 10.5px " + PF_FONT_FAMILY;
     ctx.fillStyle = DOC_INK_SOFT;
     ctx.textAlign = "left";
     const lbl = label.toUpperCase() + ":";
     ctx.fillText(lbl, cx, y + 20);
     cx += ctx.measureText(lbl).width + 8;
-    ctx.font = "12.5px 'Courier New', monospace";
-    ctx.fillStyle = val ? DOC_INK : DOC_MUTED;
+
     const display = val || "—";
+    // Reserve room for the labels of the pairs still to come, so an early long
+    // value cannot squeeze a later one out of the box entirely.
+    let reserved = 0;
+    for (let j = i + 1; j < pairs.length; j++) {
+      ctx.font = "bold 10.5px " + PF_FONT_FAMILY;
+      reserved += ctx.measureText(pairs[j][0].toUpperCase() + ":").width + 8 + 28;
+    }
+    const budget = Math.max(40, rightEdge - cx - reserved);
+    GumaFit.fitFont(ctx, display, budget, PF_INFO_PX, PF_TABLE_MIN_PX, pfFont);
+    ctx.fillStyle = val ? DOC_INK : DOC_MUTED;
     ctx.fillText(display, cx, y + 20);
     cx += ctx.measureText(display).width + 28;
   });
@@ -468,11 +551,13 @@ function drawAttendanceRow(ctx, W, y, att) {
     ["Late", att.late],
   ].forEach(([label, val], i) => {
     const ax = margin + 12 + i * colW;
-    ctx.font = "bold 10px 'Courier New', monospace";
+    ctx.font = "bold 10px " + PF_FONT_FAMILY;
     ctx.fillStyle = DOC_INK_SOFT;
     ctx.textAlign = "left";
     ctx.fillText(label.toUpperCase() + ":", ax, y + 13);
-    ctx.font = "13px 'Courier New', monospace";
+    // Stay inside this quarter of the row: the cell has a visible divider on
+    // its right, so an over-long count used to cross it.
+    GumaFit.fitFont(ctx, val || "—", colW - 24, PF_ATT_PX, PF_TABLE_MIN_PX, pfFont);
     ctx.fillStyle = val ? DOC_INK : DOC_MUTED;
     ctx.fillText(val || "—", ax, y + 26);
   });
@@ -743,6 +828,7 @@ function initPersonnelGenerator({ defaultFaction = "lspd" } = {}) {
   FACTION_KEY = urlFaction && FACTIONS[urlFaction] ? urlFaction : defaultFaction;
   faction = FACTIONS[FACTION_KEY];
   buildFactionSwitcher(switchFaction, FACTION_KEY, null);
+  pfApplyCaps(document);
   generateDoc();
   document.querySelector(".guma-panel")?.addEventListener("input", debounce(generateDoc));
 }
