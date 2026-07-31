@@ -171,15 +171,23 @@
          inside it instead of stretching the page. */
       .guma-canvas-wrap {
         @apply flex w-full items-start justify-center overflow-y-auto overflow-x-hidden
-               xl:max-h-[calc(100vh_-_19rem)];
+               xl:max-h-[calc(100vh_-_21rem)];
       }
       /* Auto width + height keeps the intrinsic aspect ratio and caps the
          canvas at its native pixel size, so the preview never upscales
          into a blurry mess. A flat hairline edge, no drop shadow — every
-         generator renders its document the same way. */
+         generator renders its document the same way.
+
+         The max-h mirrors .guma-canvas-wrap's own cap. Without it the canvas
+         was constrained by width only, so a tall document (an officer card
+         carrying employment history is 840x1050) scaled to the panel's width
+         and then overflowed its height, and the wrap scrolled. Constraining
+         both axes makes a replaced element scale down to fit inside both while
+         keeping its aspect ratio, which is what fits the card in the panel. */
       .guma-canvas-preview {
         @apply block h-auto w-auto min-w-0 max-w-full border
-               border-guma-l-border-2 dark:border-guma-border-2;
+               border-guma-l-border-2 dark:border-guma-border-2
+               xl:max-h-[calc(100vh_-_21rem)];
       }
 
       /* ─── Section titles (index) ─── */
@@ -470,8 +478,16 @@
          to the zoomed canvas, the panel stretches the page instead of
          scrolling, and any fit-to-width measurement reads back the current
          zoom rather than the available width. */
+      /* Report pages sit under a shorter page header than the card generators,
+         so they can spend less of the viewport on chrome and give the rest to
+         the document. One shared reserve cannot serve both: sized for the cards
+         it wastes ~40px on every report, sized for the reports the cards hang
+         below the fold. This override is the report half of that pair; the card
+         half is .guma-canvas-wrap's own max-h. Both are measured so the box
+         ends just above the fold — a box that runs past it has to be scrolled
+         to, which defeats the point of making it tall. */
       .guma-ce-wrap {
-        @apply xl:justify-start xl:overflow-x-auto;
+        @apply xl:max-h-[calc(100vh_-_18.5rem)] xl:justify-start xl:overflow-x-auto;
         min-width: 0;
       }
       /* Shrink-wraps the canvas so all edit chrome can be positioned straight
@@ -641,23 +657,43 @@
       .guma-ce-date-pick:hover {
         background: rgba(45, 71, 135, 0.14);
       }
-      /* Toolbar above the canvas: zoom seg (injected) + hint + preview. */
+      /* Toolbar above the canvas: zoom seg (injected) + one-time hint.
+         Centred rather than pushed to the edges — the seg is the only control
+         here most of the time, and left-aligned it read as page furniture
+         rather than as something to use. Kept to a SINGLE ROW: stacking the
+         hint under the seg cost 22px of document height on every first visit,
+         which is the opposite of what this panel needs. */
+      /* Relative so the hint can be pulled out of the flow: with the hint in
+         flow the whole group centres, which pushes the zoom buttons visibly
+         left of the document they sit above. */
       .guma-ce-toolbar {
-        @apply items-center justify-between gap-3;
+        @apply relative items-center justify-center gap-3;
       }
       .guma-ce-zoom {
-        @apply flex items-center gap-1;
+        @apply flex items-center gap-1.5;
       }
+      /* Full-strength text, not muted: these were hard to read against the
+         panel, which is the whole reason the control went unnoticed. */
       .guma-ce-zoom-btn {
-        @apply inline-flex h-8 min-w-[2.25rem] cursor-pointer items-center justify-center
-               rounded-lg border-2 px-2 text-[11px] font-bold uppercase tracking-wider transition
-               border-guma-l-border bg-guma-l-panel text-guma-l-muted
+        @apply inline-flex h-9 min-w-[2.75rem] cursor-pointer items-center justify-center
+               rounded-lg border-2 px-3 text-[13px] font-bold uppercase tracking-wider transition
+               border-guma-l-border bg-guma-l-panel text-guma-l-text
                hover:border-guma-l-gold hover:text-guma-l-gold
-               dark:border-guma-border dark:bg-guma-panel dark:text-guma-muted
+               dark:border-guma-border dark:bg-guma-panel dark:text-guma-text
                dark:hover:border-guma-gold dark:hover:text-guma-gold;
       }
+      /* The percentage is a readout as much as a button, so it is the widest
+         and carries the accent colour. */
+      .guma-ce-zoom-btn.guma-ce-zoom-value {
+        @apply min-w-[4rem] text-guma-l-gold dark:text-guma-gold;
+      }
+      /* Parked on the right edge instead of sitting in the flow, so it stops
+         off-centring the zoom buttons. The toolbar only renders from xl up,
+         where it is never narrower than ~1150px, so the hint cannot reach the
+         buttons. */
       .guma-ce-hint {
-        @apply text-[11px] text-guma-l-muted dark:text-guma-muted;
+        @apply absolute right-0 top-1/2 -translate-y-1/2 text-[12px]
+               text-guma-l-muted dark:text-guma-muted;
       }
     }
 

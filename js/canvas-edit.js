@@ -726,20 +726,24 @@
   function buildToolbar(toolbar) {
     const seg = document.createElement("div");
     seg.className = "guma-ce-zoom";
-    const mk = (label, title, fn) => {
+    const mk = (label, title, fn, extra) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "guma-ce-zoom-btn";
+      b.className = "guma-ce-zoom-btn" + (extra ? " " + extra : "");
       b.textContent = label;
       b.title = title;
+      b.setAttribute("aria-label", title);
       b.addEventListener("click", fn);
       seg.appendChild(b);
       return b;
     };
-    mk("-", "Zoom out", () => setZoom(zoom - ZOOM_STEP));
-    zoomLabel = mk("100%", "Reset zoom to 100%", () => setZoom(1));
+    mk("−", "Zoom out", () => setZoom(zoom - ZOOM_STEP)); // real minus sign, not a hyphen
+    zoomLabel = mk("100%", "Reset zoom to 100%", () => setZoom(1), "guma-ce-zoom-value");
     mk("+", "Zoom in", () => setZoom(zoom + ZOOM_STEP));
-    mk("Fit", "Fit document to panel width", fitZoom);
+    // No "Fit" button - the user dropped it. fitZoom() itself stays: it is the
+    // zoom CEILING that clampZoom() applies to every request, and the value the
+    // ResizeObserver pulls the zoom down to when the panel narrows. Deleting the
+    // function would uncap zoom, which is a different change entirely.
     toolbar.insertBefore(seg, toolbar.firstChild);
 
     hintEl = document.createElement("span");
