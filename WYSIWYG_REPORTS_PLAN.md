@@ -1,9 +1,9 @@
 # WYSIWYG canvas editing for Report Generators
 
 > Feasibility assessment, implementation plan and running log.
-> **Phases 0-4 are done and verified. All four in-scope report pages are now
-> WYSIWYG.** Next up is **4b**: firearm no longer ellipsizes anything it prints,
-> and the other three reports still do. Phase 5 is not started.
+> **Phases 0-4b are done and verified. All four in-scope report pages are now
+> WYSIWYG, and none of them ellipsizes a printed value.** **Phase 5 was
+> cancelled** by the user; nothing is queued.
 > Picking this up in a new session? Go straight to **"Next session: start
 > here"** below. Everything in "Gotchas" was paid for the hard way; none of it
 > is theoretical.
@@ -17,44 +17,91 @@
 | **2 - Traffic Collision** | Same primitive family as arrest, plus select-backed pick-one boxes and 5 new inputs for cells that only ever printed `-` | **Done, 48/48 automated checks** |
 | **3 - PCR** | 28 text fields + exactly 90 checkboxes, no repeatable rows | **Done, 58/58 automated checks + a 46-check arrest/traffic regression run** |
 | **4 - Firearm** | `gridRow` funnel + `_p` prefix, three repeatable blocks, `datetime` editor, faction switcher replaced by an editable header | **Done, 107/107 automated checks + 46-check arrest/traffic and 58-check PCR regression runs** |
-| **4b - No ellipsis on arrest / traffic / PCR** | Carry the firearm shrink + wrap + input-cap rule to the other three reports | **Next** |
-| **5 - Randomize Character** | New branches in `js/random-character.js` | Not started |
-| **6 - Personnel File Generator** | Deferred, separate decision | Not started |
+| **4b - No ellipsis anywhere** | `js/guma-fit.js` extracted; shrink + input-cap carried to arrest, traffic and PCR | **Done, 63/63 automated checks across all four pages** |
+| **5 - Randomize Character** | New branches in `js/random-character.js` | **Cancelled - the user does not want it.** These are in-game documents filled with real characters' data; a randomizer has nothing to contribute. |
+| **6 - Personnel File Generator** | WYSIWYG on `personnel_file_generator.html` | **Declined by the user after review - see "Phase 6: why not" below.** The no-ellipsis rule was carried there instead. |
+| **4c - No ellipsis outside the reports** | Personnel file + officer / firefighter card generators, tables **and** document faces | **Done, 48/48 automated checks + a 55-check report regression** |
+| **4d - Preview panel polish** | Preview box fits the viewport on all 8 pages; zoom control centred, enlarged and stripped of `Fit` | **Done, measured at 3 viewports x 8 pages, both themes** |
 
 Phases 0-1 shipped as commit `2a4a757` on `feat/wysiwyg-canvas-edit`;
-Phase 2 as `28b7d36`; Phase 3 as `fd0ad2d`.
+Phase 2 as `28b7d36`; Phase 3 as `fd0ad2d`; Phase 4 as `a46cc13`.
 
-Phase 4 files: `js/firearm_discharge_investigation.js`, `firearm_discharge.html`,
-`js/canvas-edit.js` (the `datetime` composite editor), `readme.md` (one stale
-bullet), `assets/screenshots/firearm_discharge.png`. No `js/guma-styles.js`
-change was needed - the datetime editor reuses the `guma-ce-editor-date`
-classes. Uncommitted - the user commits, never the agent.
+Phase 4b files: **new** `js/guma-fit.js`; `js/arrest-report.js`,
+`js/traffic-collision-report.js`, `js/prehospital-care-report.js` (shrink at the
+value funnels + a per-page cap table); `js/firearm_discharge_investigation.js`
+(its four local helpers deleted in favour of the shared ones); one
+`<script src="js/guma-fit.js">` tag added ahead of `canvas-edit.js` on all four
+report pages. **No `js/canvas-edit.js` change** - it already copied `maxLength`
+onto its editor, which is the one thing the rule needed from it. No screenshot
+changed: none of the four carries a clipped value (verified by eye), and the
+render is byte-identical for any value that already fitted (verified in the
+harness).
+
+One unrelated fix rode along, reported by the user: **traffic's rotated
+`LOCATION` bar was 3px shorter than the rows it spans** (Gotcha 20). That one
+*does* move the output, but only by closing a gap - no screenshot re-flows.
+
+Phase 4d files: `js/canvas-edit.js` (`buildToolbar()` - `Fit` button removed,
+`aria-label` on each button, an `extra`-class parameter for the `%` readout);
+`js/guma-styles.js` (`.guma-ce-toolbar`, `.guma-ce-zoom-btn`,
+`.guma-ce-zoom-value`, `.guma-ce-hint`, and the two wrap reserves); all 8
+generator pages (panel padding and header margin trimmed);
+`business_card_generator.html` (its own `26rem` reserve, Gotcha 23). `fitZoom()`
+itself is untouched - it is still the zoom ceiling, it just has no button.
+
+Uncommitted - the user commits, never the agent.
 
 ## Next session: start here
 
-**Phase 4b: carry the no-ellipsis rule to arrest, traffic and PCR.** The user's
-rule, stated plainly on firearm and meant for all of them: *this is a report, so
-no printed value may end in an ellipsis.* Firearm is done and is the worked
-example; the other three still clip. Nothing in `js/canvas-edit.js` changes for
-this beyond what firearm already needed (it copies `maxLength` onto its editor).
+**Nothing is queued.** WYSIWYG is finished on all four in-scope report pages,
+Phase 5 was cancelled and Phase 6 was declined (both by the user, reasons
+below). The no-ellipsis rule now covers **every page in the app that prints a
+form value** - four reports, the personnel file, and both card generators.
+What is left is optional and each item is independent:
 
-Read in this order: this section, the **"Nothing is ellipsized"** block under
-*Phase 4 - Firearm: what was built*, then **"Phase 4b"** under *Remaining
-instrumentation notes* - it lists what clips on each page and the one design
-decision to take first.
+- **`readme.md` documents none of the WYSIWYG behaviour** on any of the four
+  pages. `/readme` is user-invoked; run it when the branch is ready to merge.
+- **`js/business-card.js` still has its own `bcFitFontToWidth`** - a sixth copy
+  of the shrink helper. It already does the right thing (shrinks, never
+  truncates), so it was deliberately left alone: folding it into
+  `GumaFit.fitFont` would change every exported business card, because the
+  shared helper steps in 0.5px and the local one in 1px. Worth doing as its own
+  change, not as a rider on someone else's.
+- The cosmetic calls listed just below.
 
-After 4b, **Phase 5 is Randomize Character**; its block is further down the same
-section. The Gotchas are editor and instrumentation material - only relevant if
-Phase 6 (Personnel File) is later approved.
+### Phase 6: why not
 
-Two open questions for the user before starting Phase 5:
+The user asked whether WYSIWYG made sense on the personnel file. It does not,
+for four reasons, in descending order of weight:
 
-- There is still **no DOB generator**: `randomizeCharacter` rolls `age` but
-  never a date of birth, and all three person-bearing pages have `dob` inputs.
-  Decide whether it should derive a DOB from the age it already rolls.
-- Firearm has **three** repeatable blocks (involved officers, witnessing
-  officers, civilians) and two of them hold people. Decide whether randomize
-  fills every row or only the first.
+1. **It is a layout, not a form.** The four pages where WYSIWYG paid off are
+   replicas of real LAPD forms: a grid of labelled cells, each mapping 1:1 to an
+   input, where a cell visibly *looks* clickable. The personnel file is a
+   designed document - faction accent, CONFIDENTIAL stamp, styled tables, a
+   prose notes block. The dashed empty-field outline that reads as "type here"
+   on a form would read as visual noise here.
+2. **`SCALE = 1`.** It renders at `canvas.width = 840` with no `ctx.scale`,
+   while zoom in the editor is CSS scaling of the backing store - so the
+   document goes soft the moment anyone zooms past 100%, and zoom is half of
+   what makes WYSIWYG worth having. Fixing it means `SCALE = 2`, which doubles
+   every exported PNG from 840 to 1680px wide: a product decision, not a
+   rendering tweak.
+3. **Row fields have no ids.** They are collected by CSS class inside `.pf-row`,
+   so a ref would have to be a *positional* selector
+   (`#pfEcRows > .pf-row:nth-child(3) .pf-ec-name`). Remove row 2 and that ref
+   silently points at a different person's data - worse than the `occ` problem
+   from Phase 2, which was merely visible.
+4. **The debounce and the textarea.** Every other page redraws per keystroke;
+   this one debounces at 300ms, which feels wrong when you are typing *onto* the
+   document. And `#pfNotes` would need a `multiline` editor kind that does not
+   exist, i.e. new surface in `canvas-edit.js` and new risk to four pages that
+   already work.
+
+What the page actually needed was the no-ellipsis rule, which is independent of
+WYSIWYG and far cheaper. That is what was built - see *Phase 4c* below.
+
+The Gotchas are editor and instrumentation material - read them before touching
+`js/canvas-edit.js` or instrumenting a fifth page.
 
 Cosmetic calls the user may still want to make:
 
@@ -62,10 +109,11 @@ Cosmetic calls the user may still want to make:
   collision threshold by 0.5px (Gotcha 14). Legible, verified at 5x, but
   visibly tight. Bumping them to 22 would relax it at the cost of changing every
   exported PNG's height.
-- **Firearm**: nothing on this page is ellipsized any more - see the
-  no-ellipsis note below. The caps in `FD_MAXLEN` are the lever if a field turns
-  out to be too tight in practice; changing one means re-running the harness,
-  which is what proves the cap still fits its column.
+- **The caps** (`AR_MAXLEN`, `TC_MAXLEN`, `PCR_MAXLEN`, `FD_MAXLEN`) are the
+  lever if a field turns out to be too tight in practice. Each number is the
+  character count its cell carries at that page's readable floor, so raising one
+  means the value prints smaller; changing any of them means re-running the
+  harness, which is what proves the cap still fits its column.
 
 ## Context
 
@@ -99,12 +147,16 @@ chrome (dates especially), not in the registry.
 | Personnel File Generator | **Out of scope for now.** Structurally it is a card generator sitting in the Report section. Revisit as an optional Phase 6. |
 | Rollout | Pilot on **Arrest Report** only, then stop and review. Done; traffic followed and was reviewed the same way. |
 | Completeness | **If we fill in the document, we fill in all of it.** A cell printing a hard-coded `-` gets a real input rather than staying dead. See Gotcha 13. |
-| Default zoom | **100%**, not fit-to-container. Fit made the document too wide to read comfortably. `Fit` stays one click away in the zoom control. |
+| Default zoom | **100%**, not fit-to-container. Fit made the document too wide to read comfortably. |
+| Fit button | **Removed.** The user dropped it: three controls (`− / % / +`) read more clearly than four, and clicking the `%` readout resets to 100% anyway. `fitZoom()` itself stays - it is the ceiling, not a button. |
 | Maximum zoom | **Fit is the ceiling.** There is no fixed upper bound any more. Past Fit the document would be wider than its box, and the page scrolled sideways instead. `+`, Ctrl+wheel and `setZoom()` all clamp, and narrowing the window pulls the current zoom down with the cap. |
+| Zoom control legibility | The control went unnoticed because it was muted text at 11px. Now `h-9` buttons, `13px` bold, full-strength `guma-*-text` (accent gold only on the `%` readout), measured at **8.9:1 contrast in light and 9.3:1 in dark** - see Gotcha 23. |
+| Vertical space above the document | The preview panel's own chrome was trimmed on all 8 pages (`p-6 gap-5` to `px-6 py-4 gap-3`, header `mb-4` to `mb-0`): **158px to 122px** on reports, **106px to 74px** on cards. The document gets the difference. |
 | Export surface | The page carries **one** `Preview & Download` button. Download PNG, Copy and the counter live **inside** `<guma-preview-modal>`. There is no Download/Copy pair on the page any more. |
 | Repeatable rows | A removed row **disappears** from the document. No empty padding rows to keep a minimum count. Default is 1 row. |
 | Date editing | The editor shows the document's own **mm/dd/yyyy**, not the browser locale's format. See Gotcha 3. |
 | Native pickers | **Only `<select>` auto-opens its picker on click.** Dates open the calendar from their own button. See Gotcha 4. |
+| Values that do not fit | **No printed value may end in an ellipsis, on any of the four reports.** An ellipsis silently drops what somebody typed. The value shrinks (and wraps where the cell has room), and the input is capped at what the column carries at a readable size. Phase 4 on firearm, Phase 4b everywhere else. |
 | Faction on firearm | **Switcher removed in Phase 4.** The document's own header line is the control (`#agency_name`, default `LOS SANTOS POLICE DEPARTMENT`), edited in place from xl and through the form input below it. Reports saved under the old switcher still hydrate - see Gotcha 18. |
 
 ## Scope
@@ -119,7 +171,9 @@ In scope (4 pages):
 | `prehospital_care_report.html` | `js/prehospital-care-report.js` | none | **90** | **Done** |
 
 Deferred: `personnel_file_generator.html`.
-Untouched: all Card Generators, `bodycam_overlay.html`.
+Untouched **by the WYSIWYG work**: all Card Generators, `bodycam_overlay.html`.
+The Card Generators and the personnel file did receive the no-ellipsis rule in
+Phase 4c - that is a print-correctness change, not an editing one.
 
 ## Architecture as built
 
@@ -270,9 +324,15 @@ carry the affordance.
 - **Do not touch `.guma-canvas-preview`** - shared with the card generators and
   bodycam. Report pages use `.guma-ce-canvas` inside `.guma-ce-frame` instead,
   and `.guma-ce-wrap` relaxes the shared wrap's `overflow-x: hidden`.
-- Zoom UI: a segmented control (`- / % / + / Fit`) injected into `#ceToolbar`,
-  plus Ctrl+wheel. **The wheel handler is gated on `ctrlKey`** so plain wheel
-  still scrolls the page. Persisted as `guma:zoom:<key>`.
+- Zoom UI: a segmented control (`− / % / +`) injected into `#ceToolbar`, plus
+  Ctrl+wheel. **The wheel handler is gated on `ctrlKey`** so plain wheel still
+  scrolls the page. Persisted as `guma:zoom:<key>`. The `%` is a readout and a
+  button both - clicking it resets to 100%. The `−` glyph is a real minus sign
+  (U+2212), not a hyphen, so it optically matches the `+`.
+- **The hint is absolutely positioned** at the toolbar's right edge. In flow it
+  centred the *group*, which pushed the buttons 112px left of the document they
+  drive. The toolbar only renders from `xl`, where it is never narrower than
+  ~1150px, so the hint cannot reach the buttons.
 - **Default is 1.0, ceiling is Fit.** `clampZoom()` floors every request to
   `trueFit()`; there is no `ZOOM_MAX` constant. `Math.floor` rather than
   `Math.round`, so a rounded value can never creep back over the cap.
@@ -291,7 +351,35 @@ carry the affordance.
 - When inactive, the inline width/height are cleared so the shared preview
   classes size the canvas again.
 
-### 6. `<guma-preview-modal>` in `js/components.js`
+### 6. `js/guma-fit.js` - shrink-to-fit and input caps (Phase 4b)
+
+One global, `window.GumaFit`, loaded immediately before `canvas-edit.js` on all
+four report pages. Same no-bare-top-level-names discipline as the registry
+(Gotcha 6) - four page scripts share one scope, and `fitFont` is exactly the
+sort of name that would collide.
+
+```js
+fitFont(ctx, text, maxW, basePx, minPx, font?)   -> px      // one line, shrink only
+fitBlock(ctx, text, maxW, lines, basePx, minPx, font?)      // -> { px, lines }
+wrapLines(ctx, text, maxW, maxLines)             -> string[] // measures at ctx.font
+capFor(id, table, variants?)                     -> number|null
+applyCaps(root, table, variants?)                            // sets maxLength
+// font = (px) => "bold 8px Arial"; defaults to px + "px Arial". Needed because
+// arrest and traffic paint some cells bold and fitFont owns ctx.font.
+```
+
+`capFor` matches an **exact page-level id first, then the longest field-suffix**,
+so `owner_name` wins over `name` on a traffic party row. `variants` is how one
+suffix means two things in different row families: firearm passes
+`[{ prefix: "civ_", table: { name: 28 } }]` because a civilian name is one line
+under a label while an officer name wraps over two.
+
+**The cap tables stay per page.** They encode one document's column widths and
+mean nothing on another; only the lookup and the applier are shared. Each page
+keeps a one-line `xxApplyCaps(root)` wrapper so the call sites (init, and every
+dynamic row builder) read the same on all four.
+
+### 7. `<guma-preview-modal>` in `js/components.js`
 
 Built on the `[data-gh-confirm]` shell pattern. `max-w-5xl`, `max-h-[94vh]`.
 Opens with `canvas.toBlob(b => img.src = URL.createObjectURL(b))`, revoked on
@@ -313,8 +401,10 @@ window.GumaExport = { download: downloadPng, copy: copyDocToClipboard,
 ## Gotchas
 
 Everything below cost real debugging time. **1-11 came out of Phase 1, 12-14 out
-of Phase 2, 15-16 out of Phase 3, 17-18 out of Phase 4.** Read 12-18 before any
-further instrumentation; 1-11 matter mainly if you touch the editor itself.
+of Phase 2, 15-16 out of Phase 3, 17-18 out of Phase 4, 19-20 out of Phase 4b,
+21 / 21b / 21c / 21d / 22 out of Phase 4c.** Read 12-22 before any further
+instrumentation; 1-11 matter mainly if you touch the editor itself. **22 is not
+about this app at all - it is about the harness, and it froze a laptop.**
 
 ### 1. `line-height: 0` on the frame clips native date/time inputs
 
@@ -695,6 +785,194 @@ One consequence to keep in mind: an untouched report serializes
 `payload.FACTION_KEY` - writing the default into the input for a *current*
 payload would silently kill the outline on every load.
 
+### 19. `maxLength` caps typing, not code - so shrinking is still load-bearing
+
+`el.maxLength` is ignored by `el.value = "..."`. Every path that writes a value
+programmatically therefore walks straight past the caps:
+
+- **hydrating an older saved report**, stored before the cap existed or before it
+  was tightened,
+- the demo fill in a screenshot capture,
+- any future bulk-fill or import.
+
+That is *by design* - a cap must never rewrite data somebody already saved
+(the harness asserts an over-long comb value round-trips byte for byte). But it
+means **the cap alone never guarantees the no-ellipsis rule**; the shrink is
+what actually holds when a value arrives from anywhere other than the keyboard.
+Which is why the shrink floor is 4.5px on every page: deliberately below
+anything readable, so an over-cap value from a legacy payload prints small and
+complete rather than truncated.
+
+The corollary for anything that writes values: **generate within the cap.** Read
+`el.maxLength` and trim rather than assuming a length.
+
+### 20. A section bar's height must be derived from the rows it spans
+
+Traffic's rotated `LOCATION` bar was written out as `20 + 17` and drew 3px short
+of the two rows beside it, ever since Gotcha 14 raised location row 2 from 17 to
+20. Nothing broke, nothing warned, and the mismatch is small enough to read as
+kerning rather than as a bug until somebody looks at the right-hand edge.
+
+`locSectH` is now `locR1H + locR2H`, with both declared above the bar rather
+than beside their own rows. **Any spanning element - a rotated label, a merged
+cell, a bracket - computes its extent from the constants the spanned rows use.**
+Restating the number is what guarantees it goes stale on the next height change,
+and this file already has one row-height change per phase.
+
+The registry is what makes this checkable after the fact: the spanned rows
+register hitboxes, so a harness can assert the span against
+`lastRow.y + lastRow.h - firstRow.y` rather than against a number copied out of
+the same source it is checking.
+
+### 21d. A canvas capped on one axis overflows on the other
+
+The card generators scrolled inside their preview panel. `.guma-canvas-preview`
+carried `h-auto w-auto max-w-full` - constrained by **width only** - while
+`.guma-canvas-wrap` capped its own height at `xl:max-h-[calc(100vh-19rem)]`. So
+a tall document (an officer card carrying employment history is 840x1050) scaled
+down to the panel's width, still exceeded the wrap's height, and the wrap
+scrolled.
+
+The fix is to give the canvas the *same* height cap as its wrap. A replaced
+element constrained on both axes scales down to fit inside both while keeping
+its aspect ratio, which is exactly the wanted behaviour - and it is one line,
+not JS.
+
+Verified at 1600x1000, 1440x900 and 1366x768 on all four card pages:
+`wrap.scrollHeight === wrap.clientHeight`, aspect ratio preserved to within
+0.02, never upscaled past native pixels. **Allow 2px of slack on the upscale
+check** - `getBoundingClientRect()` is border-box and the class draws a 1px
+hairline, so a business card reads 686 against a 684px backing store.
+
+Note the trade-off the user accepted: fitting without scrolling means a short
+viewport shows a small card. At 1366x768 the officer card renders 390px wide
+against 840 native.
+
+This class is used by the **card generators only** - the four report pages carry
+`.guma-ce-canvas` instead - so the change cannot reach the WYSIWYG zoom work.
+That is worth re-checking rather than assuming: the earlier warning in this file
+against touching `.guma-canvas-preview` was written when the sharing was wider.
+
+### 21c. `maxLength` does nothing on `<input type="number">`
+
+`#age` on both card generators carried `type="number" min="21" max="75"` and was
+still completely unlimited: **`maxLength` is inert on number inputs** - the
+browser accepts the attribute and ignores it - and `min`/`max` are only checked
+at form validation, which none of these pages ever run. Setting a cap on it
+therefore *looked* done and did nothing.
+
+`GumaFit.applyCaps` / `applyCapsBySelector` now detect the types that ignore
+`maxLength` (`number`, `range`, `color`) and install a live input clamp instead,
+marking the element with `data-guma-cap`. A cap now means the same thing on
+every input a document prints, which is what the cap tables assume.
+
+Two assertions came out of it, both worth keeping:
+
+- **No `input[type=number]` is left without a cap** - this is the check that
+  would have caught `#age`, and it also caught `num_injured` / `num_killed` on
+  the traffic report.
+- **Every installed clamp actually truncates**, driven by dispatching a real
+  `input` event rather than trusting the attribute.
+
+The general lesson: **an attribute that the platform silently ignores is worse
+than a missing one**, because the code reads as correct. When a cap mechanism
+grows to a new field type, assert the *effect*, not the attribute.
+
+### 21b. A shrink with a floor but no cap only delays the overflow
+
+Every value on the card generators already shrank before Phase 4c - `lv()` down
+to 11px, the name headline down to 18px. None of them was capped, so the floor
+was **reachable**, and past the floor the text just left its box with nothing to
+show for it. The pay lines and the agency header were worse still: fixed size,
+no guard at all.
+
+The pair is what works, and only the pair:
+
+- **shrink** so ordinary values stay inside their box at full size,
+- **cap** so the floor is never reached, which is the only thing that makes the
+  floor a guarantee rather than a last stop before silent overflow.
+
+When auditing a draw path, `measureText` in a `while` loop is not evidence the
+value is safe. Ask what happens at the floor.
+
+### 21. Round a character cap DOWN, and assert it prints at the size you sized it for
+
+Three personnel caps were computed as `186 / 6.001 = 30.99` and written as
+**31**. Thirty-one Courier characters at 10px measure 186.03px against 186px of
+box - over by three hundredths of a pixel, which costs the whole column half a
+point of font size. Nothing looked wrong; the column just quietly rendered at
+9.5px instead of 10px.
+
+Two habits fix it for good:
+
+- **`Math.floor`, never round.** The cap is a promise that a full-length value
+  fits; a rounded-up cap breaks it by a hair, and a hair is enough.
+- **Assert the size, not just the absence of an ellipsis.** "Nothing was
+  truncated" and "no value hit the floor" both passed while three caps were
+  wrong. The assertion that caught it is *"a value at its cap still prints at
+  the cap size"* - i.e. check the caps against the thing they were derived from,
+  not against the failure they were meant to prevent.
+
+### 22. A CDP harness must kill Chrome's process GROUP, or it will freeze the machine
+
+`proc.kill()` on the pid returned by `spawn()` kills the browser process and
+leaves its helpers - gpu, renderer, crashpad - running. At roughly four orphans
+per run that is invisible for the first few runs and fatal by the twentieth:
+this cost a load average of 18-20 and a hard reboot mid-phase.
+
+The runner in the scratchpad now:
+
+- spawns Chrome **`detached: true`**, making it a process-group leader,
+- tears down with **`process.kill(-proc.pid, "SIGKILL")`** - the negative pid is
+  the whole group,
+- routes every exit path (normal, thrown, `SIGINT`, `uncaughtException`) through
+  one idempotent `cleanup()`,
+- arms a **watchdog timer** so a hung page still tears down,
+- passes `--renderer-process-limit=1 --no-crashpad --disable-dev-shm-usage` to
+  keep the group small in the first place.
+
+**Check `pgrep -f 'Google Chrome' | wc -l` before and after a run** while
+developing a harness. It should return to its starting value; if it climbs,
+stop and fix teardown before running the suite.
+
+Two smaller things from the same session, both environment rather than product:
+
+- `http://127.0.0.1:<port>/json/version` stopped answering under load, while the
+  `DevTools listening on ws://...` banner Chrome prints to stderr was always
+  reliable. The runner now reads the banner and drives the browser socket with
+  `Target.createTarget` + flat `attachToTarget`.
+- **Heredocs (`python3 - <<'PY'`) hang** in this tool environment. Write the
+  script to a file and run the file.
+
+### 23. A viewport reserve is per-panel, not per-app
+
+`.guma-canvas-wrap` and `.guma-ce-wrap` cap the preview box at
+`calc(100vh - <reserve>)` so a tall document scrolls inside its box instead of
+stretching the page. The reserve has to cover everything above the box: the site
+header, the panel's own header row, the zoom toolbar. Those differ per page, so
+**one shared number cannot serve all of them**:
+
+| Wrap | Reserve | Pages |
+| --- | --- | --- |
+| `.guma-ce-wrap` | `18.5rem` | the 4 WYSIWYG reports (extra toolbar row above the canvas) |
+| `.guma-canvas-wrap` | `21rem` | officer, firefighter, personnel |
+| `.guma-canvas-wrap` + inline override | `26rem` | business card only |
+
+A single `17rem` was tried first and left `firearm` 7px and `personnel` 46px
+below the fold. The business card needs a third value because its **Card Layout
+picker costs ~77px** the other generators do not pay; the override is an inline
+`xl:max-h-[calc(100vh_-_26rem)]` utility on both the wrap and the canvas, which
+beats the `@layer components` rule without a new class. It only binds below
+~810px of viewport height, so nothing changes on a normal desktop.
+
+**Both** the wrap and the canvas need the cap. Constraining width only lets a
+tall document scale to the panel's width and then overflow its height, which is
+what made the cards scroll. Constraining both axes makes a replaced element
+scale down to fit inside both while keeping its aspect ratio.
+
+Measured at 1600x1000, 1440x900 and 1366x768 on all 8 pages: the box bottom sits
+above the fold everywhere, and no card scrolls inside its box.
+
 ## Remaining instrumentation notes
 
 Ordered by phase, so the next one to do is first.
@@ -838,81 +1116,163 @@ harness now asserts the footer still fits for 1-6 rows in every block.
 
 **Perf:** ~0.4-1.8 ms per full redraw over 20 redraws in headless Chrome.
 
-### Phase 4b - No ellipsis on arrest, traffic and PCR (next)
+### Phase 4b - No ellipsis on arrest, traffic and PCR (done)
 
-Firearm's rule applies to all four reports: a value that does not fit is a
+Firearm's rule now applies to all four reports: a value that does not fit is a
 **form** problem, not a print problem. Shrink it, wrap it where the cell has
-room, and cap the input so the floor is never reached. The mechanism, the
-reasoning and the harness assertion are written up in **"Nothing is ellipsized"**
-under *Phase 4 - Firearm*; this block is only what differs per page.
+room, and cap the input so the floor is never reached. The mechanism and the
+reasoning are written up in **"Nothing is ellipsized"** under *Phase 4 -
+Firearm*; this block is what differs per page and what the numbers mean.
 
-**Take this decision first.** The four helpers (`fitFont`, `fitBlock`,
-`wrapLines`, plus `FD_MAXLEN` / `fdApplyCaps`) currently live in
-`js/firearm_discharge_investigation.js`. Copying them into three more page
-scripts would make a fifth copy of the same family as `clip()` (see the
-duplication inventory in the appendix). **Extract them to `js/guma-fit.js`
-first** - a classic global script like every other file here, loaded before the
-page script. Two constraints:
+**The extraction came first.** `fitFont`, `fitBlock` and `wrapLines` left
+`js/firearm_discharge_investigation.js` for `js/guma-fit.js` (see Architecture 6)
+rather than being copied into three more page scripts - which would have made a
+fifth member of the `clip()` duplication family in the appendix. `fdCapFor` was
+generalised into `GumaFit.capFor` on the way out; firearm's `FD_MAXLEN_CIV` is
+now the `variants` argument.
 
-- **No ES modules**, so it exposes one global (`window.GumaFit = { fitFont,
-  fitBlock, wrapLines, applyCaps }`) rather than bare top-level names. Bare
-  names would collide across page scripts - Gotcha 6, and `clip`/`getVal`
-  already came close.
-- The cap **table** stays per page: `FD_MAXLEN` encodes one document's column
-  widths and has no meaning on another. Only the applier is shared.
+**How a cap is arrived at, and why it is a hardcoded number.** Each page fixes a
+*readable floor* - the size at which a full-length value is still worth printing
+(`AR_READ_PX` / `TC_READ_PX` = 6, `PCR_READ_PX` = 6.5, against base sizes of 8, 8
+and 9). The cap is then the number of characters of a realistic all-caps sample
+that fits that cell at the floor, measured once in headless Chrome off the
+registered hitboxes. Shrinking has a much lower hard floor (4.5px on every page,
+as on firearm) that the caps are supposed to make unreachable - and the harness
+asserts it is never reached.
 
-**What clips today, per page.**
+Do **not** derive the caps at runtime from the geometry. A cap is a form-level
+promise about what the user may type; recomputing it during a draw would change
+what the form accepts as a side effect of a layout tweak, silently.
 
-| Page | Funnel | Call sites |
+**Per page, as it landed.**
+
+- **Arrest** (`AR_MAXLEN`, 16 keys, 12 page-level + 4 officer-row suffixes) and
+  **traffic** (`TC_MAXLEN`, 31 keys, 13 + 18) each needed one `fitFont()` inside
+  their single `cell()`. Both paint some cells bold, which is why `fitFont` takes
+  a font builder. **Their cells are labelled and single-line** (the label owns
+  the top of the cell, Gotcha 14), so they shrink and never wrap.
+- Traffic's `state_name` is the one value on either page not painted by `cell()`:
+  the `STATE OF ...` header line has no `maxW` at all and would simply have run
+  off the paper. It is capped (120) at what the line fits across `BODY_W` at its
+  fixed bold 7px, and is **not** shrunk - same treatment as firearm's agency
+  header, which is capped at 44 against a measured ceiling of 84.
+- **PCR** got a `pcrValue()` helper covering all five value sites (`valueRow`,
+  `valueChecklistRow`, `sceneRow`'s location type and both GPS halves), since
+  every one of them prints left-aligned 9px Arial.
+- **PCR's comb rows are the exception to everything above.** A comb drops every
+  character past its last box with **no visual sign at all** - worse than an
+  ellipsis, because nothing on the page says anything was lost. There is nothing
+  to shrink: the geometry *is* the limit. So the cap is the box count, and it is
+  computed rather than hand-counted - `combCells(w, cells)` is now a named
+  function used both by `combRow` when it draws and by `PCR_MAXLEN` when it caps,
+  so the two cannot drift.
+
+**Static labels: clean.** Most of PCR's `clip()` calls truncate *labels*, not
+user data, and a clipped static label is a layout bug in its own right rather
+than something to shrink silently. The harness separates the two (a truncation
+whose text is a substring of a filled value is a value clip; anything else is a
+label) and **reported zero label truncations on all four pages**, so there was
+nothing to fix.
+
+**Nothing about the rendering changed for data that already fitted.** Proven, not
+assumed: fill every page with values short enough that no cell needs to shrink,
+export, then neuter `GumaFit.fitFont` back to "always paint at the base size" -
+which is exactly what the pre-4b code did - re-export, and compare. Byte-
+identical on arrest, traffic and PCR. Firearm differs, and has to: `fitFont`
+already governed its rendering before this phase. That is also why no showcase
+screenshot was regenerated - none of the four carries a clipped value.
+
+### Phase 5 - Randomize Character (cancelled)
+
+The plan was new branches in `js/random-character.js` for arrest, traffic and
+firearm. **The user cancelled it, and the reasoning generalises: these are
+documents used in-game, and what goes into them is a real character's data.**
+Rolling a random name is useful for a *card* someone is designing; on a report
+it produces a document that says something untrue. Do not revive this for the
+report pages.
+
+`window.randomizeCharacter(key)` still works on the card generators and was
+never touched by any phase here (see Architecture 2). The two questions this
+block used to hold - whether to derive a DOB from the rolled age, and whether to
+fill every repeatable row or only the first - are moot for reports and would
+only come back if a *card* generator ever needed them.
+
+### Phase 4c - No ellipsis outside the reports (done)
+
+Once the four reports stopped ellipsizing, the user asked for the same on the
+card generators. The surface turned out to be much smaller than the file count
+suggests - three findings, one of them good news:
+
+| File | Was | Now |
 | --- | --- | --- |
-| `js/arrest-report.js` | `cell()` | 2 (centred + left value) |
-| `js/traffic-collision-report.js` | `cell()` | 2 (centred + left value) |
-| `js/prehospital-care-report.js` | `valueRow` / `valueChecklistRow` / `sceneRow` | 5 value sites |
+| `js/business-card.js` | **Already correct** - `bcFitFontToWidth` shrinks | Untouched, see the follow-up note at the top |
+| `js/app.js` | `drawEmploymentHistory` chopped and appended `…` | Per-column shrink + `EMP_MAXLEN` |
+| `js/personnel-app.js` | `drawTable` chopped and appended `…` | Per-column shrink + `PF_MAXLEN` |
+| `js/personnel-app.js` | `drawInfoRow` / `drawAttendanceRow` had **no width guard at all** | Shrink against a measured budget |
 
-Arrest and traffic are the easy ones: a single `cell()` each, the same shape
-firearm's `gridRow` had, so the change is one `fitFont()` call plus a cap table.
-**Their cells are labelled and single-line** (the label owns the top of the
-cell, Gotcha 14), so they shrink and never wrap.
+That third row is the one worth remembering: those two funnels never truncated
+because they never checked. A long address just ran past its border and off the
+paper. **An unguarded `fillText` is worse than an ellipsis** - an ellipsis at
+least says something was dropped.
 
-PCR needs more care, in three ways:
+**The first pass only fixed the tables, and that was not enough.** The user
+pointed out that Subject Name on the personnel file, and the card faces on both
+generators, still had no limits. The second pass covered the documents
+themselves:
 
-1. **Separate values from labels.** Most of PCR's `clip()` calls truncate
-   *static* labels and section titles, not user data (`checkItem`, the checklist
-   headers, `drawChecklistFixed`). The no-ellipsis rule is about data - but a
-   clipped static label is a layout bug in its own right, so log any you find
-   rather than shrinking them silently.
-2. **`combRow` does something worse than an ellipsis.** It prints `val[i]` for
-   `i < maxCells` and simply **drops every character past the last box, with no
-   visual sign at all**. There is nothing to shrink - the comb's geometry is the
-   limit - so this is purely a cap: `maxLength` = the number of boxes the row
-   draws (`Math.min(cells, Math.floor((w - 12) / 11))`, i.e. compute it, do not
-   hand-count it).
-3. **`sceneRow`'s location / GPS** clip against hand-written widths rather than
-   a funnel; they need the same treatment inline.
+| Site | Was | Now |
+| --- | --- | --- |
+| `app.js` `lv()` - Rank / Division / Email / Serial / Badge / Height / Weight | Shrank to an 11px floor, **no cap**, so the floor was reachable | `GumaFit.fitFont` + `CARD_MAXLEN` |
+| `app.js` name headline | Shrank to an 18px floor, no cap | Same, cap sized at `CARD_NAME_CAP_PX` |
+| `app.js` `pl()` - the five pay lines | Fixed 22px, **no guard at all** | Shrinks like `lv()`, capped |
+| `app.js` `year TOTAL` line | Fixed 23px, no guard | Shrinks (it is derived from the pay values, so it grows with them) |
+| `app.js` `POST ID / POST Name` line | Fixed 13px, no guard, carries the full name | Shrinks |
+| `personnel-app.js` `SUBJECT:` line | Fixed 15px, no guard, crossed the right margin | Shrinks against the rule it sits on, capped at 80 |
+| `personnel-app.js` agency header | Fixed 22px Georgia, **centred**, so it ran off BOTH edges | Shrinks, capped at 52 |
+| `app.js` `#age` | `type="number"`, where `maxLength` is **inert** - unlimited despite `min`/`max` | Live clamp via `GumaFit`, 3 digits (Gotcha 21c) |
+| `traffic-collision-report.js` `#num_injured` / `#num_killed` | Same, found by the assertion written for `#age` | Live clamp, 3 digits |
 
-**Verification.** Copy the two Phase 4 assertions verbatim - they are cheap and
-they are what found the three bad caps on firearm:
+`#height` (8) and `#weight` (5) are the user's numbers rather than the column
+capacity - the boxes hold roughly twice that. A cap does not have to be the
+maximum the layout survives; it can just be what the field means.
 
-- Patch the page's global `clip` in the harness, fill **every** text input to
-  its cap at once with all-caps *words*, redraw, and assert `clip` never fired.
-  Words, not a run of `W` - see the note under Phase 4 for why.
-- Assert every text input actually carries a cap, so a field added later cannot
-  quietly opt out.
+**A shrink with a floor but no cap is not a guarantee, it is a delay.** Every one
+of these already shrank; what they lacked was the cap that makes the floor
+unreachable. Past the floor the text simply left its box, silently. Reaching a
+floor is the same failure as an ellipsis, minus the ellipsis.
 
-For PCR add one more: fill each comb row past its box count and assert the
-source value still round-trips through serialize/hydrate unchanged (the cap must
-prevent the input, not silently truncate what is already stored).
+The two header lines are the only caps here **not** derived by monospace
+arithmetic: the agency name is Georgia (proportional) and the subject line's
+budget depends on how wide the `SUBJECT:` label renders. Both were measured
+against the same all-caps sample the reports use.
 
-Re-run all four page harnesses afterwards, and regenerate every showcase
-screenshot whose columns visibly re-flow.
+`drawInfoRow` lays its pairs out left to right with no fixed columns, so there
+is no column width to fit against. Each value's budget is computed as it goes:
+what is left of the box after the labels already drawn, **minus the width of the
+labels still to come** - otherwise an early long value squeezes a later pair out
+of the box entirely.
 
-### Phase 5 - Randomize Character
+Two shared helpers came out of it, both in `js/guma-fit.js`:
 
-New branches in `js/random-character.js`:
-arrest (arrestee + officers), traffic (parties), firearm (officers +
-civilians). **Not PCR** - `PCR_TEXT_IDS` has no person fields at all. Note there
-is currently no DOB generator: `randomizeCharacter` rolls `age` but never a date
-of birth, and all three pages have `dob` inputs.
+- `colFonts(ctx, rows, widths, basePx, minPx, font)` - one size per column
+  across every row, the generalisation of firearm's `offColFonts`. The reduce
+  seeds each step with the size the column has survived so far, since `fitFont`
+  can only shrink.
+- `applyCapsBySelector(root, map)` - caps keyed by CSS selector rather than by
+  id, because these pages collect row fields by class inside `.pf-row` /
+  `.employment-row` and there is no id to key on.
+
+**Courier makes the caps exact rather than measured.** It is monospace, so a
+column holds precisely `floor(maxW / charW)` characters and `charW` is `0.6 x`
+the size. No sampling needed - unlike the reports, where the caps come from a
+representative all-caps string because Arial is proportional.
+
+**Round that division DOWN.** See Gotcha 21.
+
+The floors sit one step below the size the caps are computed at (9px vs 10px):
+the cap size is what a full-length value prints at, and the floor is the net for
+values that arrive past the cap - a hydrated legacy record, a paste. Same
+reasoning as Gotcha 19, different numbers.
 
 ## Risks, with pilot outcomes
 
@@ -1205,6 +1565,99 @@ runs re-executed unchanged, because `canvas-edit.js` changed under them again:
 21. **Both themes** by screenshot: the untouched header outline, and the editor
     open with the hover raised.
 
+What was checked automatically in Phase 4b - **63 assertions, all passing**:
+arrest 15, traffic 17, PCR 16, firearm 15. One generic harness drives all four
+pages (it adds a second dynamic row wherever the page has them, so the cap
+applier is exercised on freshly-built rows and not only at init):
+
+1. **Every text input carries a cap** - `maxLength > 0` and not the 524288
+   default - so a field added later cannot quietly opt out. 20 on arrest, 49 on
+   traffic, 16 on PCR, 65 on firearm.
+2. **Nothing is ellipsized with every input at its cap at once.** The page's
+   global `clip` is replaced and every *truncating* return recorded, then
+   classified: a truncation whose text is a substring of a filled value is a
+   value clip (fail), anything else is a static label (logged). Zero of both, on
+   all four pages.
+3. **Values shrink rather than clip, and never reach the floor.** `fitFont` is
+   patched to record what size it returned; the minimum across a fully-capped
+   document is exactly the page's readable floor (6, 6, 6.5, 6) and never the
+   4.5px hard floor. That the minimum lands *on* the readable floor rather than
+   above it is what says the caps are tight rather than merely safe.
+4. **The in-canvas editor carries the source cap**, or typing over the document
+   would bypass the whole rule.
+5. **Comb rows** (PCR): every cap equals the box count its row actually draws,
+   derived from the registered strip width rather than from the table it is
+   checking. And an over-long value written *programmatically* still round-trips
+   through serialize/hydrate byte for byte - `maxLength` stops typing, not
+   hydrate, and nothing may silently rewrite a stored value.
+6. **History round-trip at cap length**: serialize -> wipe -> hydrate ->
+   serialize identical, with the wipe asserted to have changed something.
+7. **Export purity** in the chrome-up/chrome-down form, with the chrome-was-up
+   assertion - the draw path changed, so this is re-earned rather than inherited.
+8. **Fit from 100%** still leaves `wrap.scrollWidth <= clientWidth` and the page
+   never scrolls sideways (Gotcha 15).
+9. **The LOCATION bar spans exactly its two rows** (traffic only, Gotcha 20):
+   the rows are contiguous, and their combined extent is measured off the
+   *registered hitboxes* rather than off the constants the bar itself uses.
+10. **Zero page errors and zero dead-ref warnings** on all four pages.
+
+Plus the no-visual-change comparison described under *Phase 4b*, run separately.
+
+What was checked automatically in Phase 4c - **48 assertions, all passing**:
+16 per page, plus a **55-assertion report regression** re-run because
+`js/guma-fit.js` changed under the four report pages. These pages have no `clip()` global - the truncation was inline -
+so the harness checks **what actually reaches the canvas**:
+`CanvasRenderingContext2D.prototype.fillText` is patched to record every painted
+string with its computed left/right edge (honouring `textAlign`).
+
+1. **Every capped selector resolves and carries a cap**, and the rows built
+   during the run are capped too - a cap applied only at init would miss them.
+2. **A capped value actually reached the canvas.** Without this the whole run
+   passes vacuously if the employment table never rendered - same class of
+   mistake as the chrome-was-up check in Phase 2.
+3. **No painted string contains an ellipsis.**
+4. **No painted string runs off the canvas** - the check that would have caught
+   `drawInfoRow` before this phase.
+5. **Values shrank**, none reached the floor, and **a value at its cap still
+   prints at the cap size** (Gotcha 21).
+6. **A second pass with the custom faction active.** `#customRank`,
+   `#customDivision`, `#customEmailDomain` and `#customAgencyName` live in
+   panels the UI only shows for a custom faction, so the first pass cannot
+   reach them. The pass switches faction, refills, and re-checks the ellipsis
+   and off-canvas guarantees. It also reports which selectors the first pass
+   skipped, so a field cannot fall out of coverage quietly.
+7. **History round-trip at cap length**, with the wipe asserted to have changed
+   something. `serializeCardState` is **async** on the card generators - without
+   an `await` this stringifies a Promise as `{}` and every comparison passes.
+8. **Zero page errors and zero warnings** on all three.
+
+**Fill only inputs that are currently active.** `#divisionCustom` is cleared by
+design whenever the Division select is not on "custom", so a harness that fills
+it unconditionally builds a state the UI cannot produce - and the round-trip
+then "fails" by correctly normalising it away. That looked exactly like a
+regression caused by the new caps and was not one. The fill now skips anything
+with `offsetParent === null`, and the custom-faction pass covers what that
+skips.
+
+The four report harnesses were re-run unchanged afterwards, because
+`js/guma-fit.js` changed under them: **47/47, still passing.**
+
+Three harness mistakes worth not repeating, from Phase 4b:
+
+- **`maxLength` does not constrain a scripted write.** `el.value = "..."` ignores
+  it entirely; only typing and paste are capped. An assertion of the form "set a
+  long value, expect it to be truncated" fails against correct code. Assert the
+  cap *number* against the geometry, and assert the stored value round-trips.
+- **Detect the page by an id that exists.** The generic harness branched on
+  `#involved-container`, which is really `#involved-officers-container`, so on
+  firearm it fell through to `addOfficerRow()` with no argument - building a row
+  of `undefined_2_*` inputs in the witnessing container. That surfaced as a
+  failing history round-trip and 14 dead-ref warnings, none of which had anything
+  to do with the product.
+- **Fill with values that fit before asserting nothing changed.** A "the render
+  is unchanged" check fed values long enough to need shrinking fails for the
+  right reason and tells you nothing.
+
 Two harness mistakes worth not repeating, both from Phase 4:
 
 - **Row indices keep counting up.** `involvedCount` never resets, so a test that
@@ -1220,9 +1673,11 @@ Still **manual and unverified**, worth doing once in a real browser:
 - Native calendar popup in Safari and Firefox (`showPicker()` on the
   zero-opacity anchor input is the part most likely to differ).
 - `assets/screenshots/arrest_report.png`, `traffic_collision_report.png`,
-  `prehospital_care_report.png` and `firearm_discharge.png` were regenerated
-  with Los Santos demo data. Per `CLAUDE.md`, regenerate the matching screenshot
-  after each phase.
+  `prehospital_care_report.png` and `firearm_discharge.png` carry Los Santos demo
+  data. Phase 4b left all four untouched on purpose: none of them shows a clipped
+  value, and the render is byte-identical for anything that already fitted. Per
+  `CLAUDE.md`, regenerate the matching screenshot after each phase that does move
+  the output.
 - `readme.md` still documents none of the WYSIWYG behaviour on any of the four
   pages (only the now-false firearm faction bullet was corrected in Phase 4).
   `/readme` is user-invoked; run it when the branch is ready to merge.
@@ -1256,10 +1711,11 @@ Not part of this plan, but worth logging:
   it got more attractive in the pilot: the WYSIWYG pages now also need
   `window.GumaExport` and the `<guma-preview-modal>` element, so the
   boilerplate per page grew rather than shrank. Still deliberately out of scope.
-  Phase 4b adds a fifth member to that family (`fitFont` / `fitBlock` /
-  `wrapLines` / the cap applier, currently firearm-only) - which is why 4b
-  starts by extracting them to `js/guma-fit.js` rather than copying them three
-  more times.
+  Phase 4b would have added a fifth member to that family (`fitFont` /
+  `fitBlock` / `wrapLines` / the cap applier, firearm-only at the time) and
+  instead extracted them to `js/guma-fit.js` - the first of the five to be
+  shared. `clip()` itself is the obvious next one, and the four copies are now
+  the only thing standing between the pages and a shared value-painting funnel.
 - **`window.GumaToast(...)`** is called in `js/history.js:88` and `:97` behind a
   `typeof` guard, but nothing in the repo defines it. A ready-made extension
   point.

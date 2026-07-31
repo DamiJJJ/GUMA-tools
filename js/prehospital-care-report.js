@@ -165,12 +165,75 @@ const DOC_W = 600;
 const BODY_W = DOC_W - MARGIN * 2;
 const SCALE = 2; // internal super-sampling for crisp small text
 
+// ── No printed value ends in an ellipsis ─────────────────────────────────────
+// This is a report: an ellipsis silently drops information somebody typed. Two
+// mechanisms together (see js/guma-fit.js) - the value shrinks down to a floor,
+// and every input is capped at what its cell carries, so the floor is never
+// actually reached. Every value cell here is labelled and one line by
+// construction (the label owns the top of the cell, Gotcha 14), so values
+// shrink and never wrap.
+//
+// The comb rows are the exception: they have no text to shrink, because the
+// geometry is the limit - a character past the last box is simply not drawn,
+// with no visual sign at all. For those the cap IS the box count.
+const PCR_VAL_PX = 9;
+const PCR_VAL_MIN_PX = 4.5; // safety net, unreachable with the caps in place
+const PCR_READ_PX = 6.5; // the size the cell caps below were measured at
+const COMB_CELL_W = 11;
+
+/** Character boxes a comb of width w actually draws for `cells` requested. */
+function combCells(w, cells) {
+  return Math.max(1, Math.min(cells, Math.floor((w - 12) / COMB_CELL_W)));
+}
+
+const PCR_HALF_W = Math.round(BODY_W / 2); // the 1/2 comb row split
+
+// Input length caps. The cell numbers are the character count each value strip
+// carries at PCR_READ_PX, measured against a realistic all-caps sample; the
+// comb numbers are computed from the geometry rather than hand-counted. The
+// harness fills every input to its cap at once and asserts clip() never fires,
+// so narrowing a cell means re-running it.
+const PCR_MAXLEN = {
+  pcr_report_no: combCells(PCR_HALF_W, 22),
+  ems_response_no: combCells(BODY_W - PCR_HALF_W, 22),
+  incident_fac_id: combCells(BODY_W, 14),
+  ems_agcy: 22,
+  unit_callsign: 26,
+  unit_vehicle: 26,
+  station_no: 18,
+  complaint: 40,
+  intercept_agency: 130,
+  location_type: 34,
+  gps_lat: 20,
+  gps_long: 20,
+  odo_begin: 30,
+  odo_arrive: 30,
+  odo_dest: 30,
+  odo_end: 30,
+};
+
+/** Apply the caps to every text input under a root. PCR has no dynamic rows. */
+function pcrApplyCaps(root) {
+  GumaFit.applyCaps(root, PCR_MAXLEN);
+}
+
 // ── Canvas primitives ─────────────────────────────────────────────────────────
 function clip(ctx, text, maxW) {
   if (!text) return "";
   if (ctx.measureText(text).width <= maxW) return text;
   while (text.length > 1 && ctx.measureText(text + "…").width > maxW) text = text.slice(0, -1);
   return text + "…";
+}
+
+/**
+ * Paint one value strip: shrink to fit, never ellipsize. All five value sites
+ * on this page print left-aligned 9px Arial, so they share this.
+ */
+function pcrValue(ctx, text, x, baseline, maxW) {
+  const shown = text || "";
+  GumaFit.fitFont(ctx, shown, maxW, PCR_VAL_PX, PCR_VAL_MIN_PX);
+  ctx.textAlign = "left";
+  ctx.fillText(clip(ctx, shown, maxW), x, baseline);
 }
 
 function chk(ctx, x, baseline, checked) {
@@ -234,9 +297,11 @@ function combRow(ctx, x, y, w, h, label, value, cells, ref) {
   ctx.font = "bold 7px Arial";
   ctx.textAlign = "left";
   ctx.fillText(clip(ctx, label, w - 8), x + 4, y + 9);
-  const cellW = 11;
+  const cellW = COMB_CELL_W;
   const cellH = 13;
-  const maxCells = Math.max(1, Math.min(cells, Math.floor((w - 12) / cellW)));
+  // The value's input is capped at this same count (PCR_MAXLEN), so a character
+  // can never fall past the last box - there would be nothing to show for it.
+  const maxCells = combCells(w, cells);
   const cy = y + h - cellH - 3;
   const val = (value || "").toUpperCase();
   for (let i = 0; i < maxCells; i++) {
@@ -414,9 +479,7 @@ function sceneRow(ctx, y) {
   // 32 location type
   ctx.strokeRect(x, y, ws[2], h);
   title("32. Incident Location Type", 2);
-  ctx.font = "9px Arial";
-  ctx.textAlign = "left";
-  ctx.fillText(clip(ctx, rv("location_type"), ws[2] - 8), x + 4, y + h - 8);
+  pcrValue(ctx, rv("location_type"), x + 4, y + h - 8, ws[2] - 8);
   // Value strip only: the cell is 48px tall and its top belongs to the title.
   window.GumaCanvasEdit?.field("location_type", x + 2, y + h - 26, ws[2] - 4, 20, {
     label: "32. Incident Location Type",
@@ -432,9 +495,8 @@ function sceneRow(ctx, y) {
   ctx.fillText("Latitude", x + 4, y + 18);
   ctx.fillText("Longitude", x + halfg + 2, y + 18);
   ctx.fillStyle = "#000";
-  ctx.font = "9px Arial";
-  ctx.fillText(clip(ctx, rv("gps_lat"), halfg - 6), x + 4, y + h - 8);
-  ctx.fillText(clip(ctx, rv("gps_long"), halfg - 6), x + halfg + 2, y + h - 8);
+  pcrValue(ctx, rv("gps_lat"), x + 4, y + h - 8, halfg - 6);
+  pcrValue(ctx, rv("gps_long"), x + halfg + 2, y + h - 8, halfg - 6);
   window.GumaCanvasEdit?.field("gps_lat", x + 2, y + h - 26, halfg - 4, 20, { label: "33. Latitude", fontPx: 9 });
   window.GumaCanvasEdit?.field("gps_long", x + halfg, y + h - 26, halfg - 4, 20, { label: "33. Longitude", fontPx: 9 });
   return y + h;
@@ -513,8 +575,7 @@ function valueRow(ctx, y, h, cells) {
     ctx.textAlign = "left";
     ctx.fillText(clip(ctx, c.label, cw - 4), x + 3, y + 8);
     ctx.fillStyle = "#000";
-    ctx.font = "9px Arial";
-    ctx.fillText(clip(ctx, c.value, cw - 5), x + 4, valBase);
+    pcrValue(ctx, c.value, x + 4, valBase, cw - 5);
     // The cell already knows the exact box an editor needs - hand it over.
     if (opts.ref) {
       window.GumaCanvasEdit?.field(opts.ref, x, y, cw, h, {
@@ -544,8 +605,7 @@ function valueChecklistRow(ctx, y, valueCell, mid, right) {
   ctx.font = "bold 7px Arial";
   ctx.textAlign = "left";
   ctx.fillText(clip(ctx, valueCell.title, w1 - 6), MARGIN + 4, y + 8);
-  ctx.font = "9px Arial";
-  ctx.fillText(clip(ctx, valueCell.value, w1 - 8), MARGIN + 5, y + 22);
+  pcrValue(ctx, valueCell.value, MARGIN + 5, y + 22, w1 - 8);
   // Value strip only: the box is as tall as the checklists beside it.
   if (valueCell.ref) {
     window.GumaCanvasEdit?.field(valueCell.ref, MARGIN + 2, y + 12, w1 - 4, 18, {
@@ -796,6 +856,7 @@ GumaHistoryWiring.register({
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 (function initReport() {
+  pcrApplyCaps(document);
   document.querySelectorAll("input,select").forEach((el) => {
     el.addEventListener("input", refreshPreview);
     el.addEventListener("change", refreshPreview);

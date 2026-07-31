@@ -53,6 +53,7 @@ function addOfficerRow() {
   `;
 
   container.appendChild(div);
+  arApplyCaps(div);
   div.querySelectorAll("input,select").forEach((el) => {
     el.addEventListener("input", refreshPreview);
     el.addEventListener("change", refreshPreview);
@@ -108,6 +109,47 @@ const CELL_BG = "#f9f9f9";
 const HEAD_BG = "#d8d8d8";
 const SECT_BG = "#b0b0b0";
 
+// ── No printed value ends in an ellipsis ─────────────────────────────────────
+// This is a report: an ellipsis silently drops information somebody typed. Two
+// mechanisms together (see js/guma-fit.js) - the value shrinks down to a floor,
+// and every input is capped at what its column carries, so the floor is never
+// actually reached. Cells here are labelled and one line by construction (the
+// label owns the top of the cell, Gotcha 14), so they shrink and never wrap.
+const AR_VAL_PX = 8;
+const AR_VAL_MIN_PX = 4.5; // safety net, unreachable with the caps in place
+const AR_READ_PX = 6; // the size the caps below were measured at
+
+// Input length caps, keyed by page-level id or by officer-row field suffix.
+// Each number is the character count its cell carries at AR_READ_PX, measured
+// against a realistic all-caps sample. The harness fills every input to its cap
+// at once and asserts clip() never fires, so narrowing a column means
+// re-running it.
+const AR_MAXLEN = {
+  // page-level
+  location_booked: 60,
+  booking_no: 28,
+  dr_no: 28,
+  inc_no: 28,
+  arrestee_name: 90,
+  residential_address: 68,
+  city: 28,
+  zip: 18,
+  phone_no: 32,
+  location_occurrence: 124,
+  rd: 26,
+  booking_charge: 112,
+  // officer rows
+  name: 60,
+  serial: 28,
+  division: 36,
+  detail: 20,
+};
+
+/** Apply the caps to every text input under a root (page or a fresh row). */
+function arApplyCaps(root) {
+  GumaFit.applyCaps(root, AR_MAXLEN);
+}
+
 // ── Primitive: clipped text ───────────────────────────────────────────────────
 function clip(ctx, text, maxW) {
   if (!text) return "-";
@@ -153,15 +195,20 @@ function cell(ctx, x, y, w, h, label, value, opts = {}) {
     wrapLabel(ctx, label, x + 2, y + 7, w - 4, 6.5);
   }
 
-  // Value
+  // Value. Shrunk to fit rather than clipped - see AR_MAXLEN above.
+  const shown = value || "-";
   ctx.fillStyle = "#000";
-  ctx.font = valFont || (bold ? "bold 8px Arial" : "8px Arial");
+  if (valFont) ctx.font = valFont;
+  else {
+    const mkFont = bold ? (px) => "bold " + px + "px Arial" : (px) => px + "px Arial";
+    GumaFit.fitFont(ctx, shown, w - 4, AR_VAL_PX, AR_VAL_MIN_PX, mkFont);
+  }
   if (center) {
     ctx.textAlign = "center";
-    ctx.fillText(clip(ctx, value, w - 4), x + w / 2, y + h - 4);
+    ctx.fillText(clip(ctx, shown, w - 4), x + w / 2, y + h - 4);
   } else {
     ctx.textAlign = "left";
-    ctx.fillText(clip(ctx, value, w - 4), x + 2, y + h - 4);
+    ctx.fillText(clip(ctx, shown, w - 4), x + 2, y + h - 4);
   }
 
   // The cell already knows the exact box an editor needs - hand it over.
@@ -447,6 +494,7 @@ async function copyDocToClipboard() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
+arApplyCaps(document);
 document.querySelectorAll("input,select").forEach((el) => {
   el.addEventListener("input", refreshPreview);
   el.addEventListener("change", refreshPreview);

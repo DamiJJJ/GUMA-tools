@@ -285,8 +285,8 @@
       <!-- min-w-0: a flex item defaults to min-width:auto, which would let the
            zoomed canvas stretch this panel and the whole page instead of
            scrolling inside .guma-ce-wrap. -->
-      <div class="guma-panel flex min-w-0 flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
-        <div class="mb-4 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+      <div class="guma-panel flex min-w-0 flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
           <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
           <button
             id="gumaHistoryBtn"
@@ -382,6 +382,7 @@
 
     <script src="js/history.js"></script>
     <script src="js/history-wiring.js"></script>
+    <script src="js/guma-fit.js"></script>
     <script src="js/canvas-edit.js"></script>
     <script src="js/prehospital-care-report.js"></script>
     <script src="js/counters.js"></script>

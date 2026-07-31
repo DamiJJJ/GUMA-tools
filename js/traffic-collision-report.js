@@ -200,6 +200,7 @@ function addPartyRow() {
   `;
 
   container.appendChild(div);
+  tcApplyCaps(div);
 
   // Auto-fill Age from DOB (registered before the generic refresh listeners
   // so the age is already set when the preview re-renders)
@@ -331,6 +332,69 @@ const CELL_BG = "#f9f9f9";
 const HEAD_BG = "#d8d8d8";
 const SECT_BG = "#b0b0b0";
 
+// ── No printed value ends in an ellipsis ─────────────────────────────────────
+// This is a report: an ellipsis silently drops information somebody typed. Two
+// mechanisms together (see js/guma-fit.js) - the value shrinks down to a floor,
+// and every input is capped at what its column carries, so the floor is never
+// actually reached. Cells here are labelled and one line by construction (the
+// label owns the top of the cell, Gotcha 14), so they shrink and never wrap.
+const TC_VAL_PX = 8;
+const TC_VAL_MIN_PX = 4.5; // safety net, unreachable with the caps in place
+const TC_READ_PX = 6; // the size the cell caps below were measured at
+
+// Input length caps, keyed by page-level id or by party-row field suffix (the
+// longest matching suffix wins, so `owner_name` beats `name`). Each number is
+// the character count its cell carries at TC_READ_PX, measured against a
+// realistic all-caps sample. The harness fills every input to its cap at once
+// and asserts clip() never fires, so narrowing a column means re-running it.
+// state_name is the exception: the header line is painted at a fixed bold 7px
+// and never shrinks, so its cap is what "STATE OF <name>" fits across BODY_W.
+const TC_MAXLEN = {
+  // page-level
+  // These two are type="number", where maxLength does nothing at all and the
+  // min/max attributes are only checked at form validation - GumaFit installs a
+  // live clamp instead. They are casualty counts; three digits is generous.
+  num_injured: 3,
+  num_killed: 3,
+  state_name: 120,
+  judicial_district: 26,
+  local_report_no: 34,
+  ncic: 18,
+  officer_id: 18,
+  reporting_district: 36,
+  beat: 36,
+  collision_street: 50,
+  photographs_by: 18,
+  intersection_with: 72,
+  distance_from: 72,
+  preparer_name: 44,
+  reviewer_name: 52,
+  // party rows
+  dl: 32,
+  dl_state: 6,
+  dl_class: 6,
+  name: 82,
+  owner_name: 68,
+  address: 82,
+  owner_addr: 68,
+  city: 82,
+  veh_year: 8,
+  veh_make: 50,
+  veh_plate: 28,
+  insurance: 40,
+  policy: 24,
+  age: 6,
+  phone_h: 26,
+  phone_b: 26,
+  speed: 8,
+  street_info: 74,
+};
+
+/** Apply the caps to every text input under a root (page or a fresh row). */
+function tcApplyCaps(root) {
+  GumaFit.applyCaps(root, TC_MAXLEN);
+}
+
 // ── Primitive: clipped text ───────────────────────────────────────────────────
 function clip(ctx, text, maxW) {
   if (!text) return "-";
@@ -379,14 +443,17 @@ function cell(ctx, x, y, w, h, label, value, opts = {}) {
   // height, so anything above y+13 puts the glyph tops through the label
   // baseline at y+7. Clamp instead of letting the two overlap.
   const valBase = label ? Math.max(y + h - 4, y + 13) : y + h - 4;
+  const shown = value || "-";
   ctx.fillStyle = "#000";
-  ctx.font = bold ? "bold 8px Arial" : "8px Arial";
+  // Shrunk to fit rather than clipped - see TC_MAXLEN above.
+  const mkFont = bold ? (px) => "bold " + px + "px Arial" : (px) => px + "px Arial";
+  GumaFit.fitFont(ctx, shown, w - 4, TC_VAL_PX, TC_VAL_MIN_PX, mkFont);
   if (center) {
     ctx.textAlign = "center";
-    ctx.fillText(clip(ctx, value, w - 4), x + w / 2, valBase);
+    ctx.fillText(clip(ctx, shown, w - 4), x + w / 2, valBase);
   } else {
     ctx.textAlign = "left";
-    ctx.fillText(clip(ctx, value, w - 4), x + 2, valBase);
+    ctx.fillText(clip(ctx, shown, w - 4), x + 2, valBase);
   }
 
   // The cell already knows the exact box an editor needs - hand it over.
@@ -695,7 +762,12 @@ function drawForm() {
   y += 4;
 
   // ── LOCATION section ──────────────────────────────────────────────────────
-  const locSectH = 20 + 17;
+  // The rotated label bar spans both location rows, so its height is derived
+  // from them rather than restated - it was written out as 20 + 17 and went
+  // 3px short the moment row 2 grew to 20 (Gotcha 14).
+  const locR1H = 20;
+  const locR2H = 20;
+  const locSectH = locR1H + locR2H;
   const locLabelW = 14;
 
   ctx.fillStyle = SECT_BG;
@@ -722,8 +794,6 @@ function drawForm() {
   let lx;
 
   // ── Location Row 1 - fixed fractions summing to exactly 1.0 ──────────────
-  const locR1H = 20;
-
   const r1spec = [
     { label: "Collision Occurred On", value: getVal("collision_street"), frac: 0.34, opts: { ref: "collision_street" } },
     { label: "MO / DAY / YEAR", value: fmtDate(rawDate), frac: 0.14, opts: { ref: "collision_date", kind: "date" } },
@@ -776,7 +846,6 @@ function drawForm() {
   y += locR1H;
 
   // ── Location Row 2 - intersection / distance ──────────────────────────────
-  const locR2H = 20;
   const r2spec = [
     { label: "At Intersection With", value: getVal("intersection_with"), frac: 0.5, opts: { ref: "intersection_with" } },
     { label: "OR: Distance / Direction from", value: getVal("distance_from"), frac: 0.5, opts: { ref: "distance_from" } },
@@ -873,6 +942,7 @@ async function copyDocToClipboard() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
+tcApplyCaps(document);
 document.querySelectorAll("input,select").forEach((el) => {
   el.addEventListener("input", refreshPreview);
   el.addEventListener("change", refreshPreview);

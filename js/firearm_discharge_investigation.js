@@ -225,7 +225,7 @@ const NARROW_EDIT_W = 44;
 // somebody typed, so no printed value is ever allowed to end in one. Two
 // mechanisms together guarantee that - values shrink (and where the cell has
 // room, wrap) down to a floor, and every input is capped at what its column can
-// carry, so the floor is never actually reached. See FD_MAXLEN and fitBlock().
+// carry, so the floor is never actually reached. See FD_MAXLEN and js/guma-fit.js.
 const OFF_FONT_PX = 8.5;
 const OFF_WRAP_PX = 6.5; // starting size for the columns that wrap
 const OFF_FONT_MIN_PX = 4.5; // safety net, unreachable with the caps in place
@@ -316,28 +316,11 @@ const FD_MAXLEN = {
 
 // Civilian overrides: the officer table wraps its name over two lines, while a
 // civilian name is one line under a label and holds fewer characters.
-const FD_MAXLEN_CIV = {
-  name: 28,
-};
-
-/** The cap for an input id, matching the longest field-suffix key. */
-function fdCapFor(id) {
-  if (FD_MAXLEN[id] != null) return FD_MAXLEN[id];
-  const civ = id.startsWith("civ_");
-  let best = null;
-  Object.keys(FD_MAXLEN).forEach((k) => {
-    if (id.endsWith("_" + k) && (best === null || k.length > best.length)) best = k;
-  });
-  if (best === null) return null;
-  return civ && FD_MAXLEN_CIV[best] != null ? FD_MAXLEN_CIV[best] : FD_MAXLEN[best];
-}
+const FD_MAXLEN_VARIANTS = [{ prefix: "civ_", table: { name: 28 } }];
 
 /** Apply the caps to every text input under a root (page or a fresh row). */
 function fdApplyCaps(root) {
-  root.querySelectorAll('input[type="text"]').forEach((el) => {
-    const cap = fdCapFor(el.id);
-    if (cap != null) el.maxLength = cap;
-  });
+  GumaFit.applyCaps(root, FD_MAXLEN, FD_MAXLEN_VARIANTS);
 }
 
 // Incident type: four independent checkboxes, each with its own source input.
@@ -542,7 +525,7 @@ function gridRow(ctx, cells, y, h) {
     // the value shrinks rather than wraps - but it never ends in an ellipsis.
     const o = c.opts || {};
     ctx.fillStyle = "#000";
-    fitFont(ctx, c.value, cw - 4, GRID_FONT_PX, GRID_FONT_MIN_PX);
+    GumaFit.fitFont(ctx, c.value, cw - 4, GRID_FONT_PX, GRID_FONT_MIN_PX);
     ctx.fillText(clip(ctx, c.value, cw - 4), x + 2, Math.max(y + h - 5, y + 14));
 
     // The cell already knows the exact box an editor needs - hand it over.
@@ -559,76 +542,6 @@ function gridRow(ctx, cells, y, h) {
 }
 
 /**
- * Largest size from basePx down to minPx (0.5px steps) at which text fits maxW.
- * Clipping a value to "195…" loses information the form is there to carry, and
- * these columns are narrow by design - half a point of font size is usually the
- * whole difference. Leaves ctx.font set to the size it returns.
- */
-function fitFont(ctx, text, maxW, basePx, minPx) {
-  let px = basePx;
-  ctx.font = px + "px Arial";
-  while (px > minPx && ctx.measureText(text).width > maxW) {
-    px = Math.max(minPx, px - 0.5);
-    ctx.font = px + "px Arial";
-  }
-  return px;
-}
-
-/**
- * Greedy word wrap into at most maxLines lines, hard-breaking a word too long
- * to stand on its own line. Returns the lines it produced; more than maxLines
- * means the text does not fit at this size.
- */
-function wrapLines(ctx, text, maxW, maxLines) {
-  const out = [];
-  let line = "";
-  const push = () => {
-    if (line) out.push(line);
-    line = "";
-  };
-  String(text)
-    .split(/\s+/)
-    .forEach((word) => {
-      let w = word;
-      // A single word wider than the cell is broken by character rather than
-      // pushed out of the box.
-      while (ctx.measureText(w).width > maxW) {
-        let cut = w.length - 1;
-        while (cut > 1 && ctx.measureText(w.slice(0, cut)).width > maxW) cut--;
-        const head = w.slice(0, cut);
-        if (line) push();
-        out.push(head);
-        w = w.slice(cut);
-        if (out.length > maxLines) return;
-      }
-      const test = line ? line + " " + w : w;
-      if (line && ctx.measureText(test).width > maxW) {
-        push();
-        line = w;
-      } else {
-        line = test;
-      }
-    });
-  push();
-  return out.length ? out : [""];
-}
-
-/**
- * Largest size from basePx down to minPx at which text fits the cell in at most
- * `lines` lines. Returns the size and the wrapped lines, so the caller paints
- * exactly what was measured.
- */
-function fitBlock(ctx, text, maxW, lines, basePx, minPx) {
-  let px = basePx;
-  for (;;) {
-    ctx.font = px + "px Arial";
-    const wrapped = wrapLines(ctx, text, maxW, lines);
-    if (wrapped.length <= lines || px <= minPx) return { px, lines: wrapped.slice(0, lines) };
-    px = Math.max(minPx, px - 0.5);
-  }
-}
-
-/**
  * One value size per officer column, measured across every officer row in the
  * document. Per row it would render two neighbouring cells of the same column
  * at different sizes, which reads as a bug rather than as a fitted table.
@@ -639,7 +552,11 @@ function offColFonts(ctx, rows) {
     if (col.yn) return OFF_FONT_PX;
     const base = col.basePx || OFF_FONT_PX;
     return rows.reduce(
-      (px, r) => Math.min(px, fitBlock(ctx, r[col.key] || "-", widths[i] - 3, col.lines || 1, base, OFF_FONT_MIN_PX).px),
+      (px, r) =>
+        Math.min(
+          px,
+          GumaFit.fitBlock(ctx, r[col.key] || "-", widths[i] - 3, col.lines || 1, base, OFF_FONT_MIN_PX).px,
+        ),
       base,
     );
   });
@@ -695,7 +612,7 @@ function drawOffRow(ctx, data, y, fonts) {
       const px = (fonts && fonts[i]) || col.basePx || OFF_FONT_PX;
       ctx.font = px + "px Arial";
       ctx.textAlign = "left";
-      const block = fitBlock(ctx, data[col.key] || "-", cw - 3, col.lines || 1, px, px);
+      const block = GumaFit.fitBlock(ctx, data[col.key] || "-", cw - 3, col.lines || 1, px, px);
       // Vertically centred, so a one-line value in a wrapping column still sits
       // on the row's own baseline rather than riding high.
       const lh = px + 1;
