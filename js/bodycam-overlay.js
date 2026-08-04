@@ -236,32 +236,14 @@ function bcamDownload() {
   link.click();
 }
 
-function bcamCopy() {
+async function bcamCopy() {
   if (!window.BodycamRender.hasImage()) return;
+  if (!(await GumaClipboard.copyCanvas(window.BodycamRender.canvas()))) return;
 
-  const btn = bcamEl("bcamCopyBtn");
-  if (!navigator.clipboard || typeof ClipboardItem === "undefined") {
-    alert("Clipboard not supported in this browser.");
-    return;
-  }
-
-  window.BodycamRender.canvas().toBlob(async (blob) => {
-    if (!blob) return;
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      const count = await window.GumaCounters?.trackDownload(BCAM_KEY);
-      const readout = bcamEl("downloadCount");
-      if (count != null && readout) readout.textContent = window.GumaCounters.fmt(count);
-
-      const original = btn.innerHTML;
-      btn.innerHTML = "✓ Copied!";
-      setTimeout(() => {
-        btn.innerHTML = original;
-      }, 1200);
-    } catch {
-      alert("Copy failed.");
-    }
-  }, "image/png");
+  const count = await window.GumaCounters?.trackDownload(BCAM_KEY);
+  const readout = bcamEl("downloadCount");
+  if (count != null && readout) readout.textContent = window.GumaCounters.fmt(count);
+  GumaClipboard.flash(bcamEl("bcamCopyBtn"), "✓ Copied!", 1200);
 }
 
 /** Exports stay disabled until there is actually a frame to export. */

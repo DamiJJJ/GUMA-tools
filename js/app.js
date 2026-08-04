@@ -491,24 +491,14 @@ async function downloadCard() {
 // ── Copy to Clipboard ───────────────────────────────────────────────
 async function copyCardToClipboard() {
   const canvas = document.getElementById("cardCanvas");
-  const btn = document.getElementById("copyDiscordBtn");
-  canvas.toBlob(async (blob) => {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "officer");
-      const countEl = document.getElementById("downloadCount");
-      if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
-      // Save a history snapshot on successful copy.
-      await GumaHistoryWiring.save(canvas);
-      if (btn) {
-        const orig = btn.innerHTML;
-        btn.textContent = "Copied!";
-        setTimeout(() => (btn.innerHTML = orig), 2000);
-      }
-    } catch (err) {
-      alert("Could not copy to clipboard: " + err);
-    }
-  }, "image/png");
+  if (!(await GumaClipboard.copyCanvas(canvas))) return;
+
+  const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "officer");
+  const countEl = document.getElementById("downloadCount");
+  if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+  // Save a history snapshot on successful copy.
+  await GumaHistoryWiring.save(canvas);
+  GumaClipboard.flash(document.getElementById("copyDiscordBtn"));
 }
 
 function discordBtnHTML() {

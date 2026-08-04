@@ -571,44 +571,18 @@ async function bcDownload() {
   await GumaHistoryWiring.save(canvas);
 }
 
-function bcCopy() {
+async function bcCopy() {
   const canvas = document.getElementById("bcCanvas");
-  // Lives in the export preview modal, so it is absent until that modal builds.
-  const btn = document.getElementById("copyDiscordBtn");
+  if (!(await GumaClipboard.copyCanvas(canvas))) return;
 
-  const flashCopied = () => {
-    if (!btn) return;
-    const original = btn.innerHTML;
-    btn.innerHTML = "✓ Copied!";
-    setTimeout(() => {
-      btn.innerHTML = original;
-    }, 1200);
-  };
-
-  const bumpCounter = async () => {
-    const newCount = await window.GumaCounters?.trackDownload("business_card");
-    const countEl = document.getElementById("downloadCount");
-    if (newCount != null && countEl) {
-      countEl.textContent = window.GumaCounters.fmt(newCount);
-    }
-  };
-
-  if (!navigator.clipboard || typeof ClipboardItem === "undefined") {
-    alert("Clipboard not supported in this browser.");
-    return;
+  const newCount = await window.GumaCounters?.trackDownload("business_card");
+  const countEl = document.getElementById("downloadCount");
+  if (newCount != null && countEl) {
+    countEl.textContent = window.GumaCounters.fmt(newCount);
   }
-
-  canvas.toBlob(async (blob) => {
-    if (!blob) return;
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      await bumpCounter();
-      await GumaHistoryWiring.save(canvas);
-      flashCopied();
-    } catch {
-      alert("Copy failed.");
-    }
-  }, "image/png");
+  await GumaHistoryWiring.save(canvas);
+  // The button lives in the export preview modal, so it is absent until that modal builds.
+  GumaClipboard.flash(document.getElementById("copyDiscordBtn"), "✓ Copied!", 1200);
 }
 
 // ── Logo scale slider ────────────────────────────────────────────────
