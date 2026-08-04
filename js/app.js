@@ -439,42 +439,16 @@ function generateCard() {
   ctx.fillStyle = "#bbb";
   ctx.fillRect(photoX, photoY, photoW, photoH);
 
-  if (photoDataURL) {
-    const img = new Image();
-    let rendered = false;
-    const renderPhoto = () => {
-      if (rendered || !img.naturalWidth) return;
-      rendered = true;
-
-      const ratio = img.width / img.height;
-      const areaR = photoW / photoH;
-      let sx, sy, sw, sh;
-      if (ratio > areaR) {
-        sh = img.height;
-        sw = sh * areaR;
-        sx = (img.width - sw) / 2;
-        sy = 0;
-      } else {
-        sw = img.width;
-        sh = sw / areaR;
-        sx = 0;
-        sy = (img.height - sh) / 2;
-      }
-      ctx.drawImage(img, sx, sy, sw, sh, photoX, photoY, photoW, photoH);
-      drawText();
-    };
-
-    img.onload = renderPhoto;
-    img.src = photoDataURL;
-
-    if (img.complete && img.naturalWidth > 0) renderPhoto();
-  } else {
+  // The cropper owns the slot: it paints the photo at the framing the user
+  // dragged / zoomed to, and reports back when there is nothing to paint yet.
+  // Its default framing is the centred cover-crop this used to do inline.
+  if (!GumaPhotoCrop.paint(ctx, { x: photoX, y: photoY, w: photoW, h: photoH }) && !photoDataURL) {
     ctx.fillStyle = "#888";
     ctx.font = "22px 'Courier New', monospace";
     ctx.textAlign = "center";
     ctx.fillText("No Photo", photoX + photoW / 2, photoY + photoH / 2);
-    drawText();
   }
+  drawText();
 }
 
 // ── Download ──────────────────────────────────────────────────────────────────
@@ -515,7 +489,12 @@ function debounce(fn, delay = 300) {
 
 // ── Card history: serialize / hydrate / save ──────────────────
 
-// Native canvas photo-slot size (see generateCard(): photoW / photoH).
+// Pixel budget for the stored photo: the native canvas photo-slot size (see
+// generateCard(): photoW / photoH). Fitted INSIDE that box rather than
+// cover-cropped to it, because the saved framing (photoCrop) is re-applied on
+// restore and a pre-cropped photo would be cropped a second time. Contain
+// never costs resolution against the old cover-crop either - the part that was
+// visible keeps the same pixels, the rest is simply kept instead of thrown away.
 const HISTORY_PHOTO_W = 356;
 const HISTORY_PHOTO_H = 574;
 
@@ -552,7 +531,7 @@ async function serializeCardState() {
 
   let photo = null;
   if (photoDataURL) {
-    photo = await GumaHistory._downscaleAvatar(photoDataURL, HISTORY_PHOTO_W, HISTORY_PHOTO_H);
+    photo = await GumaHistory._downscaleAvatar(photoDataURL, HISTORY_PHOTO_W, HISTORY_PHOTO_H, "contain");
   }
 
   return {
@@ -583,6 +562,9 @@ async function serializeCardState() {
       customEmailDomain: document.getElementById("customEmailDomain")?.value ?? "",
     },
     photoDataUrl: photo,
+    // Framing is stored resolution independently (see js/photo-crop.js), so it
+    // still applies to the downscaled copy above.
+    photoCrop: GumaPhotoCrop.getState(),
   };
 }
 
@@ -693,6 +675,9 @@ function hydrateOfficerCardState(payload) {
 
   // ── Photo ──
   photoDataURL = payload.photoDataUrl || null;
+  // Entries saved before in-canvas cropping carry no framing; the cropper's
+  // own default reproduces exactly how they were rendered back then.
+  GumaPhotoCrop.setSource(photoDataURL, payload.photoCrop);
   const prev = document.getElementById("photoPreview");
   if (prev) {
     if (photoDataURL) {
@@ -1037,6 +1022,13 @@ function initGenerator({ factionType = null, defaultFaction = "lspd" } = {}) {
   randomizePay();
   empApplyCaps(document);
   cardApplyCaps(document);
+
+  GumaPhotoCrop.attach({
+    canvas: document.getElementById("cardCanvas"),
+    host: document.querySelector(".guma-pc-wrap"),
+    redraw: generateCard,
+  });
+
   generateCard();
 
   window.GumaUpload.init({
@@ -1046,6 +1038,8 @@ function initGenerator({ factionType = null, defaultFaction = "lspd" } = {}) {
     preview: "photoPreview",
     onLoad: (dataURL) => {
       photoDataURL = dataURL;
+      // A new photo always starts from the default framing.
+      GumaPhotoCrop.setSource(dataURL);
       generateCard();
     },
   });

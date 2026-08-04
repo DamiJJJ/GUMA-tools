@@ -201,6 +201,90 @@
         @apply xl:max-h-none;
       }
 
+      /* ─── Photo cropping on the card canvas ─── */
+      /* Positioned box the crop chrome is absolutely placed in. It goes on the
+         scroll box rather than on a wrapper around the canvas: a wrapper would
+         shrink-wrap to the canvas' full width and leave a height-capped card
+         hanging off to one side, and the chrome is anchored to the canvas'
+         offset box anyway, so scrolling carries it along. */
+      .guma-pc-wrap {
+        @apply relative;
+      }
+      /* Dragging must pan the photo, not scroll the page under the finger.
+         Only set while a photo is actually loaded (js/photo-crop.js), so a
+         card without one keeps normal touch scrolling over its preview. */
+      .guma-pc-on {
+        touch-action: none;
+      }
+      /* Rule-of-thirds grid, shown while the photo is being moved. It sits over
+         arbitrary imagery, so it is white with a dark halo in both themes. */
+      .guma-pc-guides {
+        @apply pointer-events-none absolute;
+      }
+      .guma-pc-guide {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+      }
+      .guma-pc-guide-v1,
+      .guma-pc-guide-v2 {
+        top: 0;
+        bottom: 0;
+        width: 1px;
+      }
+      .guma-pc-guide-h1,
+      .guma-pc-guide-h2 {
+        left: 0;
+        right: 0;
+        height: 1px;
+      }
+      .guma-pc-guide-v1 {
+        left: 33.333%;
+      }
+      .guma-pc-guide-v2 {
+        left: 66.667%;
+      }
+      .guma-pc-guide-h1 {
+        top: 33.333%;
+      }
+      .guma-pc-guide-h2 {
+        top: 66.667%;
+      }
+      /* Floating tool bar, pinned to the bottom edge of the photo slot. Dark
+         glass in both themes for the same reason as the guides. */
+      .guma-pc-tools {
+        @apply absolute z-10 flex items-center gap-1 rounded-lg px-1.5 py-1;
+        transform: translate(-50%, -100%);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(10, 10, 30, 0.78);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(3px);
+        line-height: 1;
+      }
+      .guma-pc-btn {
+        @apply inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors;
+        color: rgba(255, 255, 255, 0.85);
+        cursor: pointer;
+      }
+      .guma-pc-btn:hover {
+        background: #f0c040;
+        color: #0b0b3a;
+      }
+      /* Reset is a word, not a glyph: every icon for it is a curved arrow, and
+         the button next to it already uses one to mean rotate. */
+      .guma-pc-btn-text {
+        @apply w-auto px-1.5 text-[11px] font-bold;
+      }
+      .guma-pc-value {
+        @apply select-none px-1 text-[11px] font-bold tabular-nums;
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .guma-pc-sep {
+        width: 1px;
+        height: 14px;
+        background: rgba(255, 255, 255, 0.25);
+      }
+
       /* ─── Section titles (index) ─── */
       .guma-section-title {
         @apply text-center text-2xl font-bold uppercase tracking-[0.18em] md:text-3xl
