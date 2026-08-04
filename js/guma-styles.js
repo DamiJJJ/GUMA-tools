@@ -42,6 +42,13 @@
           linear-gradient(180deg, #5f0606 0%, #5e0404 40%, #4a0303 100%);
       }
 
+      /* The <guma-header> host would otherwise become the sticky <header>'s
+         containing block and cap it at its own height, killing the sticky
+         effect. display:contents promotes <header> to a direct body child. */
+      guma-header {
+        display: contents;
+      }
+
       ::selection {
         background: rgba(45, 71, 135, 0.25);
         color: #ffffff;
