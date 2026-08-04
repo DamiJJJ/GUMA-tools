@@ -113,8 +113,18 @@ window.GumaHistory = (function () {
     });
   }
 
-  // ── Internal: cover-crop downscale to slot size (PNG) ─────────
-  function _downscaleAvatar(dataUrl, targetW, targetH) {
+  // ── Internal: downscale to slot size (PNG) ────────────────────
+  /**
+   * @param {string|null} dataUrl
+   * @param {number} targetW
+   * @param {number} targetH
+   * @param {"cover"|"contain"} [fit] "cover" (default) crops the photo to the
+   *   slot's aspect ratio, exactly as a generator that prints it that way. Use
+   *   "contain" when the caller stores its own framing alongside and would
+   *   otherwise crop the photo twice; the result keeps the whole photo and is
+   *   only as large as it needs to be, never upscaled past its own pixels.
+   */
+  function _downscaleAvatar(dataUrl, targetW, targetH, fit) {
     return new Promise((resolve) => {
       if (!dataUrl) {
         resolve(null);
@@ -125,15 +135,27 @@ window.GumaHistory = (function () {
       img.onload = () => {
         try {
           const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          const ratio = img.width / img.height;
+          const areaR = targetW / targetH;
+
+          if (fit === "contain") {
+            const k = Math.min(targetW / img.width, targetH / img.height, 1);
+            canvas.width = Math.max(1, Math.round(img.width * k));
+            canvas.height = Math.max(1, Math.round(img.height * k));
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/png"));
+            return;
+          }
+
           canvas.width = targetW;
           canvas.height = targetH;
-          const ctx = canvas.getContext("2d");
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = "high";
 
-          // cover-crop (centered) — same math as generateCard()
-          const ratio = img.width / img.height;
-          const areaR = targetW / targetH;
+          // cover-crop (centered) - same math as generateCard()
           let sx, sy, sw, sh;
           if (ratio > areaR) {
             sh = img.height;
