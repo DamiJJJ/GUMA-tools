@@ -357,6 +357,83 @@
                dark:border-guma-gold/50 dark:bg-guma-gold/10 dark:text-guma-gold;
       }
 
+      /* ─── Latest video widget (index) ─── */
+      /* A wide, low tile: thumbnail left, text right from sm up. The hover
+         treatment mirrors .guma-card so it reads as part of the same tile
+         family, minus the lift - js/tailwind-config.js disables that on the
+         index tiles too. */
+      /* sm:items-center is load-bearing: the default stretch would hand the
+         thumbnail the full row height at a fixed width, overriding its
+         aspect-ratio and letting object-cover crop the frame left and right.
+         Centred instead, the box keeps a true 16:9 and the whole thumbnail
+         stays visible however tall the text column gets. */
+      .guma-video-card {
+        @apply flex flex-col gap-4 rounded-2xl border p-4 no-underline transition
+               border-guma-l-border bg-guma-l-panel/95 shadow-panel-light
+               hover:border-guma-l-gold hover:bg-guma-l-panel-2
+               dark:border-guma-border dark:bg-guma-panel/95 dark:shadow-panel
+               dark:hover:border-guma-gold dark:hover:bg-guma-panel-2
+               sm:flex-row sm:items-center sm:gap-5;
+      }
+      .guma-video-thumb {
+        @apply relative w-full shrink-0 overflow-hidden rounded-xl
+               bg-guma-l-dark dark:bg-guma-dark sm:w-80;
+        aspect-ratio: 16 / 9;
+      }
+      .guma-video-thumb img {
+        @apply h-full w-full object-cover;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .guma-video-card:hover .guma-video-thumb img {
+        transform: scale(1.05);
+      }
+      /* Gold in both themes: the badge sits on arbitrary video imagery rather
+         than on a panel, so the light-theme navy accent has no surface to
+         read against. */
+      .guma-video-play {
+        @apply absolute left-1/2 top-1/2 flex h-14 w-14 items-center justify-center rounded-full;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(10, 10, 30, 0.62);
+        color: #fff;
+        backdrop-filter: blur(2px);
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      }
+      .guma-video-card:hover .guma-video-play {
+        border-color: #f0c040;
+        background: #f0c040;
+        color: #0b0b3a;
+      }
+      .guma-video-body {
+        @apply flex min-w-0 flex-1 flex-col justify-center gap-2 px-1 pb-1 sm:px-0 sm:pr-2;
+      }
+      .guma-video-kicker {
+        @apply text-[11px] font-bold uppercase tracking-[0.18em]
+               text-guma-l-gold dark:text-guma-gold;
+      }
+      /* Video titles run long and are not written for this box, so they are
+         clamped to two lines instead of stretching the tile. */
+      .guma-video-title {
+        @apply text-base font-bold leading-6 tracking-[0.04em] transition
+               text-guma-l-text dark:text-guma-text md:text-lg md:leading-7;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+      }
+      .guma-video-card:hover .guma-video-title {
+        @apply text-guma-l-gold dark:text-guma-gold;
+      }
+      .guma-video-meta {
+        @apply text-xs text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-video-cta {
+        @apply mt-1 inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1
+               text-[11px] font-bold uppercase tracking-[0.16em]
+               border-guma-l-gold bg-guma-l-input text-guma-l-gold
+               dark:border-guma-gold dark:bg-guma-input dark:text-guma-gold;
+      }
+
       /* ─── Form labels/inputs (card generators) ─── */
       .guma-label {
         @apply mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em]

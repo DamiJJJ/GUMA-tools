@@ -183,7 +183,7 @@
         </div>
       </section>
 
-      <section class="guma-page pb-14 md:pb-20">
+      <section class="guma-page pb-10 md:pb-14">
         <div class="mb-6 md:mb-8 guma-reveal">
           <h2 class="guma-section-title">Image Tools</h2>
           <p class="guma-section-subtitle">Dress up your screenshots</p>
@@ -206,11 +206,22 @@
           </a>
         </div>
       </section>
+
+      <!-- Stays hidden until js/latest-video.js has a video to show -->
+      <section id="latestVideoSection" class="guma-page pb-14 md:pb-20" hidden>
+        <div class="mb-6 md:mb-8 guma-reveal">
+          <h2 class="guma-section-title">Latest Video</h2>
+          <p class="guma-section-subtitle">Fresh from Dami</p>
+        </div>
+
+        <div id="latestVideo" class="mx-auto w-full max-w-3xl"></div>
+      </section>
     </main>
 
     <guma-footer></guma-footer>
     <script src="js/counters.js"></script>
     <script src="js/components.js"></script>
     <script src="js/animations.js"></script>
+    <script src="js/latest-video.js"></script>
   </body>
 </html>
