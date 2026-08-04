@@ -189,6 +189,17 @@
                border-guma-l-border-2 dark:border-guma-border-2
                xl:max-h-[calc(100vh_-_21rem)];
       }
+      /* The card half of the pair above is the wrong trade for a multi-section
+         document: fitting a 1:1.6 page into the box height leaves it about 40%
+         of the panel's width, and at that size nothing on it can be read. This
+         modifier drops the height cap so the page takes the full width it is
+         given and scrolls inside .guma-canvas-wrap instead - the reader scrolls
+         a legible document rather than squinting at a whole illegible one.
+         Width still comes from max-w-full, so the ×2 backing store is never
+         upscaled past its native pixels. */
+      .guma-canvas-preview-doc {
+        @apply xl:max-h-none;
+      }
 
       /* ─── Section titles (index) ─── */
       .guma-section-title {
@@ -672,12 +683,15 @@
       .guma-ce-toolbar {
         @apply relative items-center justify-center gap-3;
       }
-      .guma-ce-zoom {
+      /* Not guma-ce-*: the same control serves the WYSIWYG toolbar and the
+         export preview modal, and a class named after one of them would have
+         to be duplicated for the other. */
+      .guma-zoom {
         @apply flex items-center gap-1.5;
       }
       /* Full-strength text, not muted: these were hard to read against the
          panel, which is the whole reason the control went unnoticed. */
-      .guma-ce-zoom-btn {
+      .guma-zoom-btn {
         @apply inline-flex h-9 min-w-[2.75rem] cursor-pointer items-center justify-center
                rounded-lg border-2 px-3 text-[13px] font-bold uppercase tracking-wider transition
                border-guma-l-border bg-guma-l-panel text-guma-l-text
@@ -687,8 +701,16 @@
       }
       /* The percentage is a readout as much as a button, so it is the widest
          and carries the accent colour. */
-      .guma-ce-zoom-btn.guma-ce-zoom-value {
+      .guma-zoom-btn.guma-zoom-value {
         @apply min-w-[4rem] text-guma-l-gold dark:text-guma-gold;
+      }
+      /* Modal header variant: the control shares a row with the dialog title,
+         so it steps down to the size of the chrome around it. */
+      .guma-zoom-sm .guma-zoom-btn {
+        @apply h-8 min-w-[2.25rem] px-2 text-[12px];
+      }
+      .guma-zoom-sm .guma-zoom-btn.guma-zoom-value {
+        @apply min-w-[3.5rem];
       }
       /* Parked on the right edge instead of sitting in the flow, so it stops
          off-centring the zoom buttons. The toolbar only renders from xl up,

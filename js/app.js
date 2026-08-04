@@ -1062,6 +1062,13 @@ function initGenerator({ factionType = null, defaultFaction = "lspd" } = {}) {
 
   document.querySelector(".guma-panel").addEventListener("input", debounce(generateCard));
 
+  // The preview modal delegates export here so counters and history keep firing.
+  window.GumaExport = {
+    download: downloadCard,
+    copy: copyCardToClipboard,
+    canvas: () => document.getElementById("cardCanvas"),
+  };
+
   GumaHistoryWiring.register({
     key: window.GUMA_GENERATOR_KEY,
     noun: "card",

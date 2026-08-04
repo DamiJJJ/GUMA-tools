@@ -5,14 +5,10 @@ class GumaHeader extends HTMLElement {
   connectedCallback() {
     const current = window.location.pathname.split("/").pop() || "index.html";
 
-    const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html"].includes(current);
-    const isReport = [
-      "firearm_discharge.html",
-      "traffic_collision_report.html",
-      "personnel_file_generator.html",
-      "arrest_report.html",
-      "prehospital_care_report.html",
-    ].includes(current);
+    const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html", "personnel_file_generator.html"].includes(
+      current,
+    );
+    const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "arrest_report.html", "prehospital_care_report.html"].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
@@ -83,6 +79,11 @@ class GumaHeader extends HTMLElement {
                   <img src="assets/card_256.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Business Card Generator
                 </a>
+                <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "personnel_file_generator.html" ? dropActive : dropInactive}">
+                  <img src="assets/file.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Personnel File Generator
+                </a>
               </div>
             </div>
 
@@ -112,11 +113,6 @@ class GumaHeader extends HTMLElement {
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "traffic_collision_report.html" ? dropActive : dropInactive}">
                   <img src="assets/collision.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Traffic Collision Report
-                </a>
-                <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
-                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "personnel_file_generator.html" ? dropActive : dropInactive}">
-                  <img src="assets/file.png" class="h-5 w-5 object-contain opacity-80" alt="" />
-                  Personnel File Generator
                 </a>
                 <a href="arrest_report.html" data-generator-key="arrest" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "arrest_report.html" ? dropActive : dropInactive}">
@@ -297,6 +293,12 @@ class GumaHeader extends HTMLElement {
               <img src="assets/card_256.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Business Card Generator
             </a>
+            <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "personnel_file_generator.html" ? mobActive : mobInactive}">
+              <img src="assets/file.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Personnel File Generator
+            </a>
 
             <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
               Report Generators
@@ -312,12 +314,6 @@ class GumaHeader extends HTMLElement {
                       ${current === "traffic_collision_report.html" ? mobActive : mobInactive}">
               <img src="assets/collision.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Traffic Collision Report
-            </a>
-            <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
-               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
-                      ${current === "personnel_file_generator.html" ? mobActive : mobInactive}">
-              <img src="assets/file.png" class="h-5 w-5 object-contain opacity-70" alt="" />
-              Personnel File Generator
             </a>
             <a href="arrest_report.html" data-generator-key="arrest" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
@@ -893,6 +889,14 @@ customElements.define("guma-history-drawer", GumaHistoryDrawer);
 // buttons inside. The buttons carry the conventional ids (#downloadBtn,
 // #copyDiscordBtn) so initDownloadCounter and copyDocToClipboard keep working
 // unchanged; the "Generated N times" row mirrors the page's #downloadCount.
+// ── Export preview modal ──────────────────────────────────────────────────────
+// The last look at a document before it leaves the page, so it opens at the
+// zoom that shows all of it - however long the document is - and the buttons
+// go in from there. Past 100% the source pixels are being stretched, which is
+// still the fastest way to check one line of small print on a card drawn 1:1.
+const PM_ZOOM_MAX = 3;
+const PM_ZOOM_STEP = 1.25;
+
 class GumaPreviewModal extends HTMLElement {
   connectedCallback() {
     this._build();
@@ -900,6 +904,7 @@ class GumaPreviewModal extends HTMLElement {
 
   disconnectedCallback() {
     if (this._onKey) document.removeEventListener("keydown", this._onKey);
+    if (this._onResize) window.removeEventListener("resize", this._onResize);
     if (this._countObs) this._countObs.disconnect();
     this._revoke();
   }
@@ -912,25 +917,33 @@ class GumaPreviewModal extends HTMLElement {
              class="relative flex max-h-[94vh] w-full max-w-5xl flex-col rounded-2xl border shadow-2xl
                     bg-guma-l-panel border-guma-l-border text-guma-l-text
                     dark:bg-guma-panel dark:border-guma-border dark:text-guma-text">
-          <div class="flex items-center justify-between gap-3 border-b px-5 py-4 border-guma-l-border dark:border-guma-border">
+          <div data-pm-head class="flex items-center justify-between gap-3 border-b px-5 py-4 border-guma-l-border dark:border-guma-border">
             <h3 class="text-sm font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Document Preview</h3>
-            <button data-pm-close aria-label="Close preview"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg transition
-                           text-guma-l-muted hover:bg-guma-l-panel-2 hover:text-guma-l-text
-                           dark:text-guma-muted dark:hover:bg-guma-panel-2 dark:hover:text-guma-text">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                   fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                   stroke-linejoin="round" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
+            <div class="flex items-center gap-3">
+              <div class="guma-zoom guma-zoom-sm">
+                <button type="button" data-pm-zoom-out class="guma-zoom-btn" title="Zoom out" aria-label="Zoom out">&minus;</button>
+                <button type="button" data-pm-zoom-value class="guma-zoom-btn guma-zoom-value"
+                        title="Show the whole document" aria-label="Show the whole document">100%</button>
+                <button type="button" data-pm-zoom-in class="guma-zoom-btn" title="Zoom in" aria-label="Zoom in">+</button>
+              </div>
+              <button data-pm-close aria-label="Close preview"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-lg transition
+                             text-guma-l-muted hover:bg-guma-l-panel-2 hover:text-guma-l-text
+                             dark:text-guma-muted dark:hover:bg-guma-panel-2 dark:hover:text-guma-text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
           </div>
-          <div class="guma-scroll min-h-0 flex-1 overflow-auto p-4">
-            <img data-pm-img alt="Report preview"
-                 class="mx-auto h-auto max-w-full border bg-white
+          <div data-pm-scroll class="guma-scroll min-h-0 flex-1 overflow-auto p-4">
+            <img data-pm-img alt="Document preview"
+                 class="mx-auto block h-auto border bg-white
                         border-guma-l-border-2 dark:border-guma-border-2" />
           </div>
-          <div class="border-t px-5 py-4 border-guma-l-border dark:border-guma-border">
+          <div data-pm-foot class="border-t px-5 py-4 border-guma-l-border dark:border-guma-border">
             <div class="flex flex-col gap-3 sm:flex-row">
               <button id="downloadBtn" type="button" class="guma-btn-primary flex-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -968,9 +981,37 @@ class GumaPreviewModal extends HTMLElement {
 
     this._open = false;
     this._url = null;
+    this._zoom = 1;
+    this._fitZoom = 1;
 
     this.querySelector("[data-pm-overlay]").addEventListener("click", () => this.close());
     this.querySelector("[data-pm-close]").addEventListener("click", () => this.close());
+
+    // Zoom. The fit is only knowable once the blob has decoded, so every entry
+    // point that changes the image or the box it sits in recomputes it.
+    this.querySelector("[data-pm-zoom-out]").addEventListener("click", () => this._setZoom(this._zoom / PM_ZOOM_STEP));
+    this.querySelector("[data-pm-zoom-in]").addEventListener("click", () => this._setZoom(this._zoom * PM_ZOOM_STEP));
+    this.querySelector("[data-pm-zoom-value]").addEventListener("click", () => this._resetZoom());
+    this.querySelector("[data-pm-img]").addEventListener("load", () => this._resetZoom());
+    this.querySelector("[data-pm-scroll]").addEventListener(
+      "wheel",
+      (e) => {
+        if (!e.ctrlKey) return; // a plain wheel must keep scrolling the document
+        e.preventDefault();
+        this._setZoom(this._zoom * (e.deltaY < 0 ? PM_ZOOM_STEP : 1 / PM_ZOOM_STEP));
+      },
+      { passive: false },
+    );
+
+    // A resize changes the fit. Follow it only when the view was already fitted,
+    // so a deliberate zoom survives the window being nudged.
+    this._onResize = () => {
+      if (!this._open) return;
+      const wasFit = Math.abs(this._zoom - this._fitZoom) < 0.005;
+      this._fitZoom = this._computeFit();
+      this._setZoom(wasFit ? this._fitZoom : this._zoom);
+    };
+    window.addEventListener("resize", this._onResize);
     // Export delegates to the page; "Copied!" feedback and the counter bump
     // come from copyDocToClipboard / initDownloadCounter via the ids above.
     this.querySelector("#downloadBtn").addEventListener("click", () => window.GumaExport?.download?.());
@@ -990,6 +1031,49 @@ class GumaPreviewModal extends HTMLElement {
       if (e.key === "Escape" && this._open) this.close();
     };
     document.addEventListener("keydown", this._onKey);
+  }
+
+  /**
+   * Zoom at which the whole document fits the scroll box, both axes, capped at
+   * 1: an image smaller than the box is shown at its own pixels rather than
+   * stretched to fill it.
+   */
+  _computeFit() {
+    const img = this.querySelector("[data-pm-img]");
+    const box = this.querySelector("[data-pm-scroll]");
+    const head = this.querySelector("[data-pm-head]");
+    const foot = this.querySelector("[data-pm-foot]");
+    if (!img || !box || !img.naturalWidth || !img.naturalHeight) return 1;
+    const cs = getComputedStyle(box);
+    // -2 for the image's own hairline border, which is outside its width box.
+    const availW = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+    // The height cannot come from the box: the dialog is sized by its content,
+    // so the box is exactly as tall as the image, and measuring it would hand
+    // back whatever zoom is already applied. Derive it from the ceiling the
+    // dialog is allowed to grow to (max-h-[94vh]) minus its fixed chrome.
+    const availH =
+      window.innerHeight * 0.94 -
+      (head ? head.offsetHeight : 0) -
+      (foot ? foot.offsetHeight : 0) -
+      parseFloat(cs.paddingTop) -
+      parseFloat(cs.paddingBottom) -
+      2;
+    if (!(availW > 0) || !(availH > 0)) return 1;
+    return Math.min(availW / img.naturalWidth, availH / img.naturalHeight, 1);
+  }
+
+  /** Fit is the floor: zooming out past the whole document buys nothing. */
+  _setZoom(z) {
+    const img = this.querySelector("[data-pm-img]");
+    this._zoom = Math.min(Math.max(z, this._fitZoom), PM_ZOOM_MAX);
+    if (img && img.naturalWidth) img.style.width = Math.round(img.naturalWidth * this._zoom) + "px";
+    const label = this.querySelector("[data-pm-zoom-value]");
+    if (label) label.textContent = Math.round(this._zoom * 100) + "%";
+  }
+
+  _resetZoom() {
+    this._fitZoom = this._computeFit();
+    this._setZoom(this._fitZoom);
   }
 
   _syncCount() {

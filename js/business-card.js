@@ -573,9 +573,11 @@ async function bcDownload() {
 
 function bcCopy() {
   const canvas = document.getElementById("bcCanvas");
-  const btn = document.getElementById("bcCopyBtn");
+  // Lives in the export preview modal, so it is absent until that modal builds.
+  const btn = document.getElementById("copyDiscordBtn");
 
   const flashCopied = () => {
+    if (!btn) return;
     const original = btn.innerHTML;
     btn.innerHTML = "✓ Copied!";
     setTimeout(() => {
@@ -763,6 +765,13 @@ function bcBuildLabel(payload) {
   const tail = short ? ` (${short})` : "";
   return rank ? `${name} — ${rank}${tail}` : `${name}${tail}`;
 }
+
+// The preview modal delegates export here so counters and history keep firing.
+window.GumaExport = {
+  download: bcDownload,
+  copy: bcCopy,
+  canvas: () => document.getElementById("bcCanvas"),
+};
 
 GumaHistoryWiring.register({
   key: "business_card",

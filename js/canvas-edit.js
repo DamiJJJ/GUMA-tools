@@ -761,11 +761,11 @@
   // ── Toolbar: zoom segmented control + one-time hint ──────────────────
   function buildToolbar(toolbar) {
     const seg = document.createElement("div");
-    seg.className = "guma-ce-zoom";
+    seg.className = "guma-zoom";
     const mk = (label, title, fn, extra) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "guma-ce-zoom-btn" + (extra ? " " + extra : "");
+      b.className = "guma-zoom-btn" + (extra ? " " + extra : "");
       b.textContent = label;
       b.title = title;
       b.setAttribute("aria-label", title);
@@ -774,7 +774,7 @@
       return b;
     };
     mk("−", "Zoom out", () => setZoom(zoom - ZOOM_STEP)); // real minus sign, not a hyphen
-    zoomLabel = mk("100%", "Reset zoom to 100%", () => setZoom(1), "guma-ce-zoom-value");
+    zoomLabel = mk("100%", "Reset zoom to 100%", () => setZoom(1), "guma-zoom-value");
     mk("+", "Zoom in", () => setZoom(zoom + ZOOM_STEP));
     // No "Fit" button - the user dropped it. fitZoom() itself stays: it is the
     // zoom CEILING that clampZoom() applies to every request, and the value the
