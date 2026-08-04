@@ -40,6 +40,7 @@ Wygenerowane z kodu. Update przez `/styleguide`.
     ├── components.js           # <guma-header>, <guma-footer>, <guma-history-drawer>
     ├── animations.js           # page entrance animations
     ├── counters.js             # Supabase visit/download counters + Hot/Popular flags
+    ├── latest-video.js         # GumaLatestVideo — "Latest Video" tile from the YouTube feed
     ├── factions.js             # FACTIONS dict (LSPD/LSSD/BCSO/SAHP/...)
     ├── streets.js              # GTA V street-name pools (LS_STREETS, BLAINE_STREETS)
     ├── random-character.js     # shared "Randomize Character" form filler
