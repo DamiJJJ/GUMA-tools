@@ -101,8 +101,8 @@
   /**
    * Register an editable value box, in logical coordinates.
    * ref = DOM id (or CSS selector). opts: kind (text|check|select|date|
-   * datetime|time), label, minEditW, align ("left"|"center"), fontPx,
-   * transform ("upper").
+   * datetime|time|multiline), label, minEditW, align ("left"|"center"),
+   * fontPx, transform ("upper").
    */
   function field(ref, x, y, w, h, opts) {
     if (!passFields) return;
@@ -426,6 +426,7 @@
   /** The editor a source element needs when the call site did not say. */
   function inferKind(src) {
     if (src.tagName === "SELECT") return "select";
+    if (src.tagName === "TEXTAREA") return "multiline";
     if (src.type === "date" || src.type === "time") return src.type;
     // A text editor over a datetime-local input would write a string it
     // silently rejects, blanking the field.
@@ -470,6 +471,14 @@
       }
       el.value = src.value;
       el.className = "guma-ce-editor";
+    } else if (kind === "multiline") {
+      // A textarea over the document's narrative boxes: same commit/revert
+      // path as text, but Enter stays a newline (see onEditorKey).
+      el = input = document.createElement("textarea");
+      el.value = src.value;
+      if (src.placeholder) el.placeholder = src.placeholder;
+      if (src.maxLength > 0) el.maxLength = src.maxLength;
+      el.className = "guma-ce-editor guma-ce-editor-multi";
     } else {
       el = input = document.createElement("input");
       el.type = kind === "time" ? "time" : "text";
@@ -554,6 +563,9 @@
   // editor widens (up to the document edge) so the full value stays visible.
   function growEditor() {
     if (!editing) return;
+    // A textarea wraps into its own box; widening it to scrollWidth would
+    // fight the wrap and walk the editor off the document.
+    if (editing.kind === "multiline") return;
     const el = editing.el;
     // Composite editors (date) hold a fixed-width value; their box is sized
     // by positionEditor and measuring the wrapper would be meaningless.
@@ -572,6 +584,9 @@
       return;
     }
     if (e.key === "Enter" || e.key === "Tab") {
+      // In a multiline editor Enter is a newline, not a commit; Tab still
+      // advances to the next field.
+      if (e.key === "Enter" && editing && editing.kind === "multiline") return;
       e.preventDefault();
       advance(e.shiftKey ? -1 : 1);
     }

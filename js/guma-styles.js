@@ -301,6 +301,13 @@
         @apply mt-2 text-center text-sm uppercase tracking-[0.22em]
                text-guma-l-muted dark:text-guma-muted;
       }
+      /* Category divider inside a section (e.g. Police / Fire-Medical reports) */
+      .guma-subsection-title {
+        @apply mb-5 flex items-center gap-4 text-left text-xs font-bold uppercase tracking-[0.22em]
+               text-guma-l-muted dark:text-guma-muted
+               after:h-px after:flex-1 after:bg-guma-l-border after:content-['']
+               dark:after:bg-guma-border;
+      }
 
       /* ─── Index tiles ─── */
       .guma-card {
@@ -608,7 +615,8 @@
                text-guma-l-muted dark:text-guma-muted;
       }
       .form-group input,
-      .form-group select {
+      .form-group select,
+      .form-group textarea {
         @apply w-full rounded-lg border px-3 py-2 text-sm transition appearance-auto
                border-guma-l-border-2 bg-guma-l-input text-guma-l-text placeholder:text-guma-l-muted/60
                focus:border-guma-l-gold focus:ring-1 focus:ring-guma-l-gold/40 focus:outline-none
@@ -782,6 +790,15 @@
         line-height: normal;
         outline: none;
         box-shadow: 0 0 0 2px rgba(45, 71, 135, 0.25), 0 4px 14px rgba(0, 0, 0, 0.25);
+      }
+      /* Multiline variant: a textarea over a document's narrative box. It
+         keeps the box the cell registered - no resize handle, wrapped text. */
+      .guma-ce-editor-multi {
+        resize: none;
+        overflow: auto;
+        padding: 2px 3px;
+        line-height: 1.3;
+        white-space: pre-wrap;
       }
       /* The editor always sits on white paper, whichever app theme is active,
          so the global dark-mode invert would wash its picker icon out. */
