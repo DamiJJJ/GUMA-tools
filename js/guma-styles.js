@@ -1,4 +1,4 @@
-// Wspólne style aplikacji - wszystkie warstwy @layer base/components/utilities
+// Shared app styles - every @layer base/components/utilities rule lives here
 
 (function () {
   const style = document.createElement("style");
@@ -905,6 +905,133 @@
         @apply absolute right-0 top-1/2 -translate-y-1/2 text-[12px]
                text-guma-l-muted dark:text-guma-muted;
       }
+
+      /* ─── Easter egg: burnout ─── */
+      /* The trigger is a word inside a heading, so it must stay inline-block
+         for the poke animation's transform to apply at all. */
+      .guma-egg-trigger {
+        @apply inline-block cursor-pointer select-none;
+      }
+      .guma-egg-trigger.is-poked {
+        @apply animate-guma-egg-poke;
+      }
+      .guma-egg-overlay {
+        @apply fixed inset-0 z-[90] flex flex-col items-center justify-center overflow-hidden;
+        transition: opacity 0.4s ease;
+      }
+      .guma-egg-overlay.is-leaving {
+        opacity: 0;
+      }
+      /* Greys out and blurs whatever is behind it - the page is meant to read
+         as "paused" for the few seconds the egg runs. Kept dark in BOTH themes:
+         the tire art and the gold caption are lit for a dark stage. */
+      .guma-egg-backdrop {
+        @apply absolute inset-0 animate-guma-fade-in;
+        background: rgba(20, 20, 40, 0.62);
+        backdrop-filter: grayscale(1) blur(3px) brightness(0.6);
+        -webkit-backdrop-filter: grayscale(1) blur(3px) brightness(0.6);
+      }
+      html.dark .guma-egg-backdrop {
+        background: rgba(2, 3, 40, 0.74);
+        backdrop-filter: grayscale(1) blur(3px) brightness(0.45);
+        -webkit-backdrop-filter: grayscale(1) blur(3px) brightness(0.45);
+      }
+      /* Fixed-height arena so the skid mark and smoke can be anchored to the
+         tire's centre without depending on viewport height. */
+      .guma-egg-arena {
+        @apply pointer-events-none relative flex h-[220px] w-full items-center justify-center md:h-[300px];
+      }
+      .guma-egg-track {
+        @apply relative animate-guma-egg-drive;
+      }
+      /* Square because the icon's viewBox is - w-auto on an inline SVG is not
+         reliable enough to hang the skid mark's offset off. */
+      /* The icon's outline is near-black navy, which vanishes against the dimmed
+         backdrop, so the tire needs a warm rim light to read at all. It doubles
+         as heat coming off the rubber. */
+      .guma-egg-tire {
+        @apply h-48 w-48 animate-guma-egg-shake md:h-72 md:w-72;
+        filter: drop-shadow(0 0 18px rgba(240, 192, 64, 0.38)) drop-shadow(0 16px 22px rgba(0, 0, 0, 0.55));
+      }
+      /* Grows leftwards from under the tire - hence the right-edge origin.
+         A plain black skid disappears against the dimmed backdrop, so the
+         trail runs hot near the tire and cools into soot further out. */
+      .guma-egg-skid {
+        @apply absolute right-1/2 top-1/2 h-[14px] w-[62vw] animate-guma-egg-skid;
+        transform-origin: right center;
+        border-radius: 999px;
+        margin-top: 88px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 140, 50, 0) 0%,
+          rgba(120, 92, 80, 0.45) 38%,
+          rgba(60, 48, 48, 0.9) 74%,
+          rgba(255, 150, 60, 0.85) 100%
+        );
+        box-shadow: 0 0 22px rgba(255, 140, 50, 0.3);
+        filter: blur(1px);
+      }
+      @media (min-width: 768px) {
+        .guma-egg-skid {
+          margin-top: 124px;
+        }
+      }
+      /* Zero-sized anchor sitting on the contact patch, matching the skid's
+         offsets - hung off the arena centre instead, the fixed px puff offsets
+         drifted off the tire at the smaller mobile size. Each puff is placed
+         relative to it with inline left/top set in JS. */
+      .guma-egg-smoke-wrap {
+        @apply absolute left-1/2 top-1/2 h-0 w-0;
+        margin-top: 88px;
+        transition: opacity 0.5s ease;
+      }
+      @media (min-width: 768px) {
+        .guma-egg-smoke-wrap {
+          margin-top: 124px;
+        }
+      }
+      .guma-egg-smoke-wrap.is-done {
+        opacity: 0;
+      }
+      /* Burnt rubber, so a dark sooty grey - white read as steam. The alpha is
+         raised as the grey drops: against this backdrop the two cancel out, and
+         darkening the colour alone would just fade the plume away. */
+      .guma-egg-smoke {
+        @apply absolute rounded-full animate-guma-egg-smoke;
+        background: radial-gradient(circle at 50% 50%, rgba(132, 132, 142, 0.78), rgba(86, 86, 98, 0.3) 55%, transparent 72%);
+      }
+      .guma-egg-caption {
+        @apply relative mt-6 flex flex-col items-center gap-2 px-6 text-center animate-guma-egg-pop;
+        animation-delay: 0.45s;
+      }
+      .guma-egg-title {
+        @apply text-4xl font-black uppercase tracking-[0.16em] md:text-6xl;
+        color: #f0c040;
+        text-shadow:
+          0 0 18px rgba(240, 192, 64, 0.55),
+          0 8px 22px rgba(0, 0, 0, 0.6);
+      }
+      .guma-egg-sub {
+        @apply text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70 md:text-sm;
+      }
+      /* Motion is the whole point here, so reduced motion keeps the scene but
+         drops the movement: the tire simply sits centred while the caption shows. */
+      @media (prefers-reduced-motion: reduce) {
+        .guma-egg-track,
+        .guma-egg-tire,
+        .guma-egg-smoke,
+        .guma-egg-skid,
+        .guma-egg-caption,
+        .guma-egg-trigger.is-poked {
+          animation: none !important;
+        }
+        .guma-egg-skid {
+          opacity: 0.85;
+        }
+        .guma-egg-smoke {
+          opacity: 0.4;
+        }
+      }
     }
 
     @layer utilities {
@@ -912,7 +1039,7 @@
         border-color: #2a2a5a;
       }
       .border-guma-l-border-2 {
-        border-color: #d4cdb4;
+        border-color: #bfc9dd;
       }
     }
   `;

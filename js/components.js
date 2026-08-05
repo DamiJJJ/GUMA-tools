@@ -430,13 +430,13 @@ class GumaHeader extends HTMLElement {
     setInterval(checkLiveStatus, 60_000);
     // ──────────────────────────────────────────────────────────────
 
-    // ── Logo: klik → gumowa piłka ──────────────────────────────────
+    // ── Logo: click → rubber-ball bounce ───────────────────────────
     const logo = this.querySelector("#gumaLogo");
     if (logo) {
       logo.addEventListener("click", (e) => {
-        e.preventDefault(); // nie przeładowuj strony / nie przekierowuj do index.html
+        e.preventDefault(); // don't reload / navigate to index.html
         logo.classList.remove("guma-anim-rubber");
-        void logo.offsetWidth; // restart animacji
+        void logo.offsetWidth; // force a reflow so the animation restarts
         logo.classList.add("guma-anim-rubber");
       });
 
