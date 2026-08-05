@@ -92,6 +92,15 @@
                border-guma-l-border bg-guma-l-bg/80
                dark:border-white/10 dark:bg-guma-bg/80;
       }
+      /* Mobile nav drawer - capped to the visible viewport (dvh follows the
+         iOS URL bar) so the list scrolls inside itself instead of pushing the
+         page down and hiding its last items below the fold. The px value is
+         re-measured in JS on open; this is the pre-JS default. */
+      .guma-mobile-menu {
+        @apply overflow-y-auto overscroll-contain;
+        -webkit-overflow-scrolling: touch;
+        max-height: calc(100dvh - 3.5rem);
+      }
       .guma-brand {
         @apply inline-flex items-center gap-3 no-underline text-guma-l-text dark:text-guma-text;
       }
