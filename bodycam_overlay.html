@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Bodycam Overlay - GUMA Tools</title>
+
+    <link rel="icon" href="assets/bodycam.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/bodycam.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
+  </head>
+
+  <body class="flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <div class="guma-page pt-8 pb-4">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.2em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Bodycam Overlay
+      </h1>
+    </div>
+
+    <div class="guma-page pb-4 guma-faction-switcher-wrap">
+      <div id="bcamFactionSwitcher" class="flex flex-wrap justify-center gap-3"></div>
+    </div>
+
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- ════ FORM PANEL ════ -->
+      <div class="guma-panel w-full p-6 xl:w-[440px] xl:flex-none guma-panel-form">
+        <!-- ── Agency logo (Custom only) ── -->
+        <!-- Sits above everything else so it lands right under the agency
+             switcher that reveals it. -->
+        <div id="bcamFactionUploadRow" style="display: none" class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4">
+          <p class="guma-form-section mb-3">Custom Agency Logo</p>
+          <div id="bcamFactionDrop" class="guma-drop py-4" role="button" tabindex="0" aria-label="Upload custom agency logo">
+            <input type="file" id="bcamFactionLogoInput" accept="image/*" class="hidden" />
+            <span id="bcamFactionUploadText">Click to upload image</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
+            <img id="bcamFactionLogoPreview" class="mt-2 hidden max-h-[90px] max-w-[150px] object-contain" alt="Custom agency logo preview" />
+          </div>
+        </div>
+
+        <!-- ── Screenshot ── -->
+        <div class="mb-6">
+          <button type="button" class="guma-btn-primary w-full" id="bcamUploadBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            Upload Screenshot
+          </button>
+          <input type="file" id="bcamFileInput" accept="image/*" class="hidden" />
+          <p class="guma-drop-hint">Or drag a file onto the preview, or paste from the clipboard with Ctrl+V.</p>
+        </div>
+
+        <!-- ── Camera ── -->
+        <p class="guma-form-section">Camera</p>
+
+        <div class="mb-4">
+          <label class="guma-label">Brand</label>
+          <div id="bcamBrandSwitcher" class="grid grid-cols-4 gap-2"></div>
+        </div>
+
+        <div id="bcamBrandUploadRow" style="display: none" class="mb-4 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4">
+          <label class="guma-label">Custom Camera Logo</label>
+          <div id="bcamBrandDrop" class="guma-drop py-4" role="button" tabindex="0" aria-label="Upload custom camera logo">
+            <input type="file" id="bcamBrandLogoInput" accept="image/*" class="hidden" />
+            <span id="bcamBrandUploadText">Click to upload image</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
+            <img id="bcamBrandLogoPreview" class="mt-2 hidden max-h-[90px] max-w-[150px] object-contain" alt="Custom camera logo preview" />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="bcamDevice">Device Label</label>
+          <input class="guma-input" type="text" id="bcamDevice" list="bcamDeviceList" placeholder="Coil Body 3" />
+          <datalist id="bcamDeviceList"></datalist>
+        </div>
+
+        <div class="mb-5">
+          <label class="guma-label" for="bcamSerial">Officer / Device No.</label>
+          <div class="flex gap-2">
+            <input class="guma-input" type="text" id="bcamSerial" placeholder="X1234567890" />
+            <button type="button" class="guma-btn-outline w-auto flex-none px-3" onclick="bcamRandomSerial()" title="Draw a new serial" aria-label="Draw a new serial">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="18" x="3" y="3" rx="2" /><path d="M16 8h.01" /><path d="M8 8h.01" /><path d="M8 16h.01" /><path d="M16 16h.01" /><path d="M12 12h.01" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Timestamp ── -->
+        <p class="guma-form-section">Timestamp</p>
+
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label class="guma-label" for="bcamDate">Date</label>
+            <input class="guma-input" type="date" id="bcamDate" />
+          </div>
+          <div>
+            <label class="guma-label" for="bcamTime">Time</label>
+            <input class="guma-input" type="time" id="bcamTime" step="1" />
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <label class="guma-label" for="bcamTz">Time Zone <span class="text-guma-muted/60 normal-case tracking-normal">(optional)</span></label>
+          <input class="guma-input" type="text" id="bcamTz" value="-0700" placeholder="-0700" />
+        </div>
+
+        <!-- ── Recording HUD ── -->
+        <p class="guma-form-section">Recording HUD</p>
+
+        <div class="mb-4">
+          <label class="flex cursor-pointer select-none items-center gap-2.5">
+            <input type="checkbox" id="bcamShowRec" checked />
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-gold">Show REC &amp; battery</span>
+          </label>
+        </div>
+
+        <div class="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label class="guma-label" for="bcamTimer">Elapsed</label>
+            <div class="flex gap-2">
+              <input class="guma-input" type="text" id="bcamTimer" value="00:14:23" placeholder="00:14:23" />
+              <button type="button" class="guma-btn-outline w-auto flex-none px-3" onclick="bcamRandomTimer()" title="Draw a new elapsed time" aria-label="Draw a new elapsed time">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="2" /><path d="M16 8h.01" /><path d="M8 8h.01" /><path d="M8 16h.01" /><path d="M16 16h.01" /><path d="M12 12h.01" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="guma-label" for="bcamBattery">Battery %</label>
+            <input class="guma-input" type="number" id="bcamBattery" min="0" max="100" value="78" />
+          </div>
+        </div>
+
+        <!-- ── Elements ── -->
+        <p class="guma-form-section">Elements</p>
+
+        <div id="bcamLayerToggles" class="mb-3 flex flex-col gap-0.5"></div>
+
+        <button type="button" class="btn-add mb-5" onclick="bcamResetLayout()">Reset positions &amp; size</button>
+
+        <!-- ── Image effects ── -->
+        <p class="guma-form-section">Image Effects</p>
+
+        <div class="mb-3">
+          <label class="flex cursor-pointer select-none items-center gap-2.5">
+            <input type="checkbox" id="bcamSensor" checked />
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-gold">Cheap sensor look</span>
+          </label>
+        </div>
+
+        <div class="mb-4">
+          <label class="guma-label flex items-center justify-between" for="bcamVignette">
+            <span class="flex items-center gap-2">
+              <input type="checkbox" id="bcamVignetteOn" checked />
+              Vignette
+            </span>
+            <span id="bcamVignetteValue" class="text-guma-gold/90 normal-case tracking-normal tabular-nums">45</span>
+          </label>
+          <input type="range" id="bcamVignette" min="0" max="100" value="45" class="guma-bcam-slider" />
+        </div>
+
+        <div class="mb-4">
+          <label class="guma-label flex items-center justify-between" for="bcamGrain">
+            <span>Grain / noise</span>
+            <span id="bcamGrainValue" class="text-guma-gold/90 normal-case tracking-normal tabular-nums">16</span>
+          </label>
+          <input type="range" id="bcamGrain" min="0" max="100" value="16" class="guma-bcam-slider" />
+        </div>
+
+        <div class="mb-4">
+          <label class="guma-label flex items-center justify-between" for="bcamScan">
+            <span class="flex items-center gap-2">
+              <input type="checkbox" id="bcamScanOn" checked />
+              Scanlines / CRT
+            </span>
+            <span id="bcamScanValue" class="text-guma-gold/90 normal-case tracking-normal tabular-nums">22</span>
+          </label>
+          <input type="range" id="bcamScan" min="0" max="100" value="22" class="guma-bcam-slider" />
+        </div>
+
+        <div>
+          <label class="guma-label flex items-center justify-between" for="bcamAb">
+            <span class="flex items-center gap-2">
+              <input type="checkbox" id="bcamAbOn" checked />
+              Chromatic aberration
+            </span>
+            <span id="bcamAbValue" class="text-guma-gold/90 normal-case tracking-normal tabular-nums">35</span>
+          </label>
+          <input type="range" id="bcamAb" min="0" max="100" value="35" class="guma-bcam-slider" />
+        </div>
+      </div>
+
+      <!-- ════ PREVIEW PANEL ════ -->
+      <div class="guma-panel flex flex-1 flex-col gap-4 p-6 guma-panel-preview">
+        <div class="flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
+          <span id="bcamDims" class="text-[11px] tabular-nums text-guma-l-muted/70 dark:text-guma-muted/60">No image</span>
+        </div>
+
+        <!-- ── Stage ── -->
+        <div class="guma-bcam-stage" id="bcamStage">
+          <div class="guma-bcam-frame" id="bcamFrame">
+            <canvas id="bcamCanvas" width="960" height="540" class="guma-bcam-canvas"></canvas>
+
+            <!-- Marquee around the picked layer, with its resize grip -->
+            <div id="bcamSelection" class="guma-bcam-sel hidden">
+              <div id="bcamScaleHandle" class="guma-bcam-scale" title="Drag to resize" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="13 5 19 5 19 11" />
+                  <polyline points="11 19 5 19 5 13" />
+                  <line x1="19" y1="5" x2="5" y2="19" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="guma-bcam-drop" id="bcamDropzone">
+            <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="opacity-60">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M12 15V3" />
+            </svg>
+            <p class="text-base font-semibold text-guma-l-text dark:text-guma-text">Drop a screenshot here</p>
+            <p class="text-xs">or use Upload Screenshot / paste with Ctrl+V</p>
+          </div>
+        </div>
+
+        <!-- ── Selection readout ── -->
+        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 border-guma-l-border bg-guma-l-dark dark:border-guma-border dark:bg-guma-dark">
+          <span id="bcamSelectionInfo" class="text-xs font-semibold text-guma-l-gold dark:text-guma-gold">
+            Click an element on the frame to move or resize it
+          </span>
+          <span class="text-[11px] text-guma-l-muted/70 dark:text-guma-muted/60">
+            Drag to move &middot; corner grip or scroll to resize &middot; arrow keys to nudge
+          </span>
+        </div>
+
+        <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+          <button class="guma-btn-primary flex-1" id="bcamDownloadBtn" onclick="bcamDownload()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download PNG
+          </button>
+          <button class="guma-btn-outline flex-1" id="bcamCopyBtn" onclick="bcamCopy()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="8" height="4" x="8" y="2" rx="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            </svg>
+            Copy
+          </button>
+        </div>
+
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-muted/60">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          <span class="leading-none">Generated <span id="downloadCount" class="tabular-nums">0</span> times</span>
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+
+    <script src="js/counters.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/factions.js"></script>
+    <script src="js/bodycam-cameras.js"></script>
+    <script src="js/bodycam-layers.js"></script>
+    <script src="js/bodycam-render.js"></script>
+    <script src="js/bodycam-stage.js"></script>
+    <script src="js/guma-upload.js"></script>
+    <script src="js/bodycam-overlay.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GUMA_GENERATOR_KEY = "bodycam";
+        bcamInit();
+        window.GumaCounters?.initDownloadCounter("bodycam", "downloadCount", "bcamDownloadBtn");
+      });
+    </script>
+  </body>
+</html>

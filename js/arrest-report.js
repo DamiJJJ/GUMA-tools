@@ -53,10 +53,18 @@ function addOfficerRow() {
   `;
 
   container.appendChild(div);
+  arApplyCaps(div);
   div.querySelectorAll("input,select").forEach((el) => {
     el.addEventListener("input", refreshPreview);
     el.addEventListener("change", refreshPreview);
   });
+  syncAddOfficerBtn();
+  refreshPreview();
+}
+
+function removeOfficerRow(prefix) {
+  const idx = prefix.replace("officer_", "");
+  document.querySelector(`#officers-container .dynamic-row[data-idx="${idx}"]`)?.remove();
   syncAddOfficerBtn();
   refreshPreview();
 }
@@ -79,6 +87,7 @@ function collectOfficers() {
   return Array.from(document.getElementById("officers-container").querySelectorAll(".dynamic-row")).map((row) => {
     const p = "officer_" + row.dataset.idx;
     return {
+      _p: p, // input id prefix, doubles as the hitbox ref base
       name: getVal(p + "_name"),
       serial: getVal(p + "_serial"),
       division: getVal(p + "_division"),
@@ -86,6 +95,10 @@ function collectOfficers() {
     };
   });
 }
+
+// ── Cell spec bound to an input id: value and hitbox ref declared once ───────
+const f = (label, id, w, opts) => ({ label, value: getVal(id), w, opts: { ref: id, ...opts } });
+const fd = (label, id, w, opts) => ({ label, value: fmtDate(arRawVal(id)), w, opts: { ref: id, kind: "date", ...opts } });
 
 // ── Canvas layout constants (logical pixels — rendered ×SCALE) ───────────────
 const MARGIN = 24;
@@ -95,6 +108,47 @@ const LINE_W = 0.6;
 const CELL_BG = "#f9f9f9";
 const HEAD_BG = "#d8d8d8";
 const SECT_BG = "#b0b0b0";
+
+// ── No printed value ends in an ellipsis ─────────────────────────────────────
+// This is a report: an ellipsis silently drops information somebody typed. Two
+// mechanisms together (see js/guma-fit.js) - the value shrinks down to a floor,
+// and every input is capped at what its column carries, so the floor is never
+// actually reached. Cells here are labelled and one line by construction (the
+// label owns the top of the cell, Gotcha 14), so they shrink and never wrap.
+const AR_VAL_PX = 8;
+const AR_VAL_MIN_PX = 4.5; // safety net, unreachable with the caps in place
+const AR_READ_PX = 6; // the size the caps below were measured at
+
+// Input length caps, keyed by page-level id or by officer-row field suffix.
+// Each number is the character count its cell carries at AR_READ_PX, measured
+// against a realistic all-caps sample. The harness fills every input to its cap
+// at once and asserts clip() never fires, so narrowing a column means
+// re-running it.
+const AR_MAXLEN = {
+  // page-level
+  location_booked: 60,
+  booking_no: 28,
+  dr_no: 28,
+  inc_no: 28,
+  arrestee_name: 90,
+  residential_address: 68,
+  city: 28,
+  zip: 18,
+  phone_no: 32,
+  location_occurrence: 124,
+  rd: 26,
+  booking_charge: 112,
+  // officer rows
+  name: 60,
+  serial: 28,
+  division: 36,
+  detail: 20,
+};
+
+/** Apply the caps to every text input under a root (page or a fresh row). */
+function arApplyCaps(root) {
+  GumaFit.applyCaps(root, AR_MAXLEN);
+}
 
 // ── Primitive: clipped text ───────────────────────────────────────────────────
 function clip(ctx, text, maxW) {
@@ -141,15 +195,30 @@ function cell(ctx, x, y, w, h, label, value, opts = {}) {
     wrapLabel(ctx, label, x + 2, y + 7, w - 4, 6.5);
   }
 
-  // Value
+  // Value. Shrunk to fit rather than clipped - see AR_MAXLEN above.
+  const shown = value || "-";
   ctx.fillStyle = "#000";
-  ctx.font = valFont || (bold ? "bold 8px Arial" : "8px Arial");
+  if (valFont) ctx.font = valFont;
+  else {
+    const mkFont = bold ? (px) => "bold " + px + "px Arial" : (px) => px + "px Arial";
+    GumaFit.fitFont(ctx, shown, w - 4, AR_VAL_PX, AR_VAL_MIN_PX, mkFont);
+  }
   if (center) {
     ctx.textAlign = "center";
-    ctx.fillText(clip(ctx, value, w - 4), x + w / 2, y + h - 4);
+    ctx.fillText(clip(ctx, shown, w - 4), x + w / 2, y + h - 4);
   } else {
     ctx.textAlign = "left";
-    ctx.fillText(clip(ctx, value, w - 4), x + 2, y + h - 4);
+    ctx.fillText(clip(ctx, shown, w - 4), x + 2, y + h - 4);
+  }
+
+  // The cell already knows the exact box an editor needs - hand it over.
+  if (opts.ref && window.GumaCanvasEdit) {
+    window.GumaCanvasEdit.field(opts.ref, x, y, w, h, {
+      kind: opts.kind,
+      label,
+      align: center ? "center" : "left",
+      minEditW: opts.minEditW,
+    });
   }
 }
 
@@ -187,7 +256,7 @@ function drawChargeRow(ctx, y) {
   const chargeW = BODY_W - cbW;
 
   // Booking charge cell
-  cell(ctx, MARGIN, y, chargeW, H, "Booking Charge", getVal("booking_charge"), { bg: CELL_BG });
+  cell(ctx, MARGIN, y, chargeW, H, "Booking Charge", getVal("booking_charge"), { bg: CELL_BG, ref: "booking_charge" });
 
   // Checkbox cell
   const cbX = MARGIN + chargeW;
@@ -198,8 +267,8 @@ function drawChargeRow(ctx, y) {
   ctx.strokeRect(cbX, y, cbW, H);
 
   const items = [
-    { label: "MISDEMEANOR", checked: document.getElementById("cb_misdemeanor")?.checked },
-    { label: "FELONY", checked: document.getElementById("cb_felony")?.checked },
+    { id: "cb_misdemeanor", label: "MISDEMEANOR", checked: document.getElementById("cb_misdemeanor")?.checked },
+    { id: "cb_felony", label: "FELONY", checked: document.getElementById("cb_felony")?.checked },
   ];
   items.forEach((item, i) => {
     const cy = y + 11 + i * 13;
@@ -216,6 +285,8 @@ function drawChargeRow(ctx, y) {
     ctx.font = "7px Arial";
     ctx.textAlign = "left";
     ctx.fillText(item.label, cbX + 18, cy);
+    // Whole box-plus-label strip toggles on click.
+    window.GumaCanvasEdit?.field(item.id, cbX + 4, cy - 9, cbW - 8, 12, { kind: "check", label: item.label });
   });
 
   return y + H;
@@ -251,41 +322,54 @@ function drawOfficers(ctx, officers, y) {
   });
   y += hH;
 
-  // Data rows (min 2)
-  const toRender = [...officers];
-  while (toRender.length < 2) toRender.push({ name: "-", serial: "-", division: "-", detail: "-" });
-
+  // Data rows: exactly the collected officers - a removed row disappears
+  // instead of lingering as an empty padding row.
   const rH = 18;
-  toRender.forEach((o) => {
+  const colKeys = ["name", "serial", "division", "detail"];
+  officers.forEach((o) => {
     let dx = MARGIN;
-    [o.name, o.serial, o.division, o.detail].forEach((val, i) => {
-      cell(ctx, dx, y, widths[i], rH, "", val, { bg: CELL_BG });
+    colKeys.forEach((key, i) => {
+      cell(ctx, dx, y, widths[i], rH, "", o[key], { bg: CELL_BG, ref: o._p ? o._p + "_" + key : undefined });
       dx += widths[i];
     });
+    if (o._p) {
+      const p = o._p;
+      window.GumaCanvasEdit?.action("rm_" + p, DOC_W - MARGIN + 3, y + 2, 18, 14, () => removeOfficerRow(p), {
+        label: "✕",
+        kind: "remove",
+        title: "Remove this officer",
+      });
+    }
     y += rH;
   });
+
+  if (officers.length < MAX_OFFICERS) {
+    window.GumaCanvasEdit?.action("add_officer", MARGIN, y + 4, 110, 14, () => addOfficerRow(), {
+      label: "+ Add Officer",
+      kind: "add",
+      title: "Add another arresting officer",
+    });
+  }
 
   return y;
 }
 
 // ── Main draw ─────────────────────────────────────────────────────────────────
 function drawForm() {
+  window.GumaCanvasEdit?.begin({ scale: SCALE });
   const officers = collectOfficers();
-  const effOfficers = Math.max(2, officers.length);
 
   // Height estimation (logical px)
   const titleH = 26;
   const metaRowsH = 24 + 24 + 24 + 22 + 24; // 5 stacked meta rows
   const chargeH = 30;
-  const officersH = 13 + 14 + effOfficers * 18;
+  const officersH = 13 + 14 + officers.length * 18;
   const contentH = MARGIN + titleH + metaRowsH + chargeH + 6 + officersH + MARGIN;
   const logicalH = contentH;
 
   const canvas = document.getElementById("docCanvas");
   canvas.width = DOC_W * SCALE;
   canvas.height = logicalH * SCALE;
-  canvas.style.width = DOC_W + "px";
-  canvas.style.height = logicalH + "px";
 
   const ctx = canvas.getContext("2d");
   ctx.scale(SCALE, SCALE);
@@ -307,10 +391,10 @@ function drawForm() {
   y = row(
     ctx,
     [
-      { label: "Location Booked", value: getVal("location_booked"), w: 0.4 },
-      { label: "Booking No.", value: getVal("booking_no"), w: 0.2 },
-      { label: "DR No.", value: getVal("dr_no"), w: 0.2 },
-      { label: "Inc. No.", value: getVal("inc_no"), w: 0.2 },
+      f("Location Booked", "location_booked", 0.4),
+      f("Booking No.", "booking_no", 0.2),
+      f("DR No.", "dr_no", 0.2),
+      f("Inc. No.", "inc_no", 0.2),
     ],
     y,
     24,
@@ -320,9 +404,9 @@ function drawForm() {
   y = row(
     ctx,
     [
-      { label: "Arrestee/Suspect (Last, First, Middle)", value: getVal("arrestee_name"), w: 0.6 },
-      { label: "Sex", value: getVal("sex"), w: 0.12, opts: { center: true } },
-      { label: "Date of Birth", value: fmtDate(document.getElementById("dob")?.value || ""), w: 0.28 },
+      f("Arrestee/Suspect (Last, First, Middle)", "arrestee_name", 0.6),
+      f("Sex", "sex", 0.12, { center: true, kind: "select" }),
+      fd("Date of Birth", "dob", 0.28),
     ],
     y,
     24,
@@ -332,10 +416,10 @@ function drawForm() {
   y = row(
     ctx,
     [
-      { label: "Arrestee/Suspect's Residential Address", value: getVal("residential_address"), w: 0.45 },
-      { label: "City", value: getVal("city"), w: 0.2 },
-      { label: "Zip", value: getVal("zip"), w: 0.13 },
-      { label: "Phone No.", value: getVal("phone_no"), w: 0.22 },
+      f("Arrestee/Suspect's Residential Address", "residential_address", 0.45),
+      f("City", "city", 0.2),
+      f("Zip", "zip", 0.13),
+      f("Phone No.", "phone_no", 0.22),
     ],
     y,
     24,
@@ -344,10 +428,7 @@ function drawForm() {
   // ── Location of occurrence ────────────────────────────────────────────────
   y = row(
     ctx,
-    [
-      { label: "Location of Occurrence", value: getVal("location_occurrence"), w: 0.82 },
-      { label: "RD", value: getVal("rd"), w: 0.18, opts: { center: true } },
-    ],
+    [f("Location of Occurrence", "location_occurrence", 0.82), f("RD", "rd", 0.18, { center: true })],
     y,
     22,
   );
@@ -356,10 +437,10 @@ function drawForm() {
   y = row(
     ctx,
     [
-      { label: "Date of Arrest", value: fmtDate(document.getElementById("date_arrest")?.value || ""), w: 0.25 },
-      { label: "Time of Arrest", value: getVal("time_arrest"), w: 0.25 },
-      { label: "Date of this Report", value: fmtDate(document.getElementById("date_report")?.value || ""), w: 0.25 },
-      { label: "Time of this Report", value: getVal("time_report"), w: 0.25 },
+      fd("Date of Arrest", "date_arrest", 0.25),
+      f("Time of Arrest", "time_arrest", 0.25, { kind: "time" }),
+      fd("Date of this Report", "date_report", 0.25),
+      f("Time of this Report", "time_report", 0.25, { kind: "time" }),
     ],
     y,
     24,
@@ -371,6 +452,8 @@ function drawForm() {
 
   // ── Arresting officers ────────────────────────────────────────────────────
   y = drawOfficers(ctx, officers, y);
+
+  window.GumaCanvasEdit?.end();
 }
 
 // ── Preview & Download ────────────────────────────────────────────────────────
@@ -391,26 +474,17 @@ async function downloadPng() {
 async function copyDocToClipboard() {
   drawForm();
   const canvas = document.getElementById("docCanvas");
-  const btn = document.getElementById("copyDiscordBtn");
-  canvas.toBlob(async (blob) => {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      const newCount = await window.GumaCounters?.trackDownload("arrest");
-      const countEl = document.getElementById("downloadCount");
-      if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
-      await GumaHistoryWiring.save(canvas);
-      if (btn) {
-        const orig = btn.innerHTML;
-        btn.textContent = "Copied!";
-        setTimeout(() => (btn.innerHTML = orig), 2000);
-      }
-    } catch (err) {
-      alert("Could not copy to clipboard: " + err);
-    }
-  }, "image/png");
+  if (!(await GumaClipboard.copyCanvas(canvas))) return;
+
+  const newCount = await window.GumaCounters?.trackDownload("arrest");
+  const countEl = document.getElementById("downloadCount");
+  if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+  await GumaHistoryWiring.save(canvas);
+  GumaClipboard.flash(document.getElementById("copyDiscordBtn"));
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
+arApplyCaps(document);
 document.querySelectorAll("input,select").forEach((el) => {
   el.addEventListener("input", refreshPreview);
   el.addEventListener("change", refreshPreview);
@@ -476,6 +550,9 @@ function arSerializeState() {
 
 function arHydrateState(payload) {
   if (!payload) return;
+  // The container is rebuilt below; an open editor would write into a
+  // detached node.
+  window.GumaCanvasEdit?.cancelEdit();
   const setVal = GumaHistoryWiring.setVal;
 
   const f = payload.fields || {};
@@ -503,7 +580,7 @@ function arBuildLabel(payload) {
   const name = (f.arrestee_name || "").trim();
   const date = (f.date_arrest || "").trim();
   const head = booking ? "Booking " + booking : name || "Arrest Report";
-  return date ? `${head} — ${date}` : head;
+  return date ? `${head} - ${date}` : head;
 }
 
 GumaHistoryWiring.register({
@@ -513,4 +590,21 @@ GumaHistoryWiring.register({
   hydrate: arHydrateState,
   buildLabel: arBuildLabel,
   // no buildFaction — arrest report has no faction
+});
+
+// ── WYSIWYG editing wiring ────────────────────────────────────────────────────
+// The preview modal delegates export here so counters and history keep firing.
+window.GumaExport = {
+  download: downloadPng,
+  copy: copyDocToClipboard,
+  canvas: () => document.getElementById("docCanvas"),
+};
+
+window.GumaCanvasEdit?.attach({
+  canvas: document.getElementById("docCanvas"),
+  frame: document.getElementById("ceFrame"),
+  host: document.querySelector(".guma-panel-form"),
+  toolbar: document.getElementById("ceToolbar"),
+  redraw: drawForm,
+  key: "arrest",
 });

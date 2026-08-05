@@ -19,6 +19,8 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 | Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file — attendance, training, commendations, discipline & medical leave |
 | Arrest Report                   | `arrest_report.html`            | LAPD-style arrest & booking report with dynamic arresting-officer rows                            |
 | Pre-Hospital Care Report        | `prehospital_care_report.html`  | EMS-style Pre-Hospital Care Report (PCR) with full incident, response, run-times & disposition    |
+| Investigative Report            | `investigative_report.html`     | Two-page LAPD-style Investigative Report with combined crime, evidence & arrest report sections   |
+| Bodycam Overlay                 | `bodycam_overlay.html`          | Body-worn camera HUD overlay burned onto your own screenshot - agency & camera branding, timestamp, image effects |
 
 ### Coming Soon
 
@@ -35,6 +37,10 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - **Centralised theme styles** - all `@layer base/components/utilities` rules live in a single `js/guma-styles.js` injected at runtime; HTML pages are style-free
 - **Responsive header** - app logo (auto-swapped between light/dark variants), desktop nav with Generator & Report dropdowns, active page detection, "About" item, mobile hamburger menu with full panel
 - **Live on Kick badge** - pulsing badge appears in the header when the streamer is live (preview via `?preview_live=1`)
+- **Latest Video tile** - the newest video from the Kick/YouTube channel shown on the homepage; the tile stays hidden when there is nothing to show
+- **WYSIWYG in-canvas editing** - click a field straight on the rendered document and type into it; available on the Firearm Discharge, Traffic Collision, Arrest, Pre-Hospital Care and Investigative reports, with a shared toolbar and zoom control
+- **Shrink-to-fit text** - overlong values scale down instead of being cut with an ellipsis; inputs are capped to what the field can physically hold
+- **Preview & Download modal** - exports open in a zoomable preview (segmented zoom control, ctrl+wheel, fit-on-resize) with download & clipboard copy from one place
 - **Page animations** - smooth entrance animations on all pages via `js/animations.js`
 - **Per-page favicons** - each generator and report has its own browser-tab icon; the home/about favicon follows the active theme (light/dark logo variant)
 - **Saved Cards / Reports** - every generator stores exported documents in localStorage; slide-in drawer with thumbnails, pin, load & remove
@@ -48,7 +54,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Faction switcher - LSPD / LSSD / BCSO / SAHP + Custom
 - Fill in officer details: name, rank, division, serial & badge number
 - Custom faction: custom rank, division or email domain
-- Upload a photo - auto-cropped to fit the card
+- Upload a photo - **in-canvas cropping**: drag & zoom the photo directly in its frame on the card
 - Ethnicity, gender, age, year hired, height & weight fields
 - **Realistic pay randomization** - based on rank, years of service and division
 - **Employment History** - optional section attached below the card: add/remove previous positions with employer, rank, dates and reason for leaving; rendered directly on Canvas; empty fields show placeholders, ordered chronologically
@@ -62,7 +68,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Faction switcher - LSCoFD / LSFD + Custom
 - Fill in firefighter details: name, rank, division, serial & badge number
 - Custom faction: custom rank, division or email domain
-- Upload a photo - auto-cropped to fit the card
+- Upload a photo - **in-canvas cropping**, same as Officer Card
 - Ethnicity, gender, age, year hired, height & weight fields
 - Realistic pay randomization based on rank
 - **Employment History** - optional section attached below the card, same as Officer Card
@@ -85,7 +91,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 
 ### Firearm Discharge Investigation
 
-- Faction switcher with custom faction name input
+- Agency name edited directly in the document header (no faction switcher)
 - Incident type checkboxes (Tactical, Non-Tactical, Animal Shooting, Warning Shot)
 - Section I - General Information (FID No., DR No., date, time, location, RD)
 - Day of Week dropdown, datetime-local picker for report date/time
@@ -153,6 +159,36 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Live preview rendered on HTML Canvas
 - Download the report as a PNG file
 - **Copy to clipboard** - export the report as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
+### Investigative Report
+
+- **Two-page document** rendered as one export: Investigative Report face sheet (page 1) + Arrest Report (page 2)
+- Report header: type of crime, UCR code / CC, investigating division, incident & DR numbers, editable agency name
+- Case Screening Factors checklist with premises type & ATM flag
+- Victim block: personal details, address, contact, ID and occupation
+- Occurrence & entry: point of entry/exit, method, instrument, occurrence/reported date-times, property values
+- **Free-text MO and Narrative boxes** - multiline, editable directly on the document
+- Dynamic rows - add/remove Reporting Employees, Suspects, Involved Persons and Combined Evidence items
+- Suspect's vehicle and per-suspect descriptors (descent, hair, eyes, clothing, oddities, weapon)
+- Page 2: booking & arrestee details, charges, Admonition of Rights, Combined Crime Report and Juvenile Disposition
+- Live preview rendered on HTML Canvas
+- Download the report as a PNG file
+- **Copy to clipboard** - export the report as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
+### Bodycam Overlay
+
+- Upload your own screenshot / frame - the HUD is burned onto it, no document canvas
+- **Agency picker** - LSPD / LSSD / BCSO / SAHP / LSCoFD / LSFD, Custom logo upload or None
+- **Camera branding** - camera brand picker or custom camera logo, device label and officer / device number
+- Timestamp block: date, time and optional time zone
+- Recording HUD: REC indicator, elapsed timer and battery percentage
+- **Elements toggles** - show or hide individual HUD parts
+- **Image effects** - vignette, film grain, scanlines and chromatic aberration, each with its own strength
+- **Direct manipulation** - drag HUD elements around on the frame to reposition them
+- Download the frame as a PNG file
+- **Copy to clipboard** - export the frame as PNG directly to the clipboard
 - Download counter displayed below the export buttons
 
 ## Usage

@@ -12,6 +12,7 @@
     <script src="js/tailwind.js"></script>
     <script src="js/tailwind-config.js"></script>
     <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
     <script src="js/streets.js"></script>
     <script src="js/random-character.js"></script>
   </head>
@@ -186,8 +187,8 @@
       </div>
 
       <!-- ════ PREVIEW PANEL ════ -->
-      <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
-        <div class="mb-4 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+      <div class="guma-panel flex flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
           <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
           <button
             id="gumaHistoryBtn"
@@ -219,10 +220,14 @@
             ></span>
           </button>
         </div>
-        <canvas id="docCanvas" width="840" height="1200" class="h-auto w-full max-w-[660px] shadow-canvas"></canvas>
+        <div class="guma-canvas-wrap guma-scroll">
+          <canvas id="docCanvas" width="1680" height="2400" class="guma-canvas-preview guma-canvas-preview-doc"></canvas>
+        </div>
 
-        <div class="flex w-full max-w-[660px] flex-col gap-3 sm:flex-row sm:items-stretch">
-          <button class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadDoc()">
+        <!-- Single export entry point. Width matches one of the two buttons it
+             replaced ((840 - gap) / 2), centered. -->
+        <div class="flex w-full max-w-[840px] justify-center">
+          <button type="button" class="guma-btn-primary w-full max-w-[414px]" onclick="document.querySelector('guma-preview-modal')?.open()">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -233,29 +238,12 @@
               stroke-width="2.5"
               stroke-linecap="round"
               stroke-linejoin="round"
+              aria-hidden="true"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
             </svg>
-            Download PNG
-          </button>
-          <button class="guma-btn-outline flex-1" id="copyBtn" onclick="copyDocToClipboard()">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect width="8" height="4" x="8" y="2" rx="1" />
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            </svg>
-            Copy
+            Preview &amp; Download
           </button>
         </div>
 
@@ -284,6 +272,7 @@
 
     <guma-footer></guma-footer>
     <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
 
     <script src="js/history.js"></script>
     <script src="js/history-wiring.js"></script>
@@ -291,6 +280,7 @@
     <script src="js/components.js"></script>
     <script src="js/factions.js"></script>
     <script src="js/ui-helpers.js"></script>
+    <script src="js/guma-fit.js"></script>
     <script src="js/personnel-app.js"></script>
     <script src="js/animations.js"></script>
     <script>

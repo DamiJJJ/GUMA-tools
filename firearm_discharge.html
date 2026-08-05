@@ -14,38 +14,32 @@
     <script src="js/tailwind.js"></script>
     <script src="js/tailwind-config.js"></script>
     <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
   </head>
 
   <body class="theme-navy-soft flex min-h-full flex-col">
     <guma-header></guma-header>
 
     <!-- PAGE TITLE -->
-    <div class="guma-page pt-8 pb-4">
+    <div class="guma-page pt-8 pb-6">
       <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
         Firearm Discharge Investigation
       </h1>
     </div>
 
-    <!-- FACTION SWITCHER -->
-    <div class="guma-page pb-4 guma-faction-switcher-wrap">
-      <div id="factionSwitcher" class="flex flex-wrap justify-center gap-3"></div>
-    </div>
-
     <!-- MAIN -->
     <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
       <!-- LEFT: FORM PANEL -->
-      <div class="guma-panel w-full p-6 xl:max-w-[580px] xl:flex-none guma-panel-form">
-        <!-- Custom faction panel (hidden by default, shown by JS) -->
-        <div
-          id="customFactionPanel"
-          style="display: none"
-          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
-        >
-          <p class="guma-form-section">Custom Faction Details</p>
-          <div class="form-group">
-            <label>Faction Name</label>
-            <input type="text" id="customFactionName" placeholder="Los Angeles Police Department" oninput="applyCustomFaction()" />
-          </div>
+      <div class="guma-panel w-full p-6 xl:max-w-[580px] xl:flex-none guma-panel-form guma-ce-host">
+        <!-- Agency. There is no faction switcher: the document header itself is
+             the control, edited in place from xl and from this input below it. -->
+        <p class="guma-form-section">Agency</p>
+        <div class="form-group">
+          <label>Agency Name (document header)</label>
+          <!-- Left empty on purpose: the document falls back to LOS SANTOS
+               POLICE DEPARTMENT, and an empty source is what gives the header
+               its dashed outline on the canvas (same as traffic's state name). -->
+          <input type="text" id="agency_name" placeholder="Los Santos Police Department" />
         </div>
 
         <!-- Incident type -->
@@ -58,7 +52,7 @@
         </div>
 
         <!-- Section I -->
-        <p class="guma-form-section">Section I – General Information</p>
+        <p class="guma-form-section">Section I - General Information</p>
 
         <div class="two-col">
           <div class="form-group">
@@ -146,8 +140,11 @@
       </div>
 
       <!-- RIGHT: PREVIEW PANEL -->
-      <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
-        <div class="mb-4 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+      <!-- min-w-0: a flex item defaults to min-width:auto, which would let the
+           zoomed canvas stretch this panel and the whole page instead of
+           scrolling inside .guma-ce-wrap. -->
+      <div class="guma-panel flex min-w-0 flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
           <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
           <button
             id="gumaHistoryBtn"
@@ -180,10 +177,19 @@
           </button>
         </div>
 
-        <canvas id="docCanvas" class="h-auto w-full max-w-[640px] border border-slate-300 dark:border-slate-700 bg-white shadow-canvas"></canvas>
+        <!-- WYSIWYG toolbar: zoom seg + hint are injected by canvas-edit.js -->
+        <div id="ceToolbar" class="guma-ce-toolbar hidden w-full xl:flex"></div>
 
-        <div class="flex w-full max-w-[640px] flex-col gap-3 sm:flex-row sm:items-stretch">
-          <button type="button" class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadPng()">
+        <div class="guma-canvas-wrap guma-scroll guma-ce-wrap">
+          <div id="ceFrame" class="guma-ce-frame">
+            <canvas id="docCanvas" class="guma-ce-canvas bg-white"></canvas>
+          </div>
+        </div>
+
+        <!-- Single export entry point. Width matches one of the two buttons it
+             replaced ((1160 - gap) / 2), centered. -->
+        <div class="flex w-full max-w-[1160px] justify-center">
+          <button type="button" class="guma-btn-primary w-full max-w-[574px]" onclick="document.querySelector('guma-preview-modal')?.open()">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -194,29 +200,12 @@
               stroke-width="2.5"
               stroke-linecap="round"
               stroke-linejoin="round"
+              aria-hidden="true"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
             </svg>
-            Download PNG
-          </button>
-          <button class="guma-btn-outline flex-1" id="copyDiscordBtn" onclick="copyDocToClipboard()">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect width="8" height="4" x="8" y="2" rx="1" />
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            </svg>
-            Copy
+            Preview &amp; Download
           </button>
         </div>
         <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60 mt-0.5">
@@ -244,11 +233,15 @@
 
     <guma-footer></guma-footer>
     <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
 
     <script src="js/history.js"></script>
     <script src="js/history-wiring.js"></script>
+    <!-- factions.js stays for one reason only: hydrating reports saved before
+         the faction switcher became an editable header. -->
     <script src="js/factions.js"></script>
-    <script src="js/ui-helpers.js"></script>
+    <script src="js/guma-fit.js"></script>
+    <script src="js/canvas-edit.js"></script>
     <script src="js/firearm_discharge_investigation.js"></script>
     <script src="js/counters.js"></script>
     <script src="js/components.js"></script>

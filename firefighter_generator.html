@@ -14,6 +14,7 @@
     <script src="js/tailwind.js"></script>
     <script src="js/tailwind-config.js"></script>
     <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
     <script src="js/random-character.js"></script>
   </head>
 
@@ -70,12 +71,10 @@
         <div class="mb-4">
           <label class="guma-label">Photo</label>
 
-          <div
-            class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-guma-border px-4 py-5 text-center text-sm text-guma-muted transition hover:border-guma-gold hover:text-guma-gold"
-            onclick="document.getElementById('photoInput').click()"
-          >
-            <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="previewPhoto(event)" />
+          <div id="photoDrop" class="guma-drop" role="button" tabindex="0" aria-label="Upload photo">
+            <input type="file" id="photoInput" accept="image/*" class="hidden" />
             <span id="uploadText">Click to upload photo</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
             <img id="photoPreview" class="mt-2 hidden h-[120px] w-[100px] rounded object-cover" alt="preview" />
           </div>
         </div>
@@ -211,8 +210,8 @@
         </div>
       </div>
 
-      <div class="guma-panel flex flex-1 flex-col items-center gap-5 p-6 guma-panel-preview">
-        <div class="mb-4 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+      <div class="guma-panel flex flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
           <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
           <button
             id="gumaHistoryBtn"
@@ -245,10 +244,15 @@
           </button>
         </div>
 
-        <canvas id="cardCanvas" width="840" height="680" class="h-auto w-full max-w-[500px] shadow-canvas"></canvas>
+        <!-- guma-pc-wrap: positioned box the photo-crop chrome mounts into. -->
+        <div class="guma-canvas-wrap guma-scroll guma-pc-wrap">
+          <canvas id="cardCanvas" width="840" height="680" class="guma-canvas-preview"></canvas>
+        </div>
 
-        <div class="flex w-full max-w-[500px] flex-col gap-3 sm:flex-row sm:items-stretch">
-          <button class="guma-btn-primary flex-1" id="downloadBtn" onclick="downloadCard()">
+        <!-- Single export entry point. Width matches one of the two buttons it
+             replaced ((840 - gap) / 2), centered. -->
+        <div class="flex w-full max-w-[840px] justify-center">
+          <button type="button" class="guma-btn-primary w-full max-w-[414px]" onclick="document.querySelector('guma-preview-modal')?.open()">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -259,29 +263,12 @@
               stroke-width="2.5"
               stroke-linecap="round"
               stroke-linejoin="round"
+              aria-hidden="true"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
             </svg>
-            Download PNG
-          </button>
-          <button class="guma-btn-outline flex-1" id="copyDiscordBtn" onclick="copyCardToClipboard()">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect width="8" height="4" x="8" y="2" rx="1" />
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            </svg>
-            Copy
+            Preview &amp; Download
           </button>
         </div>
         <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-muted/60 mt-0.5">
@@ -309,10 +296,14 @@
 
     <guma-footer></guma-footer>
     <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
     <script src="js/history.js"></script>
     <script src="js/history-wiring.js"></script>
     <script src="js/factions.js"></script>
     <script src="js/ui-helpers.js"></script>
+    <script src="js/guma-upload.js"></script>
+    <script src="js/guma-fit.js"></script>
+    <script src="js/photo-crop.js"></script>
     <script src="js/app.js"></script>
     <script>
       window.GUMA_GENERATOR_KEY = "firefighter";

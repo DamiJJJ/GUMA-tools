@@ -1,12 +1,15 @@
-const GUMA_VERSION = "1.7";
+const GUMA_VERSION = "1.8";
 
 // HEADER
 class GumaHeader extends HTMLElement {
   connectedCallback() {
     const current = window.location.pathname.split("/").pop() || "index.html";
 
-    const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html"].includes(current);
-    const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "personnel_file_generator.html", "arrest_report.html", "prehospital_care_report.html"].includes(current);
+    const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html", "personnel_file_generator.html"].includes(
+      current,
+    );
+    const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "arrest_report.html", "prehospital_care_report.html", "investigative_report.html"].includes(current);
+    const isImage = ["bodycam_overlay.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
@@ -18,6 +21,11 @@ class GumaHeader extends HTMLElement {
       "flex items-center gap-2 px-4 py-3 text-sm transition hover:bg-guma-l-panel-2 hover:text-guma-l-gold dark:hover:bg-guma-panel-2 dark:hover:text-guma-gold";
     const dropActive = "text-guma-l-gold bg-guma-l-panel-2 dark:text-guma-gold dark:bg-guma-panel-2";
     const dropInactive = "text-guma-l-text dark:text-guma-text";
+    // Category label inside a dropdown menu / mobile nav group
+    const dropGroupLabel =
+      "px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50";
+    const mobGroupLabel =
+      "px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50";
 
     const mobActive = "text-guma-l-gold bg-guma-l-gold/10 dark:text-guma-gold dark:bg-guma-gold/10";
     const mobInactive = "text-guma-l-muted hover:text-guma-l-text hover:bg-black/5 dark:text-guma-muted dark:hover:text-guma-text dark:hover:bg-white/5";
@@ -27,7 +35,7 @@ class GumaHeader extends HTMLElement {
                      dark:border-white/10 dark:bg-[#04045e]/85 guma-anim-header-drop">
 
         <!-- ── Main bar ── -->
-        <div class="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
+        <div class="mx-auto flex w-full max-w-8xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8 2xl:px-12">
 
           <!-- Logo -->
           <a href="index.html" id="gumaLogo"
@@ -76,6 +84,11 @@ class GumaHeader extends HTMLElement {
                   <img src="assets/card_256.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Business Card Generator
                 </a>
+                <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "personnel_file_generator.html" ? dropActive : dropInactive}">
+                  <img src="assets/file.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Personnel File Generator
+                </a>
               </div>
             </div>
 
@@ -96,6 +109,7 @@ class GumaHeader extends HTMLElement {
                    class="hidden absolute top-full left-0 mt-2 min-w-[240px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
+                <p class="${dropGroupLabel}">Police</p>
                 <a href="firearm_discharge.html" data-generator-key="firearm" data-hot-flag="icon"
                    class="${dropLinkBase} ${current === "firearm_discharge.html" ? dropActive : dropInactive}">
                   <img src="assets/shooting.png" class="h-5 w-5 object-contain opacity-80" alt="" />
@@ -106,35 +120,55 @@ class GumaHeader extends HTMLElement {
                   <img src="assets/collision.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Traffic Collision Report
                 </a>
-                <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
-                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "personnel_file_generator.html" ? dropActive : dropInactive}">
-                  <img src="assets/file.png" class="h-5 w-5 object-contain opacity-80" alt="" />
-                  Personnel File Generator
-                </a>
                 <a href="arrest_report.html" data-generator-key="arrest" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "arrest_report.html" ? dropActive : dropInactive}">
                   <img src="assets/arrest.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Arrest Report
                 </a>
+                <a href="investigative_report.html" data-generator-key="investigative" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "investigative_report.html" ? dropActive : dropInactive}">
+                  <img src="assets/investigation.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Investigative Report
+                </a>
+
+                <p class="${dropGroupLabel} border-t border-guma-l-border dark:border-guma-border">Fire / Medical</p>
                 <a href="prehospital_care_report.html" data-generator-key="pcr" data-hot-flag="icon"
-                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "prehospital_care_report.html" ? dropActive : dropInactive}">
+                   class="${dropLinkBase} ${current === "prehospital_care_report.html" ? dropActive : dropInactive}">
                   <img src="assets/hospital.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Pre-Hospital Care Report
                 </a>
                 <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
                              border-guma-l-border text-guma-l-muted/50
                              dark:border-guma-border dark:text-guma-muted/40">
-                  <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-30" alt="" />
-                  <span class="flex-1">Investigative Report</span>
-                  <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
-                </span>
-                <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
-                             border-guma-l-border text-guma-l-muted/50
-                             dark:border-guma-border dark:text-guma-muted/40">
-                  <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-30" alt="" />
+                  <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-30" alt="" />
                   <span class="flex-1">Fire Code Inspection Report</span>
                   <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
                 </span>
+              </div>
+            </div>
+
+            <!-- Image Tools dropdown -->
+            <div class="relative" id="gumaImageDropdown">
+              <button id="gumaImageBtn"
+                class="flex items-center gap-1.5 ${navLinkBase} ${isImage ? navActive : navInactive}"
+                aria-haspopup="true" aria-expanded="false">
+                Image Tools
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round"
+                     class="transition-transform duration-200" id="gumaImageChevron">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              <div id="gumaImageMenu"
+                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                          border border-guma-l-border bg-guma-l-panel shadow-panel-light
+                          dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
+                <a href="bodycam_overlay.html" data-generator-key="bodycam" data-hot-flag="icon"
+                   class="${dropLinkBase} ${current === "bodycam_overlay.html" ? dropActive : dropInactive}">
+                  <img src="assets/bodycam.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Bodycam Overlay
+                </a>
               </div>
             </div>
 
@@ -236,7 +270,7 @@ class GumaHeader extends HTMLElement {
         <div id="gumaMobileMenu" class="hidden md:hidden border-t
                                         border-guma-l-border bg-guma-l-bg/95
                                         dark:border-white/10 dark:bg-[#04045e]/95">
-          <nav class="mx-auto max-w-[1400px] flex flex-col px-4 py-3 gap-0.5">
+          <nav class="mx-auto max-w-8xl flex flex-col px-4 py-3 gap-0.5">
 
             <a href="index.html"
                class="px-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-[0.12em] transition
@@ -265,10 +299,17 @@ class GumaHeader extends HTMLElement {
               <img src="assets/card_256.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Business Card Generator
             </a>
+            <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "personnel_file_generator.html" ? mobActive : mobInactive}">
+              <img src="assets/file.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Personnel File Generator
+            </a>
 
             <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
               Report Generators
             </p>
+            <p class="${mobGroupLabel}">Police</p>
             <a href="firearm_discharge.html" data-generator-key="firearm" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "firearm_discharge.html" ? mobActive : mobInactive}">
@@ -281,18 +322,20 @@ class GumaHeader extends HTMLElement {
               <img src="assets/collision.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Traffic Collision Report
             </a>
-            <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
-               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
-                      ${current === "personnel_file_generator.html" ? mobActive : mobInactive}">
-              <img src="assets/file.png" class="h-5 w-5 object-contain opacity-70" alt="" />
-              Personnel File Generator
-            </a>
             <a href="arrest_report.html" data-generator-key="arrest" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "arrest_report.html" ? mobActive : mobInactive}">
               <img src="assets/arrest.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Arrest Report
             </a>
+            <a href="investigative_report.html" data-generator-key="investigative" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "investigative_report.html" ? mobActive : mobInactive}">
+              <img src="assets/investigation.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Investigative Report
+            </a>
+
+            <p class="${mobGroupLabel}">Fire / Medical</p>
             <a href="prehospital_care_report.html" data-generator-key="pcr" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "prehospital_care_report.html" ? mobActive : mobInactive}">
@@ -300,15 +343,20 @@ class GumaHeader extends HTMLElement {
               Pre-Hospital Care Report
             </a>
             <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
-              <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
-              <span class="flex-1">Investigative Report</span>
-              <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
-            </span>
-            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
-              <img src="assets/placeholder.png" class="h-5 w-5 object-contain opacity-40" alt="" />
+              <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-40" alt="" />
               <span class="flex-1">Fire Code Inspection Report</span>
               <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
             </span>
+
+            <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
+              Image Tools
+            </p>
+            <a href="bodycam_overlay.html" data-generator-key="bodycam" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "bodycam_overlay.html" ? mobActive : mobInactive}">
+              <img src="assets/bodycam.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Bodycam Overlay
+            </a>
 
             <a href="about.html"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm ${isAbout ? mobActive : mobInactive}">
@@ -382,13 +430,13 @@ class GumaHeader extends HTMLElement {
     setInterval(checkLiveStatus, 60_000);
     // ──────────────────────────────────────────────────────────────
 
-    // ── Logo: klik → gumowa piłka ──────────────────────────────────
+    // ── Logo: click → rubber-ball bounce ───────────────────────────
     const logo = this.querySelector("#gumaLogo");
     if (logo) {
       logo.addEventListener("click", (e) => {
-        e.preventDefault(); // nie przeładowuj strony / nie przekierowuj do index.html
+        e.preventDefault(); // don't reload / navigate to index.html
         logo.classList.remove("guma-anim-rubber");
-        void logo.offsetWidth; // restart animacji
+        void logo.offsetWidth; // force a reflow so the animation restarts
         logo.classList.add("guma-anim-rubber");
       });
 
@@ -424,6 +472,7 @@ class GumaHeader extends HTMLElement {
 
     setupDropdown("gumaCardsBtn", "gumaCardsMenu", "gumaCardsChevron");
     setupDropdown("gumaReportsBtn", "gumaReportsMenu", "gumaReportsChevron");
+    setupDropdown("gumaImageBtn", "gumaImageMenu", "gumaImageChevron");
 
     document.addEventListener("click", () => {
       this.querySelectorAll('[id$="Menu"]:not(#gumaMobileMenu)').forEach((m) => m.classList.add("hidden"));
@@ -458,7 +507,7 @@ class GumaHeader extends HTMLElement {
       }
     });
 
-    // ── Hot/Popular flags — decorate nav links + page elements ────
+    // ── Hot/Popular flags - decorate nav links + page elements ────
     // Deferred to DOMContentLoaded so page-level [data-generator-key]
     // targets (index tiles, page titles) are already in the DOM.
     const decorateHotFlags = () => window.GumaCounters?.applyHotFlags?.();
@@ -477,8 +526,8 @@ class GumaFooter extends HTMLElement {
     this.innerHTML = `
       <footer class="mt-auto w-full border-t bg-guma-l-footer border-guma-l-border
                      dark:border-guma-border dark:bg-guma-footer">
-        <div class="mx-auto flex w-full max-w-[1400px] flex-col items-start justify-between gap-4 px-4 py-4 text-sm
-                    text-guma-l-muted dark:text-zinc-400 sm:flex-row sm:items-center">
+        <div class="mx-auto flex w-full max-w-8xl flex-col items-start justify-between gap-4 px-4 py-4 text-sm
+                    text-guma-l-muted dark:text-zinc-400 sm:flex-row sm:items-center sm:px-6 lg:px-8 2xl:px-12">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span class="text-xs sm:text-sm">GUMA Tools v${GUMA_VERSION} &copy; Dami ${new Date().getFullYear()}</span>
             <span data-guma-counter hidden class="flex items-center gap-1.5 text-[11px] border-l pl-4
@@ -842,3 +891,304 @@ class GumaHistoryDrawer extends HTMLElement {
 }
 
 customElements.define("guma-history-drawer", GumaHistoryDrawer);
+
+// ── PREVIEW MODAL (WYSIWYG report pages) ─────────────────────────
+// The single export surface of a WYSIWYG page: shows the current document
+// canvas as an <img> (object URL - cheaper than a second canvas and gives
+// native right-click Save/Copy for free), with the page's canonical export
+// buttons inside. The buttons carry the conventional ids (#downloadBtn,
+// #copyDiscordBtn) so initDownloadCounter and copyDocToClipboard keep working
+// unchanged; the "Generated N times" row mirrors the page's #downloadCount.
+// ── Export preview modal ──────────────────────────────────────────────────────
+// The last look at a document before it leaves the page, so it opens at the
+// zoom that shows all of it - however long the document is - and the buttons
+// go in from there. Past 100% the source pixels are being stretched, which is
+// still the fastest way to check one line of small print on a card drawn 1:1.
+const PM_ZOOM_MAX = 3;
+const PM_ZOOM_STEP = 1.25;
+
+class GumaPreviewModal extends HTMLElement {
+  connectedCallback() {
+    this._build();
+  }
+
+  disconnectedCallback() {
+    if (this._onKey) document.removeEventListener("keydown", this._onKey);
+    if (this._onResize) window.removeEventListener("resize", this._onResize);
+    if (this._countObs) this._countObs.disconnect();
+    this._revoke();
+  }
+
+  _build() {
+    this.innerHTML = `
+      <div data-pm-root class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+        <div data-pm-overlay class="absolute inset-0 bg-black/50"></div>
+        <div role="dialog" aria-modal="true" aria-label="Document preview"
+             class="relative flex max-h-[94vh] w-full max-w-5xl flex-col rounded-2xl border shadow-2xl
+                    bg-guma-l-panel border-guma-l-border text-guma-l-text
+                    dark:bg-guma-panel dark:border-guma-border dark:text-guma-text">
+          <div data-pm-head class="flex items-center justify-between gap-3 border-b px-5 py-4 border-guma-l-border dark:border-guma-border">
+            <h3 class="text-sm font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Document Preview</h3>
+            <!-- Page pager: hidden unless the page exposes GumaExport.pages().
+                 Download / Copy then act on the sheet being shown. -->
+            <div data-pm-pager class="hidden items-center gap-2">
+              <button type="button" data-pm-prev class="guma-zoom-btn disabled:opacity-40 disabled:cursor-default"
+                      title="Previous page" aria-label="Previous page">&lsaquo;</button>
+              <span data-pm-page-label class="min-w-[5.5rem] text-center text-xs font-bold uppercase tracking-wider text-guma-l-text dark:text-guma-text"></span>
+              <button type="button" data-pm-next class="guma-zoom-btn disabled:opacity-40 disabled:cursor-default"
+                      title="Next page" aria-label="Next page">&rsaquo;</button>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="guma-zoom guma-zoom-sm">
+                <button type="button" data-pm-zoom-out class="guma-zoom-btn" title="Zoom out" aria-label="Zoom out">&minus;</button>
+                <button type="button" data-pm-zoom-value class="guma-zoom-btn guma-zoom-value"
+                        title="Show the whole document" aria-label="Show the whole document">100%</button>
+                <button type="button" data-pm-zoom-in class="guma-zoom-btn" title="Zoom in" aria-label="Zoom in">+</button>
+              </div>
+              <button data-pm-close aria-label="Close preview"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-lg transition
+                             text-guma-l-muted hover:bg-guma-l-panel-2 hover:text-guma-l-text
+                             dark:text-guma-muted dark:hover:bg-guma-panel-2 dark:hover:text-guma-text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div data-pm-scroll class="guma-scroll min-h-0 flex-1 overflow-auto p-4">
+            <img data-pm-img alt="Document preview"
+                 class="mx-auto block h-auto border bg-white
+                        border-guma-l-border-2 dark:border-guma-border-2" />
+          </div>
+          <div data-pm-foot class="border-t px-5 py-4 border-guma-l-border dark:border-guma-border">
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button id="downloadBtn" type="button" class="guma-btn-primary flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download PNG
+              </button>
+              <button id="copyDiscordBtn" type="button" class="guma-btn-outline flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="8" height="4" x="8" y="2" rx="1"/>
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <div data-pm-counter hidden class="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                   stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+                <line x1="6" y1="15" x2="10" y2="15"/>
+                <line x1="6" y1="18" x2="14" y2="18"/>
+              </svg>
+              Generated <span data-pm-count>0</span> times
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this._open = false;
+    this._url = null;
+    this._zoom = 1;
+    this._fitZoom = 1;
+    this._pages = null;
+    this._page = 0;
+    this._pageUrls = {};
+
+    this.querySelector("[data-pm-overlay]").addEventListener("click", () => this.close());
+    this.querySelector("[data-pm-close]").addEventListener("click", () => this.close());
+    this.querySelector("[data-pm-prev]").addEventListener("click", () => this._showPage(this._page - 1));
+    this.querySelector("[data-pm-next]").addEventListener("click", () => this._showPage(this._page + 1));
+
+    // Zoom. The fit is only knowable once the blob has decoded, so every entry
+    // point that changes the image or the box it sits in recomputes it.
+    this.querySelector("[data-pm-zoom-out]").addEventListener("click", () => this._setZoom(this._zoom / PM_ZOOM_STEP));
+    this.querySelector("[data-pm-zoom-in]").addEventListener("click", () => this._setZoom(this._zoom * PM_ZOOM_STEP));
+    this.querySelector("[data-pm-zoom-value]").addEventListener("click", () => this._resetZoom());
+    this.querySelector("[data-pm-img]").addEventListener("load", () => this._resetZoom());
+    this.querySelector("[data-pm-scroll]").addEventListener(
+      "wheel",
+      (e) => {
+        if (!e.ctrlKey) return; // a plain wheel must keep scrolling the document
+        e.preventDefault();
+        this._setZoom(this._zoom * (e.deltaY < 0 ? PM_ZOOM_STEP : 1 / PM_ZOOM_STEP));
+      },
+      { passive: false },
+    );
+
+    // A resize changes the fit. Follow it only when the view was already fitted,
+    // so a deliberate zoom survives the window being nudged.
+    this._onResize = () => {
+      if (!this._open) return;
+      const wasFit = Math.abs(this._zoom - this._fitZoom) < 0.005;
+      this._fitZoom = this._computeFit();
+      this._setZoom(wasFit ? this._fitZoom : this._zoom);
+    };
+    window.addEventListener("resize", this._onResize);
+    // Export delegates to the page; "Copied!" feedback and the counter bump
+    // come from copyDocToClipboard / initDownloadCounter via the ids above.
+    // On a multi-page document the visible page's index rides along.
+    this.querySelector("#downloadBtn").addEventListener("click", () =>
+      window.GumaExport?.download?.(this._pages ? this._page : undefined),
+    );
+    this.querySelector("#copyDiscordBtn").addEventListener("click", () =>
+      window.GumaExport?.copy?.(this._pages ? this._page : undefined),
+    );
+
+    // Mirror the page counter (#downloadCount) into the modal.
+    const src = document.getElementById("downloadCount");
+    if (src && typeof MutationObserver !== "undefined") {
+      this._countObs = new MutationObserver(() => this._syncCount());
+      this._countObs.observe(src, { childList: true, characterData: true, subtree: true });
+      const srcWrap = src.closest("[data-guma-counter]");
+      if (srcWrap) this._countObs.observe(srcWrap, { attributes: true, attributeFilter: ["hidden"] });
+    }
+    this._syncCount();
+
+    this._onKey = (e) => {
+      if (!this._open) return;
+      if (e.key === "Escape") this.close();
+      else if (e.key === "ArrowLeft" && this._pages) this._showPage(this._page - 1);
+      else if (e.key === "ArrowRight" && this._pages) this._showPage(this._page + 1);
+    };
+    document.addEventListener("keydown", this._onKey);
+  }
+
+  /** Swap the preview image to sheet i; blobs are cached per open(). */
+  _showPage(i) {
+    if (!this._pages) return;
+    this._page = Math.max(0, Math.min(i, this._pages.length - 1));
+    const idx = this._page;
+    const img = this.querySelector("[data-pm-img]");
+    const cached = this._pageUrls[idx];
+    if (cached) {
+      img.src = cached;
+    } else {
+      this._pages[idx].canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        this._pageUrls[idx] = url;
+        // Only land the blob if this sheet is still the one being shown.
+        if (this._open && this._page === idx) img.src = url;
+      }, "image/png");
+    }
+    const label = this.querySelector("[data-pm-page-label]");
+    if (label) label.textContent = `${this._pages[idx].label} / ${this._pages.length}`;
+    this.querySelector("[data-pm-prev]").disabled = idx === 0;
+    this.querySelector("[data-pm-next]").disabled = idx === this._pages.length - 1;
+  }
+
+  /**
+   * Zoom at which the whole document fits the scroll box, both axes, capped at
+   * 1: an image smaller than the box is shown at its own pixels rather than
+   * stretched to fill it.
+   */
+  _computeFit() {
+    const img = this.querySelector("[data-pm-img]");
+    const box = this.querySelector("[data-pm-scroll]");
+    const head = this.querySelector("[data-pm-head]");
+    const foot = this.querySelector("[data-pm-foot]");
+    if (!img || !box || !img.naturalWidth || !img.naturalHeight) return 1;
+    const cs = getComputedStyle(box);
+    // -2 for the image's own hairline border, which is outside its width box.
+    const availW = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+    // The height cannot come from the box: the dialog is sized by its content,
+    // so the box is exactly as tall as the image, and measuring it would hand
+    // back whatever zoom is already applied. Derive it from the ceiling the
+    // dialog is allowed to grow to (max-h-[94vh]) minus its fixed chrome.
+    const availH =
+      window.innerHeight * 0.94 -
+      (head ? head.offsetHeight : 0) -
+      (foot ? foot.offsetHeight : 0) -
+      parseFloat(cs.paddingTop) -
+      parseFloat(cs.paddingBottom) -
+      2;
+    if (!(availW > 0) || !(availH > 0)) return 1;
+    return Math.min(availW / img.naturalWidth, availH / img.naturalHeight, 1);
+  }
+
+  /** Fit is the floor: zooming out past the whole document buys nothing. */
+  _setZoom(z) {
+    const img = this.querySelector("[data-pm-img]");
+    this._zoom = Math.min(Math.max(z, this._fitZoom), PM_ZOOM_MAX);
+    if (img && img.naturalWidth) img.style.width = Math.round(img.naturalWidth * this._zoom) + "px";
+    const label = this.querySelector("[data-pm-zoom-value]");
+    if (label) label.textContent = Math.round(this._zoom * 100) + "%";
+  }
+
+  _resetZoom() {
+    this._fitZoom = this._computeFit();
+    this._setZoom(this._fitZoom);
+  }
+
+  _syncCount() {
+    const src = document.getElementById("downloadCount");
+    const wrap = this.querySelector("[data-pm-counter]");
+    const dst = this.querySelector("[data-pm-count]");
+    if (!src || !wrap || !dst) return;
+    dst.textContent = src.textContent;
+    const srcWrap = src.closest("[data-guma-counter]");
+    if (srcWrap && !srcWrap.hasAttribute("hidden")) wrap.removeAttribute("hidden");
+  }
+
+  open() {
+    const ex = window.GumaExport;
+    // Fresh state per open: the document may have changed since last time.
+    this._revoke();
+    const pages = ex?.pages?.();
+    this._pages = Array.isArray(pages) && pages.length > 1 ? pages : null;
+    const pager = this.querySelector("[data-pm-pager]");
+    if (pager) {
+      pager.classList.toggle("hidden", !this._pages);
+      pager.classList.toggle("flex", !!this._pages);
+    }
+
+    const root = this.querySelector("[data-pm-root]");
+    if (this._pages) {
+      this._open = true;
+      this._showPage(0);
+    } else {
+      const canvas = ex?.canvas?.();
+      if (!canvas) return;
+      const img = this.querySelector("[data-pm-img]");
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        this._url = URL.createObjectURL(blob);
+        img.src = this._url;
+      }, "image/png");
+      this._open = true;
+    }
+    this._syncCount();
+    root.classList.remove("hidden");
+    root.classList.add("flex");
+  }
+
+  close() {
+    const root = this.querySelector("[data-pm-root]");
+    root.classList.add("hidden");
+    root.classList.remove("flex");
+    this._open = false;
+    this._revoke();
+  }
+
+  _revoke() {
+    if (this._url) {
+      URL.revokeObjectURL(this._url);
+      this._url = null;
+    }
+    Object.values(this._pageUrls || {}).forEach((u) => URL.revokeObjectURL(u));
+    this._pageUrls = {};
+  }
+}
+customElements.define("guma-preview-modal", GumaPreviewModal);

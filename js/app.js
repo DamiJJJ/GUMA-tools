@@ -108,20 +108,6 @@ for (let y = 2026; y >= 1980; y--) {
 // ── Photo preview ─────────────────────────────────────────────────────────────
 let photoDataURL = null;
 
-function previewPhoto(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    photoDataURL = ev.target.result;
-    const prev = document.getElementById("photoPreview");
-    prev.src = photoDataURL;
-    prev.style.display = "block";
-    document.getElementById("uploadText").textContent = file.name;
-  };
-  reader.readAsDataURL(file);
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n) {
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -309,21 +295,20 @@ function generateCard() {
 
   // ── Draw label + value pair on canvas ──
   function lv(label, val, x, y, maxWidth = rw) {
+    // Measured with two spaces but painted with one, so the value always ends a
+    // character short of the budget. Kept as it was.
     const fullText = label + ":  " + val;
-    let fontSize = 20;
-    ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
-
-    while (ctx.measureText(fullText).width > maxWidth && fontSize > 11) {
-      fontSize -= 1;
-      ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
-    }
+    const fontSize = GumaFit.fitFont(
+      ctx, fullText, maxWidth, CARD_LV_PX, CARD_LV_MIN_PX,
+      (p) => "bold " + p + "px " + EMP_FONT_FAMILY,
+    );
     ctx.fillStyle = "black";
     ctx.textAlign = "left";
     ctx.fillText(label + ": ", x, y);
     const lw = ctx.measureText(label + ": ").width;
 
     // Switch to regular weight for the value.
-    ctx.font = `${fontSize}px 'Courier New', monospace`;
+    ctx.font = fontSize + "px " + EMP_FONT_FAMILY;
     ctx.fillStyle = "#111";
     ctx.fillText(val, x + lw, y);
   }
@@ -331,16 +316,11 @@ function generateCard() {
   // ── Draw text layer ──
   function drawText() {
     const maxNameWidth = W - 48;
-    let nameFontSize = 46;
-    const minFontSize = 18;
-
-    ctx.font = `bold ${nameFontSize}px 'Courier New', monospace`;
-    while (ctx.measureText(name.toUpperCase()).width > maxNameWidth && nameFontSize > minFontSize) {
-      nameFontSize -= 1;
-      ctx.font = `bold ${nameFontSize}px 'Courier New', monospace`;
-    }
+    GumaFit.fitFont(
+      ctx, name.toUpperCase(), maxNameWidth, CARD_NAME_PX, CARD_NAME_MIN_PX,
+      (p) => "bold " + p + "px " + EMP_FONT_FAMILY,
+    );
     ctx.textAlign = "center";
-    // ctx.font = "bold 46px 'Courier New', monospace";
     ctx.fillStyle = "#111";
     ctx.fillText(name.toUpperCase(), W / 2, 56);
 
@@ -392,13 +372,20 @@ function generateCard() {
     let py = by + 60;
     const plh = 36;
 
+    // Same shape as lv(): size the whole line to the box, then paint the label
+    // bold and the value regular at that size. Without this the pay lines were
+    // painted at a fixed 22px and a long amount simply left the box.
     function pl(label, val) {
-      ctx.font = "bold 22px 'Courier New', monospace";
+      const prefix = "\u2022 " + label + ": ";
+      const px = GumaFit.fitFont(
+        ctx, prefix + val, bw - 32, CARD_PAY_PX, CARD_PAY_MIN_PX,
+        (p) => "bold " + p + "px " + EMP_FONT_FAMILY,
+      );
       ctx.fillStyle = "#333";
       ctx.textAlign = "left";
-      ctx.fillText("\u2022 " + label + ": ", bx + 16, py);
-      const lw = ctx.measureText("\u2022 " + label + ": ").width;
-      ctx.font = "22px 'Courier New', monospace";
+      ctx.fillText(prefix, bx + 16, py);
+      const lw = ctx.measureText(prefix).width;
+      ctx.font = px + "px " + EMP_FONT_FAMILY;
       ctx.fillStyle = "#111";
       ctx.fillText(val, bx + 16 + lw, py);
       py += plh;
@@ -410,9 +397,12 @@ function generateCard() {
     pl("Health Benefits", payHealth);
     pl("Retirement Pay", payRet);
 
-    ctx.font = "bold 23px 'Courier New', monospace";
+    // The total is derived from the pay values, so it grows with them and needs
+    // the same guard.
+    const totalLine = "\u2022 " + year + " TOTAL: " + total;
+    GumaFit.fitFont(ctx, totalLine, bw - 32, 23, CARD_PAY_MIN_PX, (p) => "bold " + p + "px " + EMP_FONT_FAMILY);
     ctx.fillStyle = "#111";
-    ctx.fillText("\u2022 " + year + " TOTAL: " + total, bx + 16, py);
+    ctx.fillText(totalLine, bx + 16, py);
 
     // Misconduct button
     const mx = rx,
@@ -449,42 +439,16 @@ function generateCard() {
   ctx.fillStyle = "#bbb";
   ctx.fillRect(photoX, photoY, photoW, photoH);
 
-  if (photoDataURL) {
-    const img = new Image();
-    let rendered = false;
-    const renderPhoto = () => {
-      if (rendered || !img.naturalWidth) return;
-      rendered = true;
-
-      const ratio = img.width / img.height;
-      const areaR = photoW / photoH;
-      let sx, sy, sw, sh;
-      if (ratio > areaR) {
-        sh = img.height;
-        sw = sh * areaR;
-        sx = (img.width - sw) / 2;
-        sy = 0;
-      } else {
-        sw = img.width;
-        sh = sw / areaR;
-        sx = 0;
-        sy = (img.height - sh) / 2;
-      }
-      ctx.drawImage(img, sx, sy, sw, sh, photoX, photoY, photoW, photoH);
-      drawText();
-    };
-
-    img.onload = renderPhoto;
-    img.src = photoDataURL;
-
-    if (img.complete && img.naturalWidth > 0) renderPhoto();
-  } else {
+  // The cropper owns the slot: it paints the photo at the framing the user
+  // dragged / zoomed to, and reports back when there is nothing to paint yet.
+  // Its default framing is the centred cover-crop this used to do inline.
+  if (!GumaPhotoCrop.paint(ctx, { x: photoX, y: photoY, w: photoW, h: photoH }) && !photoDataURL) {
     ctx.fillStyle = "#888";
     ctx.font = "22px 'Courier New', monospace";
     ctx.textAlign = "center";
     ctx.fillText("No Photo", photoX + photoW / 2, photoY + photoH / 2);
-    drawText();
   }
+  drawText();
 }
 
 // ── Download ──────────────────────────────────────────────────────────────────
@@ -501,24 +465,14 @@ async function downloadCard() {
 // ── Copy to Clipboard ───────────────────────────────────────────────
 async function copyCardToClipboard() {
   const canvas = document.getElementById("cardCanvas");
-  const btn = document.getElementById("copyDiscordBtn");
-  canvas.toBlob(async (blob) => {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "officer");
-      const countEl = document.getElementById("downloadCount");
-      if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
-      // Save a history snapshot on successful copy.
-      await GumaHistoryWiring.save(canvas);
-      if (btn) {
-        const orig = btn.innerHTML;
-        btn.textContent = "Copied!";
-        setTimeout(() => (btn.innerHTML = orig), 2000);
-      }
-    } catch (err) {
-      alert("Could not copy to clipboard: " + err);
-    }
-  }, "image/png");
+  if (!(await GumaClipboard.copyCanvas(canvas))) return;
+
+  const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "officer");
+  const countEl = document.getElementById("downloadCount");
+  if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+  // Save a history snapshot on successful copy.
+  await GumaHistoryWiring.save(canvas);
+  GumaClipboard.flash(document.getElementById("copyDiscordBtn"));
 }
 
 function discordBtnHTML() {
@@ -535,7 +489,12 @@ function debounce(fn, delay = 300) {
 
 // ── Card history: serialize / hydrate / save ──────────────────
 
-// Native canvas photo-slot size (see generateCard(): photoW / photoH).
+// Pixel budget for the stored photo: the native canvas photo-slot size (see
+// generateCard(): photoW / photoH). Fitted INSIDE that box rather than
+// cover-cropped to it, because the saved framing (photoCrop) is re-applied on
+// restore and a pre-cropped photo would be cropped a second time. Contain
+// never costs resolution against the old cover-crop either - the part that was
+// visible keeps the same pixels, the rest is simply kept instead of thrown away.
 const HISTORY_PHOTO_W = 356;
 const HISTORY_PHOTO_H = 574;
 
@@ -572,7 +531,7 @@ async function serializeCardState() {
 
   let photo = null;
   if (photoDataURL) {
-    photo = await GumaHistory._downscaleAvatar(photoDataURL, HISTORY_PHOTO_W, HISTORY_PHOTO_H);
+    photo = await GumaHistory._downscaleAvatar(photoDataURL, HISTORY_PHOTO_W, HISTORY_PHOTO_H, "contain");
   }
 
   return {
@@ -603,6 +562,9 @@ async function serializeCardState() {
       customEmailDomain: document.getElementById("customEmailDomain")?.value ?? "",
     },
     photoDataUrl: photo,
+    // Framing is stored resolution independently (see js/photo-crop.js), so it
+    // still applies to the downscaled copy above.
+    photoCrop: GumaPhotoCrop.getState(),
   };
 }
 
@@ -713,6 +675,9 @@ function hydrateOfficerCardState(payload) {
 
   // ── Photo ──
   photoDataURL = payload.photoDataUrl || null;
+  // Entries saved before in-canvas cropping carry no framing; the cropper's
+  // own default reproduces exactly how they were rendered back then.
+  GumaPhotoCrop.setSource(photoDataURL, payload.photoCrop);
   const prev = document.getElementById("photoPreview");
   if (prev) {
     if (photoDataURL) {
@@ -787,6 +752,7 @@ function addEmploymentRow() {
     </div>
   `;
   container.insertBefore(row, container.firstChild);
+  empApplyCaps(row);
   renumberEmploymentRows();
   generateCard();
 }
@@ -821,6 +787,9 @@ function updateEmploymentRows() {
     } else if (!isCustomFaction && hasSelect) {
       row.querySelector(".emp-rank-select").innerHTML = rankOptions;
     }
+    // Both branches above replace the rank input outright, so the cap has to be
+    // re-applied - a rebuilt input starts uncapped.
+    empApplyCaps(row);
   });
   generateCard();
 }
@@ -854,6 +823,79 @@ function getEmploymentHistoryData() {
   return entries;
 }
 
+// ── Employment History: no printed value ends in an ellipsis ────────────────
+// The table used to chop a value and add "…", which silently drops information
+// somebody typed. Values shrink instead, and the inputs are capped at what each
+// column carries at the floor, so the floor is never actually reached.
+// Courier is monospace, so a column's capacity is exactly floor(maxW / charW)
+// and charW is 0.6 x the size - the caps below are that arithmetic at
+// EMP_FONT_MIN_PX, not guesses.
+const EMP_FONT_FAMILY = "'Courier New', monospace";
+const EMP_FONT_PX = 14;
+// The caps below are sized so a full-length value still prints at 10px, the
+// readable floor Courier already uses on the business card. The shrink floor
+// sits one step under that on purpose: it is the net for values that arrive
+// past the cap (a hydrated legacy record, a paste), never a normal size.
+const EMP_FONT_MIN_PX = 9;
+const EMP_FONT_CAP_PX = 10;
+const EMP_MAXLEN = {
+  ".emp-change": 22, // 134px available / 6.0px per char at EMP_FONT_CAP_PX
+  ".emp-agency": 30, // 182px
+  ".emp-rank-custom": 29, // 178px
+};
+
+// ── The card face itself ─────────────────────────────────────────────────────
+// lv() and the name already shrank, but nothing capped the inputs, so the
+// floors were reachable - and past a floor the text just leaves its box with
+// nothing to show for it. Caps make the floors unreachable, which is the whole
+// point of having them.
+//
+// Geometry: W = 840, rx = 400, rw = 420 (Rank / Division / Email), half = 200
+// (the paired rows), pay box bw = 420 less 16px padding each side. Courier is
+// monospace at 0.6 x the size, and lv() spends `label + ":  "` of the budget on
+// the label, so a value's capacity is
+//   floor((maxWidth - (label.length + 3) * charW) / charW)  at the cap size.
+const CARD_NAME_PX = 46;
+const CARD_NAME_MIN_PX = 18;
+const CARD_NAME_CAP_PX = 20; // a full-length name still prints this big
+const CARD_LV_PX = 20;
+const CARD_LV_MIN_PX = 11;
+const CARD_LV_CAP_PX = 13;
+const CARD_PAY_PX = 22;
+const CARD_PAY_MIN_PX = 12;
+const CARD_PAY_CAP_PX = 14;
+
+const CARD_MAXLEN = {
+  "#fullName": 66, // 792px at CARD_NAME_CAP_PX
+  "#customRank": 46, // 420px less "Rank:  "
+  "#customDivision": 42, // 420px less "Division:  "
+  "#divisionCustom": 42,
+  "#customEmailDomain": 28, // shares the Email line with #serial
+  "#serial": 16, // 200px less "Serial:  "
+  "#badge": 17, // 200px less "Badge:  "
+  // The three below are the user's numbers, not the column capacity - a height
+  // is 5'11" and an age is three digits, so the box is nowhere near the limit.
+  // #age is type="number", where maxLength does nothing; GumaFit clamps it.
+  "#age": 3,
+  "#height": 8,
+  "#weight": 5, // " lbs" is appended on print
+  "#payRegular": 27, // pay box less "• Health Benefits: " (the longest label)
+  "#payOvertime": 27,
+  "#payOther": 27,
+  "#payHealth": 27,
+  "#payRetirement": 27,
+};
+
+/** Apply the caps to a fresh employment row, or to the whole page at init. */
+function empApplyCaps(root) {
+  GumaFit.applyCapsBySelector(root, EMP_MAXLEN);
+}
+
+/** Page-level card fields. Only meaningful on the whole document. */
+function cardApplyCaps(root) {
+  GumaFit.applyCapsBySelector(root, CARD_MAXLEN);
+}
+
 function drawEmploymentHistory(ctx, W, baseH, entries, cardName, cardSerial, cardBadge) {
   const margin = 24;
   const tableX = margin;
@@ -875,12 +917,14 @@ function drawEmploymentHistory(ctx, W, baseH, entries, cardName, cardSerial, car
   ctx.fillText("EMPLOYMENT HISTORY", tableX, y + 16);
   y += 32;
 
-  // POST ID line
-  ctx.font = "bold 13px 'Courier New', monospace";
+  // POST ID line. Carries the full name, so it grows with #fullName and needs
+  // the same guard as everything else on the card.
   ctx.fillStyle = "#555";
   const postA = String(cardSerial).replace(/\D/g, "").slice(-3).padStart(3, "0");
   const postB = String(cardBadge).replace(/\D/g, "").slice(-3).padStart(3, "0");
-  ctx.fillText(`POST ID: ${postA}-${postB}   POST Name: ${cardName.toUpperCase()}`, tableX, y);
+  const postLine = `POST ID: ${postA}-${postB}   POST Name: ${cardName.toUpperCase()}`;
+  GumaFit.fitFont(ctx, postLine, tableW, 13, 8, (p) => "bold " + p + "px " + EMP_FONT_FAMILY);
+  ctx.fillText(postLine, tableX, y);
   y += 24;
 
   // Column definitions
@@ -912,6 +956,20 @@ function drawEmploymentHistory(ctx, W, baseH, entries, cardName, cardSerial, car
   });
   y += headerH;
 
+  // Value sizes, one per column across every row. This card is a document: an
+  // ellipsis silently drops what somebody typed, so nothing here is truncated -
+  // a value that does not fit shrinks, and EMP_MAXLEN keeps the input inside
+  // what the column can carry at EMP_FONT_MIN_PX. See js/guma-fit.js.
+  const rowValues = entries.map((e) => [e.from || "-", e.to || "-", e.change || "-", e.agency || "-", e.rank || "-"]);
+  const colFonts = GumaFit.colFonts(
+    ctx,
+    rowValues,
+    cols.map((c) => c.w - 14),
+    EMP_FONT_PX,
+    EMP_FONT_MIN_PX,
+    (px) => px + "px " + EMP_FONT_FAMILY,
+  );
+
   // Data rows
   const rowH = 38;
   entries.forEach((entry, i) => {
@@ -929,15 +987,12 @@ function drawEmploymentHistory(ctx, W, baseH, entries, cardName, cardSerial, car
     const values = [entry.from || "-", entry.to || "-", entry.change || "-", entry.agency || "-", entry.rank || "-"];
 
     values.forEach((val, vi) => {
-      const maxW = cols[vi].w - 14;
-      let text = val;
-      ctx.font = "14px 'Courier New', monospace";
-      while (ctx.measureText(text).width > maxW && text.length > 1) {
-        text = text.slice(0, -1);
-      }
-      if (text !== val) text += "…";
+      // Sized once per column across every row (see empColFonts above), never
+      // per cell: two rows printing the same column at different sizes would
+      // read as a rendering bug rather than as a fitted table.
+      ctx.font = colFonts[vi] + "px " + EMP_FONT_FAMILY;
       ctx.textAlign = "left";
-      ctx.fillText(text, cx, y + 24);
+      ctx.fillText(val, cx, y + 24);
       cx += cols[vi].w;
     });
     y += rowH;
@@ -965,9 +1020,38 @@ function initGenerator({ factionType = null, defaultFaction = "lspd" } = {}) {
   buildFactionSwitcher(switchFaction, FACTION_KEY, factionType);
   populateSelects();
   randomizePay();
+  empApplyCaps(document);
+  cardApplyCaps(document);
+
+  GumaPhotoCrop.attach({
+    canvas: document.getElementById("cardCanvas"),
+    host: document.querySelector(".guma-pc-wrap"),
+    redraw: generateCard,
+  });
+
   generateCard();
 
+  window.GumaUpload.init({
+    zone: "photoDrop",
+    input: "photoInput",
+    text: "uploadText",
+    preview: "photoPreview",
+    onLoad: (dataURL) => {
+      photoDataURL = dataURL;
+      // A new photo always starts from the default framing.
+      GumaPhotoCrop.setSource(dataURL);
+      generateCard();
+    },
+  });
+
   document.querySelector(".guma-panel").addEventListener("input", debounce(generateCard));
+
+  // The preview modal delegates export here so counters and history keep firing.
+  window.GumaExport = {
+    download: downloadCard,
+    copy: copyCardToClipboard,
+    canvas: () => document.getElementById("cardCanvas"),
+  };
 
   GumaHistoryWiring.register({
     key: window.GUMA_GENERATOR_KEY,

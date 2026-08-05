@@ -20,7 +20,31 @@ const FACTIONS = {
     cardBorder: "#c8b97a",
     businessCard: {
       header: "LOS SANTOS POLICE DEPARTMENT",
+      // Layout 2 splits the header into an italic prefix + a shorter title,
+      // and adds a motto block under the rule (see bcDrawLayout2). The title
+      // is Title Case on purpose: it is rendered in small-caps.
+      layout2: {
+        prefix: "City of Los Santos",
+        title: "Police Department",
+        motto1: "To Protect and to Serve",
+        motto2: "Since 1869",
+      },
       badge: "assets/lspd_badge.png",
+      // Badge artwork per rank, keyed by the rank without its grade suffix
+      // ("Sergeant II" -> "Sergeant") since grades share one badge.
+      // `null` = sworn shield does not apply; the department logo is used.
+      rankBadges: {
+        "Police Officer": "assets/lspd_badge.png",
+        "Detective": "assets/lspd_badge_detective.png",
+        "Police Administrator": null,
+        "Sergeant": "assets/lspd_badge_sergeant.png",
+        "Lieutenant": "assets/lspd_badge_lieutenant.png",
+        "Captain": "assets/lspd_badge_captain.png",
+        "Commander": "assets/lspd_badge_commander.png",
+        "Deputy Chief": "assets/lspd_badge_deputy_chief.png",
+        "Assistant Chief of Police": "assets/lspd_badge_assistant_chief.png",
+        "Chief of Police": "assets/lspd_badge_chief_of_police.png",
+      },
       recruitName: "LSPD",
       recruitPhone: "(866) 444-LSPD",
       websiteMain: "www.LSPDonline.org",
@@ -88,6 +112,12 @@ const FACTIONS = {
     cardBorder: "#94682C",
     businessCard: {
       header: "LOS SANTOS COUNTY SHERIFF'S DEPARTMENT",
+      layout2: {
+        prefix: "County of Los Santos",
+        title: "Sheriff's Department",
+        motto1: "A Tradition of Service",
+        motto2: "Since 1850",
+      },
       badge: "assets/lssd_192.png",
       recruitName: "LSSD",
       recruitPhone: "(866) 444-LSSD",
@@ -135,6 +165,12 @@ const FACTIONS = {
     cardBorder: "#5a8a30",
     businessCard: {
       header: "BLAINE COUNTY SHERIFF'S OFFICE",
+      layout2: {
+        prefix: "County of Blaine",
+        title: "Sheriff's Office",
+        motto1: "Serving Blaine County",
+        motto2: "Since 1872",
+      },
       badge: "assets/bcso_192.png",
       recruitName: "BCSO",
       recruitPhone: "(866) 444-BCSO",
@@ -181,6 +217,12 @@ const FACTIONS = {
     cardBorder: "#447CC0",
     businessCard: {
       header: "SAN ANDREAS HIGHWAY PATROL",
+      layout2: {
+        prefix: "State of San Andreas",
+        title: "Highway Patrol",
+        motto1: "Safety - Service - Security",
+        motto2: "Since 1929",
+      },
       badge: "assets/sahp_192.png",
       recruitName: "SAHP",
       recruitPhone: "(866) 444-SAHP",
@@ -228,6 +270,12 @@ const FACTIONS = {
     cardBorder: "#c04020",
     businessCard: {
       header: "LOS SANTOS COUNTY FIRE DEPARTMENT",
+      layout2: {
+        prefix: "County of Los Santos",
+        title: "Fire Department",
+        motto1: "Courage - Integrity - Pride",
+        motto2: "Since 1923",
+      },
       badge: "assets/lscofd_192.png",
       recruitName: "LSCoFD",
       recruitPhone: "(866) 444-LSCoFD",
@@ -296,6 +344,12 @@ const FACTIONS = {
     cardBorder: "#cb2020",
     businessCard: {
       header: "LOS SANTOS FIRE DEPARTMENT",
+      layout2: {
+        prefix: "City of Los Santos",
+        title: "Fire Department",
+        motto1: "Courage - Strength - Pride",
+        motto2: "Since 1886",
+      },
       badge: "assets/lsfd_192.png",
       recruitName: "LSFD",
       recruitPhone: "(866) 444-LSFD",

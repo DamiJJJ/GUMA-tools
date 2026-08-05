@@ -70,6 +70,7 @@ function addPfRow(containerId, labelPrefix, fields) {
     </div>
     <div class="grid ${gridClass} gap-2">${fieldsHTML}</div>`;
   container.appendChild(row);
+  pfApplyCaps(row);
   generateDoc();
 }
 
@@ -198,13 +199,17 @@ function getDocData() {
 }
 
 // ── Height calculation ────────────────────────────────────────────────────────
+// Every number here mirrors what the matching draw* helper actually advances by,
+// so the page is exactly as tall as its content. Keep the two in step: SEC_H is
+// drawSectionHeader's return, TBL_H + n*ROW_H + 10 is drawTable's, and SGL_H is
+// what both single-box rows (drawInfoRow, drawAttendanceRow) return.
 function calcDocHeight(data) {
-  const HEADER_TOTAL = 144; // 6 accent + 80 header + 3 divider + 38 subject + 1 line + 16 gap
-  const SEC_H = 28,
-    TBL_H = 26,
-    ROW_H = 28,
-    SGL_H = 42,
-    BOTTOM = 40;
+  const HEADER_TOTAL = 158; // drawDocHeader returns 153; the rest is slack
+  const SEC_H = 31,
+    TBL_H = 27,
+    ROW_H = 31,
+    SGL_H = 46,
+    BOTTOM = 44;
 
   let h = HEADER_TOTAL;
   h += SEC_H + SGL_H; // Personal Info
@@ -214,8 +219,10 @@ function calcDocHeight(data) {
   h += SEC_H + SGL_H; // Attendance
   h += SEC_H + SGL_H; // Background
   if (data.notes && data.notes.trim()) {
-    const lines = data.notes.split("\n").reduce((acc, l) => acc + Math.max(1, Math.ceil(l.length / 90)), 0);
-    h += SEC_H + lines * 20 + 26;
+    // 85 chars per line, against the ~91 the notes box carries at PF_NOTES_PX.
+    // Over-counting lines costs a few pixels of paper; under-counting clips.
+    const lines = data.notes.split("\n").reduce((acc, l) => acc + Math.max(1, Math.ceil(l.length / 85)), 0);
+    h += SEC_H + lines * PF_NOTE_LINE_H + 26;
   } else {
     h += SEC_H + SGL_H;
   }
@@ -223,6 +230,13 @@ function calcDocHeight(data) {
 }
 
 // ── Canvas drawing helpers ────────────────────────────────────────────────────
+// The document is laid out in logical pixels and painted into a backing store
+// twice that size, the same way every report page does it. At 1:1 an 840px PNG
+// carried the whole file in 10-12px Courier: too small to read at native size,
+// and the stems landed between device pixels so what was legible looked soft.
+// Same layout, twice the pixels.
+const SCALE = 2;
+
 const DOC_PAPER = "#fbf6ea";
 const DOC_PAPER_ALT = "#f6eed4";
 const DOC_PAPER_LITE = "#fdfaf0";
@@ -231,6 +245,74 @@ const DOC_INK_SOFT = "#3f3a30";
 const DOC_MUTED = "#7a7568";
 const DOC_RULE_FAINT = "#cdc29a";
 const DOC_SEC_BG = "#efe6c9";
+
+// ── No printed value ends in an ellipsis, and none runs past its box ─────────
+// drawTable used to chop a value and add "…"; drawInfoRow and drawAttendanceRow
+// had no width guard at all and let a long value run off the paper, which is
+// worse - nothing on the page says anything was lost. All three now shrink to
+// fit, and every text input is capped at what its box carries at the floor.
+//
+// Courier is monospace, so a box's capacity is exactly floor(maxW / charW) and
+// charW is 0.6 x the size. The numbers below are that arithmetic at the floor,
+// not guesses. Column widths come from the drawTable call sites, against
+// tableW = 840 - 48 = 792, with 14px of padding per cell.
+const PF_FONT_FAMILY = "'Courier New', monospace";
+const PF_TABLE_PX = 14;
+// The caps below are sized so a full-length value still prints at PF_CAP_PX.
+// The shrink floor sits under that on purpose: it is the net for values that
+// arrive past the cap (a hydrated legacy record, a paste), never a normal size.
+const PF_TABLE_MIN_PX = 9;
+const PF_CAP_PX = 12;
+const PF_INFO_PX = 14;
+const PF_ATT_PX = 14.5;
+const PF_SUBJECT_PX = 17; // the SUBJECT: line, sized to the rule it sits on
+const PF_NOTES_PX = 14;
+const PF_NOTE_LINE_H = 22; // notepad rule pitch; also what calcDocHeight counts
+// Column heads and the label half of every key/value pair. One size for all of
+// them: they are the same kind of word on the page, and letting them drift apart
+// is what made the old form read as three documents stapled together.
+const PF_LABEL_PX = 11.5;
+// Form code, page footer, the section marker - the fine print, deliberately the
+// smallest type on the page but no longer small enough to disappear.
+const PF_META_PX = 10.5;
+const pfFont = (px) => px + "px " + PF_FONT_FAMILY;
+const pfBoldFont = (px) => "bold " + px + "px " + PF_FONT_FAMILY;
+
+const PF_MAXLEN = {
+  // floor(available / 7.201), where 7.2px is one Courier character at
+  // PF_CAP_PX. Round DOWN - 26 chars in 186px is 187.2px, which is over by a
+  // pixel and costs the whole column half a point.
+  ".pf-ec-name": 31, // 226px available
+  ".pf-ec-rel": 25, // 186px
+  ".pf-ec-phone": 46, // 338px
+  ".pf-tr-course": 49, // 356px
+  ".pf-tr-inst": 41, // 298px
+  ".pf-cm-award": 48, // 346px
+  ".pf-cm-issued": 42, // 308px
+  ".pf-di-violation": 31, // 226px
+  ".pf-di-penalty": 25, // 186px
+  ".pf-ml-reason": 77, // 558px
+  ".pf-wc-claim": 16, // 116px
+  ".pf-wc-incident": 45, // 326px
+  // Header lines. These two are not monospace arithmetic - the agency name is
+  // Georgia and the subject line's budget depends on the width of the "SUBJECT:"
+  // label - so both were measured against the same all-caps sample.
+  "#customAgencyName": 52, // centred across 792px at bold 24px Georgia
+  "#subjectName": 80, // 719px of rule; a full-length name lands near 15px
+  // Page-level fields. The attendance cells are counts, so their caps are about
+  // keeping a fat-fingered paste out of the neighbouring column.
+  "#pfAddress": 60,
+  "#pfAttScheduled": 10,
+  "#pfAttPresent": 10,
+  "#pfAttSick": 10,
+  "#pfAttLate": 10,
+  "#pfBgDate": 24,
+};
+
+/** Apply the caps to a fresh .pf-row, or to the whole page at init. */
+function pfApplyCaps(root) {
+  GumaFit.applyCapsBySelector(root, PF_MAXLEN);
+}
 
 function drawDocHeader(ctx, W, data, accent) {
   const margin = 24;
@@ -254,26 +336,29 @@ function drawDocHeader(ctx, W, data, accent) {
   const formCode = ((faction?.short || "PD") + "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const _now = new Date();
   const revStr = String(_now.getMonth() + 1).padStart(2, "0") + "/" + _now.getFullYear();
-  ctx.font = "9.5px 'Courier New', monospace";
+  ctx.font = pfFont(PF_META_PX);
   ctx.fillStyle = DOC_MUTED;
   ctx.textAlign = "left";
-  ctx.fillText("FORM " + formCode + "-101 (REV. " + revStr + ")", margin, y + 9);
+  ctx.fillText("FORM " + formCode + "-101 (REV. " + revStr + ")", margin, y + 10);
   ctx.textAlign = "right";
-  ctx.fillText("DATE PREPARED: " + _now.toLocaleDateString("en-US"), W - margin, y + 9);
-  y += 14;
+  ctx.fillText("DATE PREPARED: " + _now.toLocaleDateString("en-US"), W - margin, y + 10);
+  y += 16;
 
   // Agency name (serif title)
-  ctx.font = "bold 22px 'Georgia', 'Times New Roman', serif";
+  // Agency name: centred on the page, so an over-long one used to run off BOTH
+  // edges. Georgia is proportional, so this one is measured rather than counted.
+  GumaFit.fitFont(ctx, (faction?.name || "AGENCY").toUpperCase(), W - margin * 2, 24, 13,
+    (p) => "bold " + p + "px 'Georgia', 'Times New Roman', serif");
   ctx.fillStyle = DOC_INK;
   ctx.textAlign = "center";
-  ctx.fillText((faction?.name || "AGENCY").toUpperCase(), W / 2, y + 22);
-  y += 28;
+  ctx.fillText((faction?.name || "AGENCY").toUpperCase(), W / 2, y + 24);
+  y += 32;
 
   // Italic subtitle
-  ctx.font = "italic 11px 'Georgia', serif";
+  ctx.font = "italic 12px 'Georgia', serif";
   ctx.fillStyle = DOC_INK_SOFT;
-  ctx.fillText("Office of the Personnel Division — Confidential Internal Records", W / 2, y + 10);
-  y += 14;
+  ctx.fillText("Office of the Personnel Division - Confidential Internal Records", W / 2, y + 11);
+  y += 16;
 
   // Short decorative double rule
   ctx.strokeStyle = DOC_INK;
@@ -287,32 +372,35 @@ function drawDocHeader(ctx, W, data, accent) {
   ctx.moveTo(margin + 40, y + 9);
   ctx.lineTo(W - margin - 40, y + 9);
   ctx.stroke();
-  y += 12;
+  y += 13;
 
   // Document type
-  ctx.font = "bold 14px 'Courier New', monospace";
+  ctx.font = pfBoldFont(16);
   ctx.fillStyle = DOC_INK;
   ctx.textAlign = "center";
-  ctx.fillText("EMPLOYEE PERSONNEL FILE", W / 2, y + 13);
-  y += 18;
+  ctx.fillText("EMPLOYEE PERSONNEL FILE", W / 2, y + 14);
+  y += 20;
 
   // Subject row
-  ctx.font = "bold 11px 'Courier New', monospace";
+  ctx.font = pfBoldFont(PF_LABEL_PX);
   ctx.fillStyle = DOC_INK_SOFT;
   ctx.textAlign = "left";
-  ctx.fillText("SUBJECT:", margin + 4, y + 22);
+  ctx.fillText("SUBJECT:", margin + 4, y + 24);
   const lw = ctx.measureText("SUBJECT:").width;
-  ctx.font = "bold 15px 'Courier New', monospace";
   ctx.fillStyle = DOC_INK;
-  const nameTxt = (data.subjectName || "—").toUpperCase();
-  ctx.fillText(nameTxt, margin + 4 + lw + 10, y + 22);
+  const nameTxt = (data.subjectName || "-").toUpperCase();
+  // The name sits on a rule that runs to the right margin, so that rule is its
+  // budget. It used to be painted at a fixed size and simply crossed the edge.
+  const nameX = margin + 4 + lw + 10;
+  GumaFit.fitFont(ctx, nameTxt, W - margin - 4 - nameX, PF_SUBJECT_PX, PF_TABLE_MIN_PX, pfBoldFont);
+  ctx.fillText(nameTxt, nameX, y + 24);
   ctx.strokeStyle = DOC_INK;
   ctx.lineWidth = 0.8;
   ctx.beginPath();
-  ctx.moveTo(margin + 4 + lw + 10, y + 26);
-  ctx.lineTo(W - margin - 4, y + 26);
+  ctx.moveTo(nameX, y + 28);
+  ctx.lineTo(W - margin - 4, y + 28);
   ctx.stroke();
-  y += 34;
+  y += 36;
 
   return y;
 }
@@ -321,28 +409,28 @@ function drawSectionHeader(ctx, W, y, title, accent) {
   const margin = 24,
     tableW = W - 48;
   ctx.fillStyle = DOC_SEC_BG;
-  ctx.fillRect(margin, y, tableW, 24);
+  ctx.fillRect(margin, y, tableW, 27);
   ctx.strokeStyle = DOC_INK;
   ctx.lineWidth = 0.8;
-  ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 23);
+  ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 26);
 
-  ctx.font = "bold 12px 'Georgia', 'Times New Roman', serif";
+  ctx.font = "bold 13.5px 'Georgia', 'Times New Roman', serif";
   ctx.fillStyle = DOC_INK;
   ctx.textAlign = "left";
-  ctx.fillText(title, margin + 12, y + 17);
+  ctx.fillText(title, margin + 12, y + 19);
 
-  ctx.font = "9.5px 'Courier New', monospace";
+  ctx.font = pfFont(PF_META_PX);
   ctx.fillStyle = DOC_MUTED;
   ctx.textAlign = "right";
-  ctx.fillText("§", W - margin - 12, y + 17);
-  return y + 28;
+  ctx.fillText("§", W - margin - 12, y + 19);
+  return y + 31;
 }
 
 function drawTable(ctx, W, y, accent, headers, colWidths, rows) {
   const margin = 24,
     tableW = W - 48;
-  const HDR_H = 24,
-    ROW_H = 26;
+  const HDR_H = 27,
+    ROW_H = 31;
 
   // Header row
   ctx.fillStyle = DOC_PAPER_ALT;
@@ -351,15 +439,23 @@ function drawTable(ctx, W, y, accent, headers, colWidths, rows) {
   ctx.lineWidth = 0.8;
   ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, HDR_H - 1);
 
-  ctx.font = "bold 10.5px 'Courier New', monospace";
+  ctx.font = pfBoldFont(PF_LABEL_PX);
   ctx.fillStyle = DOC_INK;
   ctx.textAlign = "left";
   let cx = margin + 12;
   headers.forEach((h, i) => {
-    ctx.fillText(h, cx, y + 16);
+    ctx.fillText(h, cx, y + 18);
     cx += colWidths[i];
   });
   y += HDR_H;
+
+  // Value sizes, one per column across every row. This is a personnel record:
+  // an ellipsis silently drops what somebody typed, and on this document that
+  // could be a disciplinary finding or a claim number. Values shrink instead,
+  // and PF_MAXLEN keeps the inputs inside what each column carries at the
+  // floor. See js/guma-fit.js.
+  const valueW = colWidths.map((w) => w - 14);
+  const colFonts = GumaFit.colFonts(ctx, rows, valueW, PF_TABLE_PX, PF_TABLE_MIN_PX, pfFont);
 
   const display = rows.length > 0 ? rows : [null];
   display.forEach((row, ri) => {
@@ -386,20 +482,16 @@ function drawTable(ctx, W, y, accent, headers, colWidths, rows) {
 
     cx = margin + 12;
     if (row === null) {
-      ctx.font = "italic 12px 'Courier New', monospace";
+      ctx.font = "italic " + PF_TABLE_PX + "px " + PF_FONT_FAMILY;
       ctx.fillStyle = DOC_MUTED;
       ctx.textAlign = "left";
-      ctx.fillText("— No records on file —", cx, y + 18);
+      ctx.fillText("- No records on file -", cx, y + 21);
     } else {
       row.forEach((val, vi) => {
-        const maxW = colWidths[vi] - 14;
-        let text = val || "—";
-        ctx.font = "12.5px 'Courier New', monospace";
+        ctx.font = pfFont(colFonts[vi]);
         ctx.fillStyle = val ? DOC_INK : DOC_MUTED;
         ctx.textAlign = "left";
-        while (ctx.measureText(text).width > maxW && text.length > 1) text = text.slice(0, -1);
-        if (text.length < (val || "—").length) text += "…";
-        ctx.fillText(text, cx, y + 18);
+        ctx.fillText(val || "-", cx, y + 21);
         cx += colWidths[vi];
       });
     }
@@ -420,26 +512,39 @@ function drawInfoRow(ctx, W, y, pairs) {
   const margin = 24,
     tableW = W - 48;
   ctx.fillStyle = DOC_PAPER_LITE;
-  ctx.fillRect(margin, y, tableW, 30);
+  ctx.fillRect(margin, y, tableW, 34);
   ctx.strokeStyle = DOC_INK;
   ctx.lineWidth = 0.8;
-  ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 29);
+  ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 33);
 
+  // The row lays its pairs out left to right with no fixed columns, so each
+  // value's budget is what is left of the box after the labels and the pairs
+  // already placed - measured as we go rather than assumed.
+  const rightEdge = margin + tableW - 14;
   let cx = margin + 14;
-  pairs.forEach(([label, val]) => {
-    ctx.font = "bold 10.5px 'Courier New', monospace";
+  pairs.forEach(([label, val], i) => {
+    ctx.font = pfBoldFont(PF_LABEL_PX);
     ctx.fillStyle = DOC_INK_SOFT;
     ctx.textAlign = "left";
     const lbl = label.toUpperCase() + ":";
-    ctx.fillText(lbl, cx, y + 20);
+    ctx.fillText(lbl, cx, y + 22);
     cx += ctx.measureText(lbl).width + 8;
-    ctx.font = "12.5px 'Courier New', monospace";
+
+    const display = val || "-";
+    // Reserve room for the labels of the pairs still to come, so an early long
+    // value cannot squeeze a later one out of the box entirely.
+    let reserved = 0;
+    for (let j = i + 1; j < pairs.length; j++) {
+      ctx.font = pfBoldFont(PF_LABEL_PX);
+      reserved += ctx.measureText(pairs[j][0].toUpperCase() + ":").width + 8 + 28;
+    }
+    const budget = Math.max(40, rightEdge - cx - reserved);
+    GumaFit.fitFont(ctx, display, budget, PF_INFO_PX, PF_TABLE_MIN_PX, pfFont);
     ctx.fillStyle = val ? DOC_INK : DOC_MUTED;
-    const display = val || "—";
-    ctx.fillText(display, cx, y + 20);
+    ctx.fillText(display, cx, y + 22);
     cx += ctx.measureText(display).width + 28;
   });
-  return y + 42;
+  return y + 46;
 }
 
 function drawAttendanceRow(ctx, W, y, att) {
@@ -447,17 +552,17 @@ function drawAttendanceRow(ctx, W, y, att) {
     tableW = W - 48,
     colW = tableW / 4;
   ctx.fillStyle = DOC_PAPER_LITE;
-  ctx.fillRect(margin, y, tableW, 32);
+  ctx.fillRect(margin, y, tableW, 36);
   ctx.strokeStyle = DOC_INK;
   ctx.lineWidth = 0.8;
-  ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 31);
+  ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 35);
 
   for (let i = 1; i < 4; i++) {
     ctx.strokeStyle = DOC_RULE_FAINT;
     ctx.lineWidth = 0.6;
     ctx.beginPath();
     ctx.moveTo(margin + colW * i, y + 4);
-    ctx.lineTo(margin + colW * i, y + 28);
+    ctx.lineTo(margin + colW * i, y + 32);
     ctx.stroke();
   }
 
@@ -468,15 +573,17 @@ function drawAttendanceRow(ctx, W, y, att) {
     ["Late", att.late],
   ].forEach(([label, val], i) => {
     const ax = margin + 12 + i * colW;
-    ctx.font = "bold 10px 'Courier New', monospace";
+    ctx.font = pfBoldFont(PF_LABEL_PX);
     ctx.fillStyle = DOC_INK_SOFT;
     ctx.textAlign = "left";
-    ctx.fillText(label.toUpperCase() + ":", ax, y + 13);
-    ctx.font = "13px 'Courier New', monospace";
+    ctx.fillText(label.toUpperCase() + ":", ax, y + 15);
+    // Stay inside this quarter of the row: the cell has a visible divider on
+    // its right, so an over-long count used to cross it.
+    GumaFit.fitFont(ctx, val || "-", colW - 24, PF_ATT_PX, PF_TABLE_MIN_PX, pfFont);
     ctx.fillStyle = val ? DOC_INK : DOC_MUTED;
-    ctx.fillText(val || "—", ax, y + 26);
+    ctx.fillText(val || "-", ax, y + 30);
   });
-  return y + 42;
+  return y + 46;
 }
 
 function drawNotesSection(ctx, W, y, notes) {
@@ -484,7 +591,7 @@ function drawNotesSection(ctx, W, y, notes) {
     tableW = W - 48,
     maxLineW = tableW - 28;
   if (notes && notes.trim()) {
-    ctx.font = "13px 'Courier New', monospace";
+    ctx.font = pfFont(PF_NOTES_PX);
     const lines = [];
     notes.split("\n").forEach((para) => {
       if (!para.trim()) {
@@ -501,7 +608,7 @@ function drawNotesSection(ctx, W, y, notes) {
       });
       if (line) lines.push(line);
     });
-    const noteH = lines.length * 20 + 16;
+    const noteH = lines.length * PF_NOTE_LINE_H + 16;
     ctx.fillStyle = DOC_PAPER_LITE;
     ctx.fillRect(margin, y, tableW, noteH);
     ctx.strokeStyle = DOC_INK;
@@ -513,26 +620,26 @@ function drawNotesSection(ctx, W, y, notes) {
     ctx.lineWidth = 0.5;
     for (let i = 1; i <= lines.length; i++) {
       ctx.beginPath();
-      ctx.moveTo(margin + 14, y + 6 + i * 20);
-      ctx.lineTo(margin + tableW - 14, y + 6 + i * 20);
+      ctx.moveTo(margin + 14, y + 6 + i * PF_NOTE_LINE_H);
+      ctx.lineTo(margin + tableW - 14, y + 6 + i * PF_NOTE_LINE_H);
       ctx.stroke();
     }
     lines.forEach((l, i) => {
-      ctx.font = "13px 'Courier New', monospace";
+      ctx.font = pfFont(PF_NOTES_PX);
       ctx.fillStyle = DOC_INK;
       ctx.textAlign = "left";
-      ctx.fillText(l, margin + 14, y + 20 + i * 20);
+      ctx.fillText(l, margin + 14, y + PF_NOTE_LINE_H + i * PF_NOTE_LINE_H);
     });
   } else {
     ctx.fillStyle = DOC_PAPER_LITE;
-    ctx.fillRect(margin, y, tableW, 32);
+    ctx.fillRect(margin, y, tableW, 36);
     ctx.strokeStyle = DOC_INK;
     ctx.lineWidth = 0.8;
-    ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 31);
-    ctx.font = "italic 13px 'Courier New', monospace";
+    ctx.strokeRect(margin + 0.5, y + 0.5, tableW - 1, 35);
+    ctx.font = "italic " + PF_NOTES_PX + "px " + PF_FONT_FAMILY;
     ctx.fillStyle = DOC_MUTED;
     ctx.textAlign = "left";
-    ctx.fillText("— No additional notes on file —", margin + 14, y + 21);
+    ctx.fillText("- No additional notes on file -", margin + 14, y + 23);
   }
 }
 
@@ -541,17 +648,17 @@ function drawDocFooter(ctx, W, H) {
   ctx.strokeStyle = DOC_INK;
   ctx.lineWidth = 0.5;
   ctx.beginPath();
-  ctx.moveTo(margin, H - 30);
-  ctx.lineTo(W - margin, H - 30);
+  ctx.moveTo(margin, H - 34);
+  ctx.lineTo(W - margin, H - 34);
   ctx.stroke();
-  ctx.font = "9px 'Courier New', monospace";
+  ctx.font = pfFont(PF_META_PX);
   ctx.fillStyle = DOC_MUTED;
   ctx.textAlign = "left";
-  ctx.fillText("PAGE 1 OF 1", margin, H - 18);
+  ctx.fillText("PAGE 1 OF 1", margin, H - 19);
   ctx.textAlign = "center";
-  ctx.fillText("— END OF FILE —", W / 2, H - 18);
+  ctx.fillText("- END OF FILE -", W / 2, H - 19);
   ctx.textAlign = "right";
-  ctx.fillText("INTERNAL USE ONLY", W - margin, H - 18);
+  ctx.fillText("INTERNAL USE ONLY", W - margin, H - 19);
 }
 
 function drawConfidentialStamp(ctx, W, H) {
@@ -566,22 +673,24 @@ function drawConfidentialStamp(ctx, W, H) {
   ctx.fillText("CONFIDENTIAL", 0, 26);
   ctx.restore();
 
-  // Rubber stamp box top-right
+  // Rubber stamp box, top-right. It sits below the DATE PREPARED line and to
+  // the right of where the agency name ends: a stamp lands on top of print by
+  // nature, but not on the two lines the reader needs first.
   ctx.save();
   ctx.globalAlpha = 0.55;
-  ctx.translate(W - 210, 34);
+  ctx.translate(W - 186, 46);
   ctx.rotate(-0.07);
   ctx.strokeStyle = "#a40000";
   ctx.lineWidth = 2.2;
-  ctx.strokeRect(0, 0, 180, 44);
+  ctx.strokeRect(0, 0, 160, 42);
   ctx.lineWidth = 0.9;
-  ctx.strokeRect(4, 4, 172, 36);
-  ctx.font = "bold 16px 'Georgia', 'Times New Roman', serif";
+  ctx.strokeRect(4, 4, 152, 34);
+  ctx.font = "bold 15px 'Georgia', 'Times New Roman', serif";
   ctx.fillStyle = "#a40000";
   ctx.textAlign = "center";
-  ctx.fillText("CONFIDENTIAL", 90, 22);
-  ctx.font = "8.5px 'Courier New', monospace";
-  ctx.fillText("PERSONNEL DIVISION", 90, 34);
+  ctx.fillText("CONFIDENTIAL", 80, 21);
+  ctx.font = pfFont(8.5);
+  ctx.fillText("PERSONNEL DIVISION", 80, 33);
   ctx.restore();
 }
 
@@ -593,8 +702,11 @@ function generateDoc() {
 
   const data = getDocData();
   const H = calcDocHeight(data);
-  canvas.width = W;
-  canvas.height = H;
+  // Backing store at ×SCALE, coordinates still logical: setting canvas.width
+  // resets the transform, so the scale has to be re-applied on every render.
+  canvas.width = W * SCALE;
+  canvas.height = H * SCALE;
+  ctx.scale(SCALE, SCALE);
 
   const accent = (typeof faction !== "undefined" && faction.cardBorder) || "#c8b97a";
   const tableW = W - 48;
@@ -710,23 +822,13 @@ async function downloadDoc() {
 
 async function copyDocToClipboard() {
   const canvas = document.getElementById("docCanvas");
-  const btn = document.getElementById("copyBtn");
-  canvas.toBlob(async (blob) => {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "personnel");
-      const countEl = document.getElementById("downloadCount");
-      if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
-      await GumaHistoryWiring.save(canvas);
-      if (btn) {
-        const orig = btn.innerHTML;
-        btn.textContent = "Copied!";
-        setTimeout(() => (btn.innerHTML = orig), 2000);
-      }
-    } catch (err) {
-      alert("Could not copy to clipboard: " + err);
-    }
-  }, "image/png");
+  if (!(await GumaClipboard.copyCanvas(canvas))) return;
+
+  const newCount = await window.GumaCounters?.trackDownload(window.GUMA_GENERATOR_KEY ?? "personnel");
+  const countEl = document.getElementById("downloadCount");
+  if (newCount !== null && countEl) countEl.textContent = window.GumaCounters.fmt(newCount);
+  await GumaHistoryWiring.save(canvas);
+  GumaClipboard.flash(document.getElementById("copyDiscordBtn"));
 }
 
 function debounce(fn, delay = 300) {
@@ -743,6 +845,7 @@ function initPersonnelGenerator({ defaultFaction = "lspd" } = {}) {
   FACTION_KEY = urlFaction && FACTIONS[urlFaction] ? urlFaction : defaultFaction;
   faction = FACTIONS[FACTION_KEY];
   buildFactionSwitcher(switchFaction, FACTION_KEY, null);
+  pfApplyCaps(document);
   generateDoc();
   document.querySelector(".guma-panel")?.addEventListener("input", debounce(generateDoc));
 }
@@ -823,6 +926,13 @@ function pfHydrateState(payload) {
 function pfBuildLabel(payload) {
   return (payload.subjectName || "").trim() || "Unnamed";
 }
+
+// The preview modal delegates export here so counters and history keep firing.
+window.GumaExport = {
+  download: downloadDoc,
+  copy: copyDocToClipboard,
+  canvas: () => document.getElementById("docCanvas"),
+};
 
 GumaHistoryWiring.register({
   key: "personnel",

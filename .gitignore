@@ -2,7 +2,7 @@
 .vscode
 .env
 
-# Claude — keep CLAUDE.md and .claude/commands/ tracked, ignore local-only files
+# Claude - keep CLAUDE.md and .claude/commands/ tracked, ignore local-only files
 .claude/settings.local.json
 .claude/cache/
 .claude/sessions/
@@ -10,3 +10,6 @@
 
 # materials folder
 /materialy
+
+# local working notes (planning docs, not product documentation)
+/WYSIWYG_REPORTS_PLAN.md

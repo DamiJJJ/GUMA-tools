@@ -1,4 +1,4 @@
-// Wspólne style aplikacji — wszystkie warstwy @layer base/components/utilities
+// Shared app styles - every @layer base/components/utilities rule lives here
 
 (function () {
   const style = document.createElement("style");
@@ -42,6 +42,13 @@
           linear-gradient(180deg, #5f0606 0%, #5e0404 40%, #4a0303 100%);
       }
 
+      /* The <guma-header> host would otherwise become the sticky <header>'s
+         containing block and cap it at its own height, killing the sticky
+         effect. display:contents promotes <header> to a direct body child. */
+      guma-header {
+        display: contents;
+      }
+
       ::selection {
         background: rgba(45, 71, 135, 0.25);
         color: #ffffff;
@@ -51,7 +58,7 @@
         color: #fff;
       }
 
-      /* Date/time picker icon — invert tylko w dark */
+      /* Date/time picker icon - invert tylko w dark */
       input[type="date"]::-webkit-calendar-picker-indicator,
       input[type="time"]::-webkit-calendar-picker-indicator,
       input[type="datetime-local"]::-webkit-calendar-picker-indicator {
@@ -78,7 +85,7 @@
     @layer components {
       /* ─── Layout ─── */
       .guma-page {
-        @apply mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8;
+        @apply mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8 2xl:px-12;
       }
       .guma-topbar {
         @apply sticky top-0 z-30 border-b backdrop-blur
@@ -107,6 +114,184 @@
                dark:border-guma-border dark:bg-guma-panel dark:shadow-panel;
       }
 
+      /* ─── Upload dropzone ─── */
+      .guma-drop {
+        @apply flex cursor-pointer flex-col items-center justify-center rounded-xl
+               border-2 border-dashed px-4 py-5 text-center text-sm outline-none transition
+               border-guma-l-border-2 text-guma-l-muted
+               hover:border-guma-l-gold hover:text-guma-l-gold
+               focus-visible:border-guma-l-gold focus-visible:text-guma-l-gold
+               dark:border-guma-border-2 dark:text-guma-muted
+               dark:hover:border-guma-gold dark:hover:text-guma-gold
+               dark:focus-visible:border-guma-gold dark:focus-visible:text-guma-gold;
+      }
+      .guma-drop.is-hot {
+        @apply border-guma-l-gold bg-guma-l-panel-2 text-guma-l-gold
+               dark:border-guma-gold dark:bg-guma-panel-2 dark:text-guma-gold;
+      }
+      .guma-drop-hint {
+        @apply mt-1 text-[11px] leading-5 text-guma-l-muted/80 dark:text-guma-muted/70;
+      }
+
+      /* ─── Themed scrollbar ─── */
+      /* Raw hex instead of @apply — Tailwind cannot attach the dark: variant
+         to a ::-webkit-scrollbar-* selector. Values mirror the guma-l-border-2
+         / guma-l-gold and guma-border-2 / guma-gold tokens. */
+      .guma-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #bfc9dd transparent;
+      }
+      .guma-scroll::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      .guma-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .guma-scroll::-webkit-scrollbar-thumb {
+        background-color: #bfc9dd;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        border-radius: 999px;
+        transition: background-color 0.2s ease;
+      }
+      .guma-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: #2d4787;
+      }
+      .guma-scroll::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      html.dark .guma-scroll {
+        scrollbar-color: #2a2a5a transparent;
+      }
+      html.dark .guma-scroll::-webkit-scrollbar-thumb {
+        background-color: #2a2a5a;
+      }
+      html.dark .guma-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: #f0c040;
+      }
+
+      /* ─── Canvas preview ─── */
+      /* Scroll box around the canvas. From xl the preview panel is sticky,
+         so the box is capped to the viewport and tall documents scroll
+         inside it instead of stretching the page. */
+      .guma-canvas-wrap {
+        @apply flex w-full items-start justify-center overflow-y-auto overflow-x-hidden
+               xl:max-h-[calc(100vh_-_21rem)];
+      }
+      /* Auto width + height keeps the intrinsic aspect ratio and caps the
+         canvas at its native pixel size, so the preview never upscales
+         into a blurry mess. A flat hairline edge, no drop shadow — every
+         generator renders its document the same way.
+
+         The max-h mirrors .guma-canvas-wrap's own cap. Without it the canvas
+         was constrained by width only, so a tall document (an officer card
+         carrying employment history is 840x1050) scaled to the panel's width
+         and then overflowed its height, and the wrap scrolled. Constraining
+         both axes makes a replaced element scale down to fit inside both while
+         keeping its aspect ratio, which is what fits the card in the panel. */
+      .guma-canvas-preview {
+        @apply block h-auto w-auto min-w-0 max-w-full border
+               border-guma-l-border-2 dark:border-guma-border-2
+               xl:max-h-[calc(100vh_-_21rem)];
+      }
+      /* The card half of the pair above is the wrong trade for a multi-section
+         document: fitting a 1:1.6 page into the box height leaves it about 40%
+         of the panel's width, and at that size nothing on it can be read. This
+         modifier drops the height cap so the page takes the full width it is
+         given and scrolls inside .guma-canvas-wrap instead - the reader scrolls
+         a legible document rather than squinting at a whole illegible one.
+         Width still comes from max-w-full, so the ×2 backing store is never
+         upscaled past its native pixels. */
+      .guma-canvas-preview-doc {
+        @apply xl:max-h-none;
+      }
+
+      /* ─── Photo cropping on the card canvas ─── */
+      /* Positioned box the crop chrome is absolutely placed in. It goes on the
+         scroll box rather than on a wrapper around the canvas: a wrapper would
+         shrink-wrap to the canvas' full width and leave a height-capped card
+         hanging off to one side, and the chrome is anchored to the canvas'
+         offset box anyway, so scrolling carries it along. */
+      .guma-pc-wrap {
+        @apply relative;
+      }
+      /* Dragging must pan the photo, not scroll the page under the finger.
+         Only set while a photo is actually loaded (js/photo-crop.js), so a
+         card without one keeps normal touch scrolling over its preview. */
+      .guma-pc-on {
+        touch-action: none;
+      }
+      /* Rule-of-thirds grid, shown while the photo is being moved. It sits over
+         arbitrary imagery, so it is white with a dark halo in both themes. */
+      .guma-pc-guides {
+        @apply pointer-events-none absolute;
+      }
+      .guma-pc-guide {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+      }
+      .guma-pc-guide-v1,
+      .guma-pc-guide-v2 {
+        top: 0;
+        bottom: 0;
+        width: 1px;
+      }
+      .guma-pc-guide-h1,
+      .guma-pc-guide-h2 {
+        left: 0;
+        right: 0;
+        height: 1px;
+      }
+      .guma-pc-guide-v1 {
+        left: 33.333%;
+      }
+      .guma-pc-guide-v2 {
+        left: 66.667%;
+      }
+      .guma-pc-guide-h1 {
+        top: 33.333%;
+      }
+      .guma-pc-guide-h2 {
+        top: 66.667%;
+      }
+      /* Floating tool bar, pinned to the bottom edge of the photo slot. Dark
+         glass in both themes for the same reason as the guides. */
+      .guma-pc-tools {
+        @apply absolute z-10 flex items-center gap-1 rounded-lg px-1.5 py-1;
+        transform: translate(-50%, -100%);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(10, 10, 30, 0.78);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(3px);
+        line-height: 1;
+      }
+      .guma-pc-btn {
+        @apply inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors;
+        color: rgba(255, 255, 255, 0.85);
+        cursor: pointer;
+      }
+      .guma-pc-btn:hover {
+        background: #f0c040;
+        color: #0b0b3a;
+      }
+      /* Reset is a word, not a glyph: every icon for it is a curved arrow, and
+         the button next to it already uses one to mean rotate. */
+      .guma-pc-btn-text {
+        @apply w-auto px-1.5 text-[11px] font-bold;
+      }
+      .guma-pc-value {
+        @apply select-none px-1 text-[11px] font-bold tabular-nums;
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .guma-pc-sep {
+        width: 1px;
+        height: 14px;
+        background: rgba(255, 255, 255, 0.25);
+      }
+
       /* ─── Section titles (index) ─── */
       .guma-section-title {
         @apply text-center text-2xl font-bold uppercase tracking-[0.18em] md:text-3xl
@@ -115,6 +300,13 @@
       .guma-section-subtitle {
         @apply mt-2 text-center text-sm uppercase tracking-[0.22em]
                text-guma-l-muted dark:text-guma-muted;
+      }
+      /* Category divider inside a section (e.g. Police / Fire-Medical reports) */
+      .guma-subsection-title {
+        @apply mb-5 flex items-center gap-4 text-left text-xs font-bold uppercase tracking-[0.22em]
+               text-guma-l-muted dark:text-guma-muted
+               after:h-px after:flex-1 after:bg-guma-l-border after:content-['']
+               dark:after:bg-guma-border;
       }
 
       /* ─── Index tiles ─── */
@@ -179,6 +371,83 @@
                dark:border-guma-gold/50 dark:bg-guma-gold/10 dark:text-guma-gold;
       }
 
+      /* ─── Latest video widget (index) ─── */
+      /* A wide, low tile: thumbnail left, text right from sm up. The hover
+         treatment mirrors .guma-card so it reads as part of the same tile
+         family, minus the lift - js/tailwind-config.js disables that on the
+         index tiles too. */
+      /* sm:items-center is load-bearing: the default stretch would hand the
+         thumbnail the full row height at a fixed width, overriding its
+         aspect-ratio and letting object-cover crop the frame left and right.
+         Centred instead, the box keeps a true 16:9 and the whole thumbnail
+         stays visible however tall the text column gets. */
+      .guma-video-card {
+        @apply flex flex-col gap-4 rounded-2xl border p-4 no-underline transition
+               border-guma-l-border bg-guma-l-panel/95 shadow-panel-light
+               hover:border-guma-l-gold hover:bg-guma-l-panel-2
+               dark:border-guma-border dark:bg-guma-panel/95 dark:shadow-panel
+               dark:hover:border-guma-gold dark:hover:bg-guma-panel-2
+               sm:flex-row sm:items-center sm:gap-5;
+      }
+      .guma-video-thumb {
+        @apply relative w-full shrink-0 overflow-hidden rounded-xl
+               bg-guma-l-dark dark:bg-guma-dark sm:w-80;
+        aspect-ratio: 16 / 9;
+      }
+      .guma-video-thumb img {
+        @apply h-full w-full object-cover;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .guma-video-card:hover .guma-video-thumb img {
+        transform: scale(1.05);
+      }
+      /* Gold in both themes: the badge sits on arbitrary video imagery rather
+         than on a panel, so the light-theme navy accent has no surface to
+         read against. */
+      .guma-video-play {
+        @apply absolute left-1/2 top-1/2 flex h-14 w-14 items-center justify-center rounded-full;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(10, 10, 30, 0.62);
+        color: #fff;
+        backdrop-filter: blur(2px);
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      }
+      .guma-video-card:hover .guma-video-play {
+        border-color: #f0c040;
+        background: #f0c040;
+        color: #0b0b3a;
+      }
+      .guma-video-body {
+        @apply flex min-w-0 flex-1 flex-col justify-center gap-2 px-1 pb-1 sm:px-0 sm:pr-2;
+      }
+      .guma-video-kicker {
+        @apply text-[11px] font-bold uppercase tracking-[0.18em]
+               text-guma-l-gold dark:text-guma-gold;
+      }
+      /* Video titles run long and are not written for this box, so they are
+         clamped to two lines instead of stretching the tile. */
+      .guma-video-title {
+        @apply text-base font-bold leading-6 tracking-[0.04em] transition
+               text-guma-l-text dark:text-guma-text md:text-lg md:leading-7;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+      }
+      .guma-video-card:hover .guma-video-title {
+        @apply text-guma-l-gold dark:text-guma-gold;
+      }
+      .guma-video-meta {
+        @apply text-xs text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-video-cta {
+        @apply mt-1 inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1
+               text-[11px] font-bold uppercase tracking-[0.16em]
+               border-guma-l-gold bg-guma-l-input text-guma-l-gold
+               dark:border-guma-gold dark:bg-guma-input dark:text-guma-gold;
+      }
+
       /* ─── Form labels/inputs (card generators) ─── */
       .guma-label {
         @apply mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em]
@@ -236,6 +505,83 @@
                dark:border-guma-gold dark:bg-guma-panel-2 dark:text-guma-gold;
       }
 
+      /* ─── Segmented control (e.g. card layout picker) ─── */
+      .guma-seg {
+        @apply flex w-full gap-2;
+      }
+      .guma-seg-btn {
+        @apply flex flex-1 cursor-pointer items-center justify-center rounded-xl border-2 px-3 py-2.5
+               text-[11px] font-bold uppercase tracking-[0.14em] transition
+               border-guma-l-border bg-guma-l-panel text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border dark:bg-guma-panel dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-seg-btn.active {
+        @apply border-guma-l-gold bg-guma-l-panel-2 text-guma-l-gold
+               dark:border-guma-gold dark:bg-guma-panel-2 dark:text-guma-gold;
+      }
+
+      /* ─── Bodycam overlay: preview stage ─── */
+      .guma-bcam-stage {
+        @apply relative flex w-full items-center justify-center overflow-hidden rounded-xl border p-3
+               border-guma-l-border bg-guma-l-dark
+               dark:border-guma-border dark:bg-guma-dark;
+        min-height: 280px;
+      }
+      /* Shrink-wraps the canvas so the selection overlay can be positioned
+         straight against the rendered frame. */
+      .guma-bcam-frame {
+        @apply relative inline-block max-w-full;
+        line-height: 0;
+      }
+      .guma-bcam-canvas {
+        @apply block h-auto w-auto max-w-full rounded-md border
+               border-guma-l-border-2 dark:border-guma-border-2;
+        max-height: calc(100vh - 19rem);
+        touch-action: none;
+      }
+      .guma-bcam-drop {
+        @apply pointer-events-none absolute inset-3 flex flex-col items-center justify-center gap-3
+               rounded-xl border-2 border-dashed px-6 text-center transition
+               border-guma-l-border-2 text-guma-l-muted
+               dark:border-guma-border-2 dark:text-guma-muted;
+      }
+      .guma-bcam-drop.is-hot {
+        @apply border-guma-l-gold text-guma-l-gold dark:border-guma-gold dark:text-guma-gold;
+      }
+      /* Dashed marquee around the picked layer. Dark rings on both sides of
+         the gold keep it readable over any screenshot. */
+      .guma-bcam-sel {
+        @apply pointer-events-none absolute;
+        outline: 2px dashed #f0c040;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45), 0 0 0 6px rgba(0, 0, 0, 0.28);
+      }
+      /* Resize grip, hung off the bottom-left corner of the selection.
+         Drag-only: there is nothing to click, so it is not a button. */
+      .guma-bcam-scale {
+        @apply pointer-events-auto absolute bottom-0 left-0 flex h-7 w-7 items-center justify-center
+               rounded-lg border text-guma-gold transition-colors;
+        transform: translate(-50%, 50%);
+        border-color: #f0c040;
+        background: #0b0b3a;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        cursor: nesw-resize;
+        touch-action: none;
+      }
+      .guma-bcam-scale:hover {
+        background: #f0c040;
+        color: #000;
+      }
+      /* Toggle row: element name on the left, checkbox on the right. */
+      .guma-bcam-switch {
+        @apply flex cursor-pointer select-none items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition
+               text-guma-l-text hover:bg-black/5
+               dark:text-guma-text dark:hover:bg-white/5;
+      }
+      .guma-bcam-slider {
+        @apply w-full cursor-pointer accent-guma-gold;
+      }
+
       /* ─── Reports: dynamic rows ─── */
       .dynamic-row {
         @apply relative mb-3 rounded-xl border p-4
@@ -269,7 +615,8 @@
                text-guma-l-muted dark:text-guma-muted;
       }
       .form-group input,
-      .form-group select {
+      .form-group select,
+      .form-group textarea {
         @apply w-full rounded-lg border px-3 py-2 text-sm transition appearance-auto
                border-guma-l-border-2 bg-guma-l-input text-guma-l-text placeholder:text-guma-l-muted/60
                focus:border-guma-l-gold focus:ring-1 focus:ring-guma-l-gold/40 focus:outline-none
@@ -294,6 +641,397 @@
         @apply flex cursor-pointer items-center gap-2 text-sm select-none
                text-guma-l-text dark:text-guma-text;
       }
+
+      /* ─── WYSIWYG canvas editing (report generators) ─── */
+      /* The form panel stays in the DOM as the state store; while in-canvas
+         editing is active it is visually hidden but focusable. Never
+         display:none - a hidden input cannot be focused and native pickers
+         refuse to open on it.
+         The gate is .guma-ce-on, put on <html> by js/canvas-edit.js once it
+         has attached and its media query matches. A bare media query here
+         would hide the form even on a page where that script never loaded,
+         leaving a dead canvas and no way to enter anything. */
+      .guma-ce-on .guma-ce-host {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      /* Scroll box override: the shared wrap hides overflow-x, but a zoomed
+         document must scroll horizontally on the editing pages.
+         min-width:0 is load-bearing - without it the flex chain sizes itself
+         to the zoomed canvas, the panel stretches the page instead of
+         scrolling, and any fit-to-width measurement reads back the current
+         zoom rather than the available width. */
+      /* Report pages sit under a shorter page header than the card generators,
+         so they can spend less of the viewport on chrome and give the rest to
+         the document. One shared reserve cannot serve both: sized for the cards
+         it wastes ~40px on every report, sized for the reports the cards hang
+         below the fold. This override is the report half of that pair; the card
+         half is .guma-canvas-wrap's own max-h. Both are measured so the box
+         ends just above the fold - a box that runs past it has to be scrolled
+         to, which defeats the point of making it tall. */
+      .guma-ce-wrap {
+        @apply xl:max-h-[calc(100vh_-_18.5rem)] xl:justify-start xl:overflow-x-auto;
+        min-width: 0;
+      }
+      /* Shrink-wraps the canvas so all edit chrome can be positioned straight
+         against the rendered document (same trick as .guma-bcam-frame). The
+         hairline border lives here, not on the canvas, so hit-test math never
+         has to subtract it. */
+      .guma-ce-frame {
+        @apply relative mx-auto inline-block max-w-full border
+               border-guma-l-border-2 dark:border-guma-border-2;
+        line-height: 0;
+      }
+      .guma-ce-canvas {
+        @apply block h-auto w-auto max-w-full;
+      }
+      @media (min-width: 1280px) {
+        .guma-ce-frame {
+          max-width: none;
+        }
+        .guma-ce-canvas {
+          max-width: none;
+        }
+      }
+      /* Chrome layers exist only while editing is active (xl+). The document
+         itself is white paper in both app themes, so all chrome over it uses
+         the navy accent in both - gold has too little contrast on white. */
+      .guma-ce-layer {
+        display: none;
+      }
+      .guma-ce-active .guma-ce-layer {
+        display: block;
+      }
+      .guma-ce-svg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .guma-ce-svg rect {
+        fill: none;
+        stroke: #2d4787;
+        stroke-opacity: 0.45;
+        stroke-width: 1;
+        stroke-dasharray: 3 2;
+      }
+      .guma-ce-hover {
+        position: absolute;
+        pointer-events: none;
+        background: rgba(45, 71, 135, 0.08);
+        outline: 1px solid rgba(45, 71, 135, 0.55);
+      }
+      .guma-ce-chips {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .guma-ce-chip {
+        position: absolute;
+        pointer-events: auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid rgba(45, 71, 135, 0.7);
+        border-radius: 4px;
+        background: #e8eef9;
+        color: #2d4787;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .guma-ce-chip:hover {
+        background: #2d4787;
+        color: #fff;
+      }
+      .guma-ce-chip-add {
+        border-style: dashed;
+        background: transparent;
+      }
+      .guma-ce-chip-add:hover {
+        border-style: solid;
+        background: #2d4787;
+        color: #fff;
+      }
+      /* Pick-one affordance the document already paints itself (party type,
+         day of week): an invisible hit target that only tints on hover, so
+         the printed checkbox is never drawn twice. */
+      .guma-ce-chip-pick {
+        border-color: transparent;
+        background: transparent;
+      }
+      .guma-ce-chip-pick:hover {
+        border-color: rgba(45, 71, 135, 0.7);
+        background: rgba(45, 71, 135, 0.14);
+      }
+      /* The single floating editor, mounted inside the frame. */
+      .guma-ce-editor {
+        position: absolute;
+        z-index: 10;
+        box-sizing: border-box;
+        padding: 0 2px;
+        border: 1px solid #2d4787;
+        border-radius: 2px;
+        background: #fff;
+        color: #000;
+        font-family: Arial, sans-serif;
+        /* Explicit, because .guma-ce-frame zeroes line-height to shrink-wrap
+           the canvas. WebKit lays out the segments of a date/time input along
+           that line box, so inheriting 0 clips the digits to slivers. */
+        line-height: normal;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(45, 71, 135, 0.25), 0 4px 14px rgba(0, 0, 0, 0.25);
+      }
+      /* Multiline variant: a textarea over a document's narrative box. It
+         keeps the box the cell registered - no resize handle, wrapped text. */
+      .guma-ce-editor-multi {
+        resize: none;
+        overflow: auto;
+        padding: 2px 3px;
+        line-height: 1.3;
+        white-space: pre-wrap;
+      }
+      /* The editor always sits on white paper, whichever app theme is active,
+         so the global dark-mode invert would wash its picker icon out. */
+      html.dark .guma-ce-editor::-webkit-calendar-picker-indicator {
+        filter: none;
+      }
+      /* Date editor: a text field in the document's own mm/dd/yyyy format
+         (a native date input would render in the browser's locale instead),
+         plus a button that opens the real calendar on demand. */
+      .guma-ce-editor-date {
+        display: flex;
+        align-items: stretch;
+        padding: 0;
+      }
+      .guma-ce-date-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 0 2px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        text-align: inherit;
+        line-height: normal;
+        outline: none;
+      }
+      /* Rendered, so showPicker() has something to anchor the popup to, but
+         invisible and never focusable or clickable. */
+      .guma-ce-date-native {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 1px;
+        padding: 0;
+        border: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .guma-ce-date-pick {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        padding: 0;
+        border: 0;
+        border-left: 1px solid rgba(45, 71, 135, 0.35);
+        background: transparent;
+        color: #2d4787;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .guma-ce-date-pick:hover {
+        background: rgba(45, 71, 135, 0.14);
+      }
+      /* Toolbar above the canvas: zoom seg (injected) + one-time hint.
+         Centred rather than pushed to the edges - the seg is the only control
+         here most of the time, and left-aligned it read as page furniture
+         rather than as something to use. Kept to a SINGLE ROW: stacking the
+         hint under the seg cost 22px of document height on every first visit,
+         which is the opposite of what this panel needs. */
+      /* Relative so the hint can be pulled out of the flow: with the hint in
+         flow the whole group centres, which pushes the zoom buttons visibly
+         left of the document they sit above. */
+      .guma-ce-toolbar {
+        @apply relative items-center justify-center gap-3;
+      }
+      /* Not guma-ce-*: the same control serves the WYSIWYG toolbar and the
+         export preview modal, and a class named after one of them would have
+         to be duplicated for the other. */
+      .guma-zoom {
+        @apply flex items-center gap-1.5;
+      }
+      /* Full-strength text, not muted: these were hard to read against the
+         panel, which is the whole reason the control went unnoticed. */
+      .guma-zoom-btn {
+        @apply inline-flex h-9 min-w-[2.75rem] cursor-pointer items-center justify-center
+               rounded-lg border-2 px-3 text-[13px] font-bold uppercase tracking-wider transition
+               border-guma-l-border bg-guma-l-panel text-guma-l-text
+               hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border dark:bg-guma-panel dark:text-guma-text
+               dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      /* The percentage is a readout as much as a button, so it is the widest
+         and carries the accent colour. */
+      .guma-zoom-btn.guma-zoom-value {
+        @apply min-w-[4rem] text-guma-l-gold dark:text-guma-gold;
+      }
+      /* Modal header variant: the control shares a row with the dialog title,
+         so it steps down to the size of the chrome around it. */
+      .guma-zoom-sm .guma-zoom-btn {
+        @apply h-8 min-w-[2.25rem] px-2 text-[12px];
+      }
+      .guma-zoom-sm .guma-zoom-btn.guma-zoom-value {
+        @apply min-w-[3.5rem];
+      }
+      /* Parked on the right edge instead of sitting in the flow, so it stops
+         off-centring the zoom buttons. The toolbar only renders from xl up,
+         where it is never narrower than ~1150px, so the hint cannot reach the
+         buttons. */
+      .guma-ce-hint {
+        @apply absolute right-0 top-1/2 -translate-y-1/2 text-[12px]
+               text-guma-l-muted dark:text-guma-muted;
+      }
+
+      /* ─── Easter egg: burnout ─── */
+      /* The trigger is a word inside a heading, so it must stay inline-block
+         for the poke animation's transform to apply at all. */
+      .guma-egg-trigger {
+        @apply inline-block cursor-pointer select-none;
+      }
+      .guma-egg-trigger.is-poked {
+        @apply animate-guma-egg-poke;
+      }
+      .guma-egg-overlay {
+        @apply fixed inset-0 z-[90] flex flex-col items-center justify-center overflow-hidden;
+        transition: opacity 0.4s ease;
+      }
+      .guma-egg-overlay.is-leaving {
+        opacity: 0;
+      }
+      /* Greys out and blurs whatever is behind it - the page is meant to read
+         as "paused" for the few seconds the egg runs. Kept dark in BOTH themes:
+         the tire art and the gold caption are lit for a dark stage. */
+      .guma-egg-backdrop {
+        @apply absolute inset-0 animate-guma-fade-in;
+        background: rgba(20, 20, 40, 0.62);
+        backdrop-filter: grayscale(1) blur(3px) brightness(0.6);
+        -webkit-backdrop-filter: grayscale(1) blur(3px) brightness(0.6);
+      }
+      html.dark .guma-egg-backdrop {
+        background: rgba(2, 3, 40, 0.74);
+        backdrop-filter: grayscale(1) blur(3px) brightness(0.45);
+        -webkit-backdrop-filter: grayscale(1) blur(3px) brightness(0.45);
+      }
+      /* Fixed-height arena so the skid mark and smoke can be anchored to the
+         tire's centre without depending on viewport height. */
+      .guma-egg-arena {
+        @apply pointer-events-none relative flex h-[220px] w-full items-center justify-center md:h-[300px];
+      }
+      .guma-egg-track {
+        @apply relative animate-guma-egg-drive;
+      }
+      /* Square because the icon's viewBox is - w-auto on an inline SVG is not
+         reliable enough to hang the skid mark's offset off. */
+      /* The icon's outline is near-black navy, which vanishes against the dimmed
+         backdrop, so the tire needs a warm rim light to read at all. It doubles
+         as heat coming off the rubber. */
+      .guma-egg-tire {
+        @apply h-48 w-48 animate-guma-egg-shake md:h-72 md:w-72;
+        filter: drop-shadow(0 0 18px rgba(240, 192, 64, 0.38)) drop-shadow(0 16px 22px rgba(0, 0, 0, 0.55));
+      }
+      /* Grows leftwards from under the tire - hence the right-edge origin.
+         A plain black skid disappears against the dimmed backdrop, so the
+         trail runs hot near the tire and cools into soot further out. */
+      .guma-egg-skid {
+        @apply absolute right-1/2 top-1/2 h-[14px] w-[62vw] animate-guma-egg-skid;
+        transform-origin: right center;
+        border-radius: 999px;
+        margin-top: 88px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 140, 50, 0) 0%,
+          rgba(120, 92, 80, 0.45) 38%,
+          rgba(60, 48, 48, 0.9) 74%,
+          rgba(255, 150, 60, 0.85) 100%
+        );
+        box-shadow: 0 0 22px rgba(255, 140, 50, 0.3);
+        filter: blur(1px);
+      }
+      @media (min-width: 768px) {
+        .guma-egg-skid {
+          margin-top: 124px;
+        }
+      }
+      /* Zero-sized anchor sitting on the contact patch, matching the skid's
+         offsets - hung off the arena centre instead, the fixed px puff offsets
+         drifted off the tire at the smaller mobile size. Each puff is placed
+         relative to it with inline left/top set in JS. */
+      .guma-egg-smoke-wrap {
+        @apply absolute left-1/2 top-1/2 h-0 w-0;
+        margin-top: 88px;
+        transition: opacity 0.5s ease;
+      }
+      @media (min-width: 768px) {
+        .guma-egg-smoke-wrap {
+          margin-top: 124px;
+        }
+      }
+      .guma-egg-smoke-wrap.is-done {
+        opacity: 0;
+      }
+      /* Burnt rubber, so a dark sooty grey - white read as steam. The alpha is
+         raised as the grey drops: against this backdrop the two cancel out, and
+         darkening the colour alone would just fade the plume away. */
+      .guma-egg-smoke {
+        @apply absolute rounded-full animate-guma-egg-smoke;
+        background: radial-gradient(circle at 50% 50%, rgba(132, 132, 142, 0.78), rgba(86, 86, 98, 0.3) 55%, transparent 72%);
+      }
+      .guma-egg-caption {
+        @apply relative mt-6 flex flex-col items-center gap-2 px-6 text-center animate-guma-egg-pop;
+        animation-delay: 0.45s;
+      }
+      .guma-egg-title {
+        @apply text-4xl font-black uppercase tracking-[0.16em] md:text-6xl;
+        color: #f0c040;
+        text-shadow:
+          0 0 18px rgba(240, 192, 64, 0.55),
+          0 8px 22px rgba(0, 0, 0, 0.6);
+      }
+      .guma-egg-sub {
+        @apply text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70 md:text-sm;
+      }
+      /* Motion is the whole point here, so reduced motion keeps the scene but
+         drops the movement: the tire simply sits centred while the caption shows. */
+      @media (prefers-reduced-motion: reduce) {
+        .guma-egg-track,
+        .guma-egg-tire,
+        .guma-egg-smoke,
+        .guma-egg-skid,
+        .guma-egg-caption,
+        .guma-egg-trigger.is-poked {
+          animation: none !important;
+        }
+        .guma-egg-skid {
+          opacity: 0.85;
+        }
+        .guma-egg-smoke {
+          opacity: 0.4;
+        }
+      }
     }
 
     @layer utilities {
@@ -301,7 +1039,7 @@
         border-color: #2a2a5a;
       }
       .border-guma-l-border-2 {
-        border-color: #d4cdb4;
+        border-color: #bfc9dd;
       }
     }
   `;
