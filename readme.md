@@ -19,6 +19,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 | Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file — attendance, training, commendations, discipline & medical leave |
 | Arrest Report                   | `arrest_report.html`            | LAPD-style arrest & booking report with dynamic arresting-officer rows                            |
 | Pre-Hospital Care Report        | `prehospital_care_report.html`  | EMS-style Pre-Hospital Care Report (PCR) with full incident, response, run-times & disposition    |
+| Investigative Report            | `investigative_report.html`     | Two-page LAPD-style Investigative Report with combined crime, evidence & arrest report sections   |
 
 ### Coming Soon
 
@@ -150,6 +151,22 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Run times block in military time (18-27) plus unit back-in-service
 - Incident / patient disposition, intercept agency, patient count & mass-casualty flags
 - Scene details: incident location type, GPS latitude/longitude, odometer readings, incident FAC ID
+- Live preview rendered on HTML Canvas
+- Download the report as a PNG file
+- **Copy to clipboard** - export the report as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
+### Investigative Report
+
+- **Two-page document** rendered as one export: Investigative Report face sheet (page 1) + Arrest Report (page 2)
+- Report header: type of crime, UCR code / CC, investigating division, incident & DR numbers, editable agency name
+- Case Screening Factors checklist with premises type & ATM flag
+- Victim block: personal details, address, contact, ID and occupation
+- Occurrence & entry: point of entry/exit, method, instrument, occurrence/reported date-times, property values
+- **Free-text MO and Narrative boxes** - multiline, editable directly on the document
+- Dynamic rows - add/remove Reporting Employees, Suspects, Involved Persons and Combined Evidence items
+- Suspect's vehicle and per-suspect descriptors (descent, hair, eyes, clothing, oddities, weapon)
+- Page 2: booking & arrestee details, charges, Admonition of Rights, Combined Crime Report and Juvenile Disposition
 - Live preview rendered on HTML Canvas
 - Download the report as a PNG file
 - **Copy to clipboard** - export the report as PNG directly to the clipboard

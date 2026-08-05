@@ -28,6 +28,7 @@ Wygenerowane z kodu. Update przez `/styleguide`.
 ├── personnel_file_generator.html
 ├── arrest_report.html
 ├── prehospital_care_report.html
+├── investigative_report.html
 ├── readme.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
 ├── manifest.json
@@ -143,7 +144,8 @@ in use, reuse first:
 **Report form helpers (unprefixed — deliberate exception):** report-style pages
 share a small set of non-`guma-` layout classes, also defined under
 `@layer components` in `js/guma-styles.js` and reused across `firearm_discharge`,
-`arrest_report`, `traffic_collision_report`, and `prehospital_care_report`:
+`arrest_report`, `traffic_collision_report`, `prehospital_care_report`, and
+`investigative_report`:
 
 - `.form-group` — label-over-input field wrapper (`.form-group label` and
   `.form-group input/select` style the children, so a bare
@@ -156,6 +158,30 @@ These predate the `guma-` prefix rule and are the established pattern for report
 forms — **reuse them as-is on new reports; don't reinvent them or rename them to
 `guma-*`.** Styling for the rendered card/document surface still goes through
 `guma-*` tokens and classes as usual.
+
+**WYSIWYG field kinds (js/canvas-edit.js):** a registered field's `kind` is one
+of `text | check | select | date | datetime | time | multiline`. `multiline`
+(inferred automatically when the source element is a `<textarea>`) opens a
+floating `<textarea>` (`.guma-ce-editor-multi`) over the document's narrative
+boxes — Enter inserts a newline, Tab advances, Escape reverts. Free-text boxes
+are drawn with a newline-aware wrap (`investigative_report`'s `multiBox`) and
+capped via `maxlength` on the textarea itself, since `GumaFit.applyCaps` only
+touches `<input>`s.
+
+**Multi-page documents (`investigative_report`):** both sheets render stacked on
+the ONE page canvas (white page rects separated by a `PAGE_GAP` strip), so the
+shared preview modal, history, clipboard and canvas-edit wiring keep working
+unchanged. Each page's height comes from running the same draw function once
+against a 1×1 measuring canvas with hitbox registration gated off (`REG` flag),
+then once for real — no hand-maintained height formula.
+
+**Per-page export (`GumaExport.pages`):** a multi-page report additionally
+exposes `pages: () => [{ label, canvas }]` on `window.GumaExport`.
+`<guma-preview-modal>` then shows one sheet at a time with a ‹ Page n / N ›
+pager in its header (arrow keys work too) and passes the visible page's index
+into `download(pageIndex)` / `copy(pageIndex)`, so each sheet exports as its own
+PNG (readable when pasted into Discord). Pages without `pages()` keep the
+single-image modal unchanged. History always stores the full stacked document.
 
 Rules of thumb:
 
@@ -246,13 +272,60 @@ copy it. Paired HTML pages stay `snake_case.html` regardless.
    `GumaHistoryWiring.register({...})`, `await GumaHistoryWiring.save(canvas)`
    in Download + Copy, and the 3 markup additions (Saved button, drawer,
    `history.js` + `history-wiring.js` first).
-7. Update `readme.md`: add a row to the **Available Generators** table and
+7. **Seed the download counter row in Supabase** (see below). Skipping this
+   leaves the counter permanently dead, silently.
+8. Update `readme.md`: add a row to the **Available Generators** table and
    a Features sub-section (use `/readme`).
-8. Add a faction icon / asset to `assets/` if needed (192×192 PNG to match
+9. Add a faction icon / asset to `assets/` if needed (192×192 PNG to match
    the rest).
-9. Test in light + dark. Test PNG download and clipboard copy paths, plus
-   save → reload from the drawer.
-10. Use `/commit` for the commit message, `/changelog` for the announcement.
+10. Test in light + dark. Test PNG download and clipboard copy paths, plus
+    save → reload from the drawer.
+11. Use `/commit` for the commit message, `/changelog` for the announcement.
+
+## Download counters (Supabase)
+
+`js/counters.js` talks to one table, `public.counters` (`key` text, `value`
+number). Two kinds of key:
+
+- `visits`, the global page-visit count in the footer.
+- `downloads_<generator key>`, one per generator, e.g. `downloads_officer`.
+
+**The row has to exist before the generator ships.** As deployed, the
+`increment_counter` RPC appears to bump an existing row without creating a
+missing one, and a generator whose row was never seeded then counts nothing and
+shows nothing: `_getCounter` returns `null`, so `initDownloadCounter` never
+unhides the "Generated N times" line and the page just looks like it has no
+counter. This bit `arrest` and `bodycam`, which sat with no row at all for weeks
+after launch before anyone noticed. (If the RPC is ever changed to upsert,
+update this paragraph; seeding the row stays correct either way.)
+
+So after adding a generator, run this in **Supabase → SQL Editor**:
+
+```sql
+insert into public.counters (key, value) values
+  ('downloads_<generator key>', 0)
+on conflict (key) do nothing;
+```
+
+`on conflict do nothing` makes it idempotent: re-running it can never reset a
+live count, so it is safe to paste the whole known key list at any time.
+
+The generator key must be identical in four places, or the counter, the flags,
+or both go quiet:
+
+| Where | What |
+| ----- | ---- |
+| `<page>.html` | `initDownloadCounter("<key>", "downloadCount", "downloadBtn")` |
+| `js/<page>.js` | `GumaCounters.trackDownload("<key>")` in the copy path |
+| `index.html` tile + `components.js` nav links | `data-generator-key="<key>"` |
+| Supabase | a `downloads_<key>` row |
+
+Current keys: `officer`, `firefighter`, `business_card`, `personnel`,
+`firearm`, `traffic`, `arrest`, `pcr`, `investigative`, `bodycam`.
+
+**Verify:** open the page. "Generated 0 times" should appear under the export
+button (it stays hidden while the row is missing). Copy to clipboard once,
+reload, and the count should read 1.
 
 ## Saved Cards / Reports (history)
 

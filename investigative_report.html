@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Investigative Report - GUMA Tools</title>
+
+    <link rel="icon" href="assets/investigation.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/investigation.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
+  </head>
+
+  <body class="theme-navy-soft flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <!-- PAGE TITLE -->
+    <div class="guma-page pt-8 pb-6">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Investigative Report
+      </h1>
+    </div>
+
+    <!-- MAIN -->
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- LEFT: FORM PANEL -->
+      <div class="guma-panel w-full p-6 xl:max-w-[640px] xl:flex-none guma-panel-form guma-ce-host">
+        <!-- ── Page 1: Investigative Report ── -->
+        <p class="guma-form-section">Report Header</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Agency Name</label>
+            <input type="text" id="agency_name" placeholder="Los Santos Police Department" />
+          </div>
+          <div class="form-group">
+            <label>Report Of (Type of Crime)</label>
+            <input type="text" id="report_of" placeholder="Burglary" />
+          </div>
+        </div>
+        <div class="four-col">
+          <div class="form-group">
+            <label>UCR Code</label>
+            <input type="text" id="ucr_code" placeholder="220" />
+          </div>
+          <div class="form-group">
+            <label>CC</label>
+            <input type="text" id="cc_no" placeholder="00" />
+          </div>
+          <div class="form-group">
+            <label>Invest. Div.</label>
+            <input type="text" id="invest_div" placeholder="Mission Row Det." />
+          </div>
+          <div class="form-group">
+            <label>Inc. #</label>
+            <input type="text" id="inc_no" placeholder="0000" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>DR #</label>
+          <input type="text" id="dr_no" placeholder="26-0000000" />
+        </div>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" id="cb_combined_evid" /> Combined Evid. Report</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_multiple_drs" /> Multiple DRs on this Report</label>
+        </div>
+
+        <p class="guma-form-section">Case Screening Factor(s)</p>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" id="cb_csf_suspect" /> Suspect/Vehicle not seen</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_csf_prints" /> Prints or other evidence not present</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_csf_mo" /> MO not distinct</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_csf_loss" /> Property loss less than $5,000</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_csf_injury" /> No serious injury to victim</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_csf_victim" /> Only one victim involved</label>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Premises (Specific Type)</label>
+            <input type="text" id="premises" placeholder="Single family dwelling" />
+          </div>
+          <div class="form-group flex-row items-center gap-2">
+            <label class="checkbox-item mb-0"><input type="checkbox" id="cb_atm" /> ATM</label>
+          </div>
+        </div>
+
+        <p class="guma-form-section">Victim</p>
+        <div class="form-group">
+          <label>Last Name, First, Middle (or Name of Business)</label>
+          <input type="text" id="v_name" placeholder="Doe, Jane Marie" />
+        </div>
+        <div class="four-col">
+          <div class="form-group">
+            <label>Sex</label>
+            <select id="v_sex">
+              <option value="-">-</option>
+              <option value="M">M</option>
+              <option value="F">F</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Desc.</label>
+            <input type="text" id="v_desc" placeholder="W" />
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="text" id="v_age" placeholder="32" />
+          </div>
+          <div class="form-group">
+            <label>DOB</label>
+            <input type="date" id="v_dob" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Ht.</label>
+            <input type="text" id="v_ht" placeholder="5'07&quot;" />
+          </div>
+          <div class="form-group">
+            <label>Wt.</label>
+            <input type="text" id="v_wt" placeholder="140" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Residential Address</label>
+          <input type="text" id="v_address" placeholder="1136 Vespucci Blvd" />
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="v_city" placeholder="Los Santos" />
+          </div>
+          <div class="form-group">
+            <label>Zip</label>
+            <input type="text" id="v_zip" placeholder="90013" />
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="v_phone" placeholder="(555) 214-8890" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Dr. Lic. No. (or Other ID &amp; No.)</label>
+            <input type="text" id="v_dl" placeholder="A2214657" />
+          </div>
+          <div class="form-group">
+            <label>Foreign Language Spoken</label>
+            <input type="text" id="v_language" placeholder="None" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>E-mail Address</label>
+            <input type="text" id="v_email" placeholder="j.doe@eyefind.info" />
+          </div>
+          <div class="form-group">
+            <label>Cell Phone</label>
+            <input type="text" id="v_cell" placeholder="(555) 214-8891" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Occupation</label>
+          <input type="text" id="v_occupation" placeholder="Store manager" />
+        </div>
+
+        <p class="guma-form-section">Occurrence &amp; Entry</p>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Point of Entry</label>
+            <select id="point_entry">
+              <option value="-">-</option>
+              <option value="FRONT">Front</option>
+              <option value="REAR">Rear</option>
+              <option value="SIDE">Side</option>
+              <option value="ROOF">Roof</option>
+              <option value="FLOOR">Floor</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Point of Exit</label>
+            <input type="text" id="point_exit" placeholder="Rear door" />
+          </div>
+          <div class="form-group">
+            <label>Res. / Bus.</label>
+            <select id="res_bus">
+              <option value="-">-</option>
+              <option value="RES.">Res.</option>
+              <option value="BUS.">Bus.</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Location of Occurrence</label>
+            <input type="text" id="loc_occurrence" placeholder="1136 Vespucci Blvd" />
+          </div>
+          <div class="form-group">
+            <label>RD</label>
+            <input type="text" id="rd" placeholder="1385" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Method</label>
+          <input type="text" id="method" placeholder="Pried rear door with tool" />
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Date &amp; Time of Occurrence</label>
+            <input type="datetime-local" id="dt_occurrence" />
+          </div>
+          <div class="form-group">
+            <label>Date &amp; Time Reported to PD</label>
+            <input type="datetime-local" id="dt_reported" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Instrument / Tool Used</label>
+            <input type="text" id="instrument" placeholder="Pry bar" />
+          </div>
+          <div class="form-group">
+            <label>Type Property Stolen/Lost/Damaged</label>
+            <input type="text" id="prop_type" placeholder="Electronics, cash" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>$ Stolen/Lost</label>
+            <input type="text" id="prop_stolen" placeholder="2,400" />
+          </div>
+          <div class="form-group">
+            <label>$ Recovered</label>
+            <input type="text" id="prop_recovered" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>$ Est. Damage</label>
+            <input type="text" id="prop_damage" placeholder="350" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Vict's Veh. (Year, Make, Type, Color, Lic. No.)</label>
+          <input type="text" id="vict_veh" placeholder="N/A" />
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Notification(s) (Person &amp; Division)</label>
+            <input type="text" id="notifications" placeholder="Det. R. Vasquez, Mission Row Det." />
+          </div>
+          <div class="form-group">
+            <label>Connected Report(s) (Type &amp; DR #)</label>
+            <input type="text" id="connected_reports" placeholder="None" />
+          </div>
+        </div>
+
+        <p class="guma-form-section">M.O.</p>
+        <div class="form-group">
+          <label>MO (List unique actions; include any weapon used)</label>
+          <textarea id="mo" rows="3" maxlength="400" placeholder="Suspect pried rear door, ransacked office, fled on foot..."></textarea>
+        </div>
+
+        <p class="guma-form-section">Incident Flags</p>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" id="cb_school" /> Threat of school violence</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_transit" /> Transit-related incident</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_marsys" /> Mandatory Marsy's Rights card provided to the victim</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_hatred" /> Motivated by hatred/prejudice</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_domestic" /> Domestic violence</label>
+        </div>
+
+        <p class="guma-form-section">Reporting Employee(s)</p>
+        <div id="employees-container"></div>
+        <div class="mb-4">
+          <button type="button" id="addEmployeeBtn" class="btn-add" onclick="addEmployeeRow()">+ Add Employee</button>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Person Reporting</label>
+            <input type="text" id="person_reporting" placeholder="Doe, Jane Marie" />
+          </div>
+          <div class="form-group flex-row items-center gap-2">
+            <label class="checkbox-item mb-0"><input type="checkbox" id="cb_phone_report" /> Received by phone</label>
+          </div>
+        </div>
+
+        <p class="guma-form-section">Suspect's Vehicle</p>
+        <div class="four-col">
+          <div class="form-group">
+            <label>Year</label>
+            <input type="text" id="sv_year" placeholder="2019" />
+          </div>
+          <div class="form-group">
+            <label>Make</label>
+            <input type="text" id="sv_make" placeholder="Bravado" />
+          </div>
+          <div class="form-group">
+            <label>Model</label>
+            <input type="text" id="sv_model" placeholder="Buffalo" />
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <input type="text" id="sv_type" placeholder="Sedan" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Color(s)</label>
+            <input type="text" id="sv_color" placeholder="Black" />
+          </div>
+          <div class="form-group">
+            <label>Veh. Lic. No.</label>
+            <input type="text" id="sv_lic" placeholder="89KWC331" />
+          </div>
+          <div class="form-group">
+            <label>State</label>
+            <input type="text" id="sv_state" placeholder="SA" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Body Damage / Unique Features (wheels, paint, decals, windows)</label>
+          <input type="text" id="sv_features" placeholder="Tinted windows, dent on left rear panel" />
+        </div>
+
+        <p class="guma-form-section">Suspect(s)</p>
+        <div id="suspects-container"></div>
+        <div class="mb-1">
+          <button type="button" id="addSuspectBtn" class="btn-add" onclick="addSuspectRow()">+ Add Suspect</button>
+        </div>
+
+        <p class="guma-form-section">Involved Person(s)</p>
+        <div id="involved-container"></div>
+        <div class="mb-1">
+          <button type="button" id="addInvolvedBtn" class="btn-add" onclick="addInvolvedRow()">+ Add Person</button>
+        </div>
+
+        <p class="guma-form-section">Combined Evidence Report</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Loc. Evid. Bkd.</label>
+            <input type="text" id="evid_loc" placeholder="Mission Row Property Room" />
+          </div>
+          <div class="form-group">
+            <label>10.10.00 Given?</label>
+            <select id="evid_given">
+              <option value="-">-</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+          </div>
+        </div>
+        <div id="items-container"></div>
+        <div class="mb-1">
+          <button type="button" id="addItemBtn" class="btn-add" onclick="addItemRow()">+ Add Item</button>
+        </div>
+
+        <p class="guma-form-section">Narrative</p>
+        <div class="form-group">
+          <label>Narrative (Source of Activity, Investigation, Arrest, Injuries, Photographs, Evidence, Court Information...)</label>
+          <textarea id="narrative" rows="6" maxlength="1100" placeholder="Source of Activity: On 03/14/2026 at approx. 0915 hours..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Victim's property marked with owner-applied ID number?</label>
+          <select id="prop_marked">
+            <option value="-">-</option>
+            <option value="YES">Yes (explain in narrative)</option>
+            <option value="NO">No</option>
+          </select>
+        </div>
+
+        <p class="guma-form-section">Approval &amp; Review</p>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Supervisor Approving</label>
+            <input type="text" id="sup_approving" placeholder="Sgt. M. Callahan" />
+          </div>
+          <div class="form-group">
+            <label>Serial No.</label>
+            <input type="text" id="sup_serial" placeholder="30112" />
+          </div>
+          <div class="form-group">
+            <label>Division</label>
+            <input type="text" id="sup_division" placeholder="Mission Row" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Detective Supervisor Reviewing</label>
+            <input type="text" id="det_reviewing" placeholder="Det. III R. Vasquez" />
+          </div>
+          <div class="form-group">
+            <label>Serial No.</label>
+            <input type="text" id="det_serial" placeholder="27584" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Date &amp; Time Reproduced</label>
+            <input type="datetime-local" id="dt_reproduced" />
+          </div>
+          <div class="form-group">
+            <label>Clerk</label>
+            <input type="text" id="clerk" placeholder="T. Ruiz" />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="category" placeholder="1" />
+          </div>
+        </div>
+
+        <!-- ── Page 2: Arrest Report ── -->
+        <p class="guma-form-section">Arrest - Booking</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Bkg. No.</label>
+            <input type="text" id="ar_bkg_no" placeholder="26-114208" />
+          </div>
+          <div class="form-group">
+            <label>Loc. Bkd.</label>
+            <input type="text" id="ar_loc_bkd" placeholder="Mission Row Station" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Driver's Lic. No.</label>
+            <input type="text" id="ar_dl_no" placeholder="B0761193" />
+          </div>
+          <div class="form-group">
+            <label>DL State</label>
+            <input type="text" id="ar_dl_state" placeholder="SA" />
+          </div>
+        </div>
+
+        <p class="guma-form-section">Arrestee</p>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="ar_last_name" placeholder="Reyes" />
+          </div>
+          <div class="form-group">
+            <label>First</label>
+            <input type="text" id="ar_first_name" placeholder="Daniel" />
+          </div>
+          <div class="form-group">
+            <label>Middle</label>
+            <input type="text" id="ar_middle_name" placeholder="Aaron" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Address</label>
+            <input type="text" id="ar_address" placeholder="2044 Forum Dr" />
+          </div>
+          <div class="form-group">
+            <label>Apt. No.</label>
+            <input type="text" id="ar_apt" placeholder="3B" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="ar_city" placeholder="Los Santos" />
+          </div>
+          <div class="form-group">
+            <label>State</label>
+            <input type="text" id="ar_state" placeholder="SA" />
+          </div>
+        </div>
+        <div class="four-col">
+          <div class="form-group">
+            <label>Sex</label>
+            <select id="ar_sex">
+              <option value="-">-</option>
+              <option value="M">M</option>
+              <option value="F">F</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Descent</label>
+            <input type="text" id="ar_descent" placeholder="H" />
+          </div>
+          <div class="form-group">
+            <label>Hair</label>
+            <input type="text" id="ar_hair" placeholder="BLK" />
+          </div>
+          <div class="form-group">
+            <label>Eyes</label>
+            <input type="text" id="ar_eyes" placeholder="BRO" />
+          </div>
+        </div>
+        <div class="four-col">
+          <div class="form-group">
+            <label>Height</label>
+            <input type="text" id="ar_height" placeholder="5'11&quot;" />
+          </div>
+          <div class="form-group">
+            <label>Weight</label>
+            <input type="text" id="ar_weight" placeholder="185" />
+          </div>
+          <div class="form-group">
+            <label>Birthdate</label>
+            <input type="date" id="ar_birthdate" />
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="text" id="ar_age" placeholder="29" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>AKA / Nickname</label>
+            <input type="text" id="ar_aka" placeholder="Danny" />
+          </div>
+          <div class="form-group">
+            <label>Birthplace (City/County/State/Country)</label>
+            <input type="text" id="ar_birthplace" placeholder="Los Santos, SA" />
+          </div>
+        </div>
+
+        <p class="guma-form-section">Arrest Details</p>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Veh. Lic. No.</label>
+            <input type="text" id="ar_veh_lic" placeholder="89KWC331" />
+          </div>
+          <div class="form-group">
+            <label>Veh. State</label>
+            <input type="text" id="ar_veh_state" placeholder="SA" />
+          </div>
+          <div class="form-group">
+            <label>R.D.</label>
+            <input type="text" id="ar_rd" placeholder="1385" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Division</label>
+            <input type="text" id="ar_division" placeholder="Central" />
+          </div>
+          <div class="form-group">
+            <label>Detail Arresting</label>
+            <input type="text" id="ar_detail" placeholder="Patrol" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Date Arrested</label>
+            <input type="date" id="ar_date_arrested" />
+          </div>
+          <div class="form-group">
+            <label>Time Arr. (24h)</label>
+            <input type="time" id="ar_time_arr" />
+          </div>
+          <div class="form-group">
+            <label>Time Bkd. (24h)</label>
+            <input type="time" id="ar_time_bkd" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Location of Arrest</label>
+            <input type="text" id="ar_loc_arrest" placeholder="Vespucci Blvd &amp; Elgin Ave" />
+          </div>
+          <div class="form-group">
+            <label>Bail $</label>
+            <input type="text" id="ar_bail" placeholder="20,000" />
+          </div>
+          <div class="form-group">
+            <label>Total Bail $</label>
+            <input type="text" id="ar_total_bail" placeholder="20,000" />
+          </div>
+        </div>
+
+        <p class="guma-form-section">Charges</p>
+        <div class="four-col">
+          <div class="form-group">
+            <label>Type</label>
+            <select id="ar_charge_type">
+              <option value="-">-</option>
+              <option value="F">F - Felony</option>
+              <option value="M">M - Misdemeanor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Charge &amp; Code</label>
+            <input type="text" id="ar_charge_code" placeholder="PC 459" />
+          </div>
+          <div class="form-group">
+            <label>Definition</label>
+            <input type="text" id="ar_definition" placeholder="Burglary" />
+          </div>
+          <div class="form-group">
+            <label>Warrant No.</label>
+            <input type="text" id="ar_warrant_no" placeholder="None" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Additional Charges (Code, Court and Bail)</label>
+          <input type="text" id="ar_addl_charges" placeholder="PC 594 - Vandalism" />
+        </div>
+
+        <p class="guma-form-section">Admonition of Rights</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Read Verbatim Per Form 15.03.00 By (Name)</label>
+            <input type="text" id="ar_admon_name" placeholder="Ofcr. K. Brennan" />
+          </div>
+          <div class="form-group">
+            <label>Serial No.</label>
+            <input type="text" id="ar_admon_serial" placeholder="41186" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Understood Rights?</label>
+            <select id="ar_understood">
+              <option value="-">-</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rights Invoked?</label>
+            <select id="ar_invoked">
+              <option value="-">-</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Statement Made?</label>
+            <select id="ar_statement">
+              <option value="-">-</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="guma-form-section">Court &amp; Details</p>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Arraign. Date</label>
+            <input type="date" id="ar_arraign_date" />
+          </div>
+          <div class="form-group">
+            <label>Time (24h)</label>
+            <input type="time" id="ar_arraign_time" />
+          </div>
+          <div class="form-group">
+            <label>Court</label>
+            <input type="text" id="ar_court" placeholder="LS Superior Court" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Location Crime Committed</label>
+          <input type="text" id="ar_loc_crime" placeholder="1136 Vespucci Blvd" />
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Employer / School</label>
+            <input type="text" id="ar_employer" placeholder="Unemployed" />
+          </div>
+          <div class="form-group">
+            <label>Occupation / Grade</label>
+            <input type="text" id="ar_occupation" placeholder="None" />
+          </div>
+          <div class="form-group">
+            <label>Phy. Odd.</label>
+            <input type="text" id="ar_phy_odd" placeholder="Scar, left forearm" />
+          </div>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Clothing Worn</label>
+            <input type="text" id="ar_clothing" placeholder="Black hoodie, jeans" />
+          </div>
+          <div class="form-group">
+            <label>Residence Phone No.</label>
+            <input type="text" id="ar_res_phone" placeholder="(555) 630-2217" />
+          </div>
+          <div class="form-group">
+            <label>Hold For</label>
+            <input type="text" id="ar_hold_for" placeholder="None" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Exact Location / Disposition Arrestee's Vehicle</label>
+            <input type="text" id="ar_veh_disposition" placeholder="Impounded - Davis Impound Lot" />
+          </div>
+          <div class="form-group">
+            <label>Vehicle Used (Year, Make, Model, Colors, Lic. No.)</label>
+            <input type="text" id="ar_veh_used" placeholder="2019 Bravado Buffalo, Black, 89KWC331" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>List Connecting Rpts. by Type &amp; Identifying Nos.</label>
+            <input type="text" id="ar_connecting_rpts" placeholder="IR DR 26-0000000" />
+          </div>
+          <div class="form-group">
+            <label>Complaints / Evid. of Illness or Injury &amp; by Whom Treated</label>
+            <input type="text" id="ar_complaints" placeholder="None" />
+          </div>
+        </div>
+
+        <p class="guma-form-section">Combined Crime Report</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Type Offense</label>
+            <input type="text" id="cr_type_offense" placeholder="Burglary" />
+          </div>
+          <div class="form-group">
+            <label>Vict's Occupation</label>
+            <input type="text" id="cr_vict_occupation" placeholder="Store manager" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Date and Time Crime Occurred</label>
+          <input type="datetime-local" id="cr_dt_crime" />
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Type Property</label>
+            <input type="text" id="cr_type_property" placeholder="Electronics, cash" />
+          </div>
+          <div class="form-group">
+            <label>Total $</label>
+            <input type="text" id="cr_total" placeholder="2,400" />
+          </div>
+          <div class="form-group">
+            <label>Est. Damage $</label>
+            <input type="text" id="cr_damage" placeholder="350" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Type of Premises</label>
+          <input type="text" id="cr_premises" placeholder="Commercial storefront" />
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>459/BFV Only: Point and Method of Entry</label>
+            <input type="text" id="cr_entry_method" placeholder="Rear door, pried with tool" />
+          </div>
+          <div class="form-group">
+            <label>Weapon / Force / Instrument Used</label>
+            <input type="text" id="cr_weapon" placeholder="Pry bar" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>MO (Unique Actions)</label>
+          <textarea id="cr_mo" rows="2" maxlength="260" placeholder="Ransacked office, targeted register cash..."></textarea>
+        </div>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" id="cb_cr_gang" /> Gang related</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_cr_school" /> Threat of school violence</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_cr_transit" /> Transit-related incident</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_cr_hatred" /> Motivated by hatred/prejudice</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_cr_domestic" /> Domestic violence</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_cr_marsys" /> Mandatory Marsy's Rights card provided</label>
+        </div>
+
+        <p class="guma-form-section">Approval / Reporting Officers</p>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Supervisor Approving Report</label>
+            <input type="text" id="ar_sup_approving" placeholder="Sgt. M. Callahan" />
+          </div>
+          <div class="form-group">
+            <label>Serial No.</label>
+            <input type="text" id="ar_sup_serial" placeholder="30112" />
+          </div>
+          <div class="form-group">
+            <label>Rap Sheet Attached?</label>
+            <select id="ar_rap_sheet">
+              <option value="-">-</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Date &amp; Time Reproduced</label>
+          <input type="datetime-local" id="ar_dt_reproduced" />
+        </div>
+        <div class="four-col">
+          <div class="form-group">
+            <label>Reporting Officer(s)</label>
+            <input type="text" id="ar_officers" placeholder="Brennan, K." />
+          </div>
+          <div class="form-group">
+            <label>Serial No.</label>
+            <input type="text" id="ar_off_serial" placeholder="41186" />
+          </div>
+          <div class="form-group">
+            <label>Div. &amp; Detail</label>
+            <input type="text" id="ar_off_div" placeholder="Central Patrol" />
+          </div>
+          <div class="form-group">
+            <label>Clerk</label>
+            <input type="text" id="ar_clerk" placeholder="T. Ruiz" />
+          </div>
+        </div>
+
+        <p class="guma-form-section">Juvenile Disposition</p>
+        <div class="four-col">
+          <div class="form-group">
+            <label>Petition Request</label>
+            <select id="juv_petition">
+              <option value="-">-</option>
+              <option value="DETAINED">Detained</option>
+              <option value="RELEASED">Released</option>
+              <option value="NON-BOOK">Non-Book</option>
+              <option value="NONBOOK WARR.">Nonbook Warr.</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Invest. Ofcr.</label>
+            <input type="text" id="juv_invest_ofcr" placeholder="N/A" />
+          </div>
+          <div class="form-group">
+            <label>Serial No.</label>
+            <input type="text" id="juv_serial" placeholder="N/A" />
+          </div>
+          <div class="form-group">
+            <label>Div.</label>
+            <input type="text" id="juv_div" placeholder="N/A" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Final Charge, if Different from Original</label>
+            <input type="text" id="juv_final_charge" placeholder="N/A" />
+          </div>
+          <div class="form-group">
+            <label>If Referred, Agency &amp; Person Accepting Referral</label>
+            <input type="text" id="juv_referral" placeholder="N/A" />
+          </div>
+        </div>
+        <div class="four-col">
+          <div class="form-group">
+            <label>Property Booked?</label>
+            <select id="juv_prop_booked">
+              <option value="-">-</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Supervisor Approving</label>
+            <input type="text" id="juv_sup_approving" placeholder="N/A" />
+          </div>
+          <div class="form-group">
+            <label>Serial No.</label>
+            <input type="text" id="juv_sup_serial" placeholder="N/A" />
+          </div>
+          <div class="form-group">
+            <label>Div. / Clerk</label>
+            <input type="text" id="juv_div_clerk" placeholder="N/A" />
+          </div>
+        </div>
+      </div>
+      <!-- /form panel -->
+
+      <!-- RIGHT: PREVIEW PANEL -->
+      <!-- min-w-0: a flex item defaults to min-width:auto, which would let the
+           zoomed canvas stretch this panel and the whole page instead of
+           scrolling inside .guma-ce-wrap. -->
+      <div class="guma-panel flex min-w-0 flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
+          <button
+            id="gumaHistoryBtn"
+            type="button"
+            aria-label="Open saved reports"
+            onclick="document.querySelector('guma-history-drawer')?.open()"
+            class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3v5h5" />
+              <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+              <path d="M12 7v5l4 2" />
+            </svg>
+            Saved
+            <span
+              id="gumaHistoryCount"
+              class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+            ></span>
+          </button>
+        </div>
+
+        <!-- WYSIWYG toolbar: zoom seg + hint are injected by canvas-edit.js -->
+        <div id="ceToolbar" class="guma-ce-toolbar hidden w-full xl:flex"></div>
+
+        <div class="guma-canvas-wrap guma-scroll guma-ce-wrap">
+          <div id="ceFrame" class="guma-ce-frame">
+            <canvas id="docCanvas" class="guma-ce-canvas bg-white"></canvas>
+          </div>
+        </div>
+        <!-- Single export entry point. Width matches one of the two buttons it
+             replaced ((1280 - gap) / 2), centered. -->
+        <div class="flex w-full max-w-[1280px] justify-center">
+          <button
+            type="button"
+            class="guma-btn-primary w-full max-w-[634px]"
+            onclick="document.querySelector('guma-preview-modal')?.open()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Preview &amp; Download
+          </button>
+        </div>
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60 mt-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          Generated <span id="downloadCount">0</span> times
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
+
+    <script src="js/history.js"></script>
+    <script src="js/history-wiring.js"></script>
+    <script src="js/factions.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    <script src="js/guma-fit.js"></script>
+    <script src="js/canvas-edit.js"></script>
+    <script src="js/investigative-report.js"></script>
+    <script src="js/counters.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GumaCounters?.initDownloadCounter("investigative", "downloadCount", "downloadBtn");
+      });
+    </script>
+  </body>
+</html>
