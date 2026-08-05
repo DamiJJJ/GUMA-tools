@@ -35,7 +35,8 @@ class GumaHeader extends HTMLElement {
                      dark:border-white/10 dark:bg-[#04045e]/85 guma-anim-header-drop">
 
         <!-- ── Main bar ── -->
-        <div class="mx-auto flex w-full max-w-8xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8 2xl:px-12">
+        <div id="gumaHeaderBar"
+             class="mx-auto flex w-full max-w-8xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8 2xl:px-12">
 
           <!-- Logo -->
           <a href="index.html" id="gumaLogo"
@@ -267,7 +268,7 @@ class GumaHeader extends HTMLElement {
         </div>
 
         <!-- ── Mobile menu ── -->
-        <div id="gumaMobileMenu" class="hidden md:hidden border-t
+        <div id="gumaMobileMenu" class="hidden md:hidden border-t guma-mobile-menu
                                         border-guma-l-border bg-guma-l-bg/95
                                         dark:border-white/10 dark:bg-[#04045e]/95">
           <nav class="mx-auto max-w-8xl flex flex-col px-4 py-3 gap-0.5">
@@ -482,8 +483,22 @@ class GumaHeader extends HTMLElement {
     // ── Mobile menu toggle ──
     const hamburger = this.querySelector("#gumaHamburger");
     const mobileMenu = this.querySelector("#gumaMobileMenu");
+    const headerBar = this.querySelector("#gumaHeaderBar");
     const hamburgerIcon = this.querySelector("#gumaHamburgerIcon");
     const closeIcon = this.querySelector("#gumaCloseIcon");
+
+    // Cap the drawer at the height actually visible below the header bar.
+    // visualViewport reflects the collapsed/expanded iOS URL bar, so the last
+    // entries (About / Support project) stay reachable by scrolling the drawer
+    // itself instead of the page underneath it.
+    const sizeMobileMenu = () => {
+      if (!mobileMenu || mobileMenu.classList.contains("hidden")) return;
+      const viewportH = window.visualViewport?.height || window.innerHeight;
+      const barH = headerBar?.getBoundingClientRect().height || 0;
+      mobileMenu.style.maxHeight = `${Math.max(160, Math.round(viewportH - barH))}px`;
+    };
+    window.addEventListener("resize", sizeMobileMenu);
+    window.visualViewport?.addEventListener("resize", sizeMobileMenu);
 
     hamburger?.addEventListener("click", () => {
       const isOpen = !mobileMenu.classList.contains("hidden");
@@ -496,11 +511,14 @@ class GumaHeader extends HTMLElement {
         setTimeout(() => {
           mobileMenu.classList.remove("is-closing");
           mobileMenu.classList.add("hidden");
+          mobileMenu.style.maxHeight = "";
         }, 230);
       } else {
         mobileMenu.classList.remove("hidden");
         mobileMenu.classList.remove("is-closing");
         mobileMenu.classList.add("is-open");
+        mobileMenu.scrollTop = 0;
+        sizeMobileMenu();
         hamburgerIcon.classList.add("hidden");
         closeIcon.classList.remove("hidden");
         hamburger.setAttribute("aria-expanded", "true");

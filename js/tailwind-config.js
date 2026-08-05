@@ -75,13 +75,15 @@ tailwind.config = {
           from: { opacity: "0", transform: "translateY(-100%)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        // No max-height / overflow here on purpose: the drawer owns those
+        // (.guma-mobile-menu) and a filled animation value would freeze them.
         "guma-mobile-open": {
-          from: { opacity: "0", transform: "translateY(-8px)", maxHeight: "0", overflow: "hidden" },
-          to: { opacity: "1", transform: "translateY(0)", MaxHeight: "600px", overflow: "hidden" },
+          from: { opacity: "0", transform: "translateY(-8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         "guma-slide-up-out": {
-          from: { opacity: "1", transform: "translateY(0)", maxHeight: "600px" },
-          to: { opacity: "0", transform: "translateY(-8px)", maxHeight: "0" },
+          from: { opacity: "1", transform: "translateY(0)" },
+          to: { opacity: "0", transform: "translateY(-8px)" },
         },
         "guma-dropdown-open": {
           from: { opacity: "0", transform: "translateY(-6px) scaleY(0.96)" },
