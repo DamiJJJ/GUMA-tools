@@ -23,6 +23,9 @@ Output **two** artifacts:
 
 ### 1. Changelog block (for `readme.md` or a separate CHANGELOG)
 
+**Always in English**, regardless of the language used in the chat or in the
+Discord announcement.
+
 ```
 ## vX.Y - YYYY-MM-DD
 
