@@ -49,6 +49,13 @@
         display: contents;
       }
 
+      /* The palette host is appended to the end of <body>; as an inline box it
+         would add a stray line at the bottom of every page and give the
+         browser something to scroll to when the dialog takes focus. */
+      guma-search {
+        display: contents;
+      }
+
       ::selection {
         background: rgba(45, 71, 135, 0.25);
         color: #ffffff;
@@ -1040,6 +1047,96 @@
         .guma-egg-smoke {
           opacity: 0.4;
         }
+      }
+
+      /* ─── Command palette (Ctrl+K search) ─── */
+      /* Header trigger. Icon-only until 2xl, where the label and the shortcut
+         hint fit without crowding the nav. */
+      .guma-search-trigger {
+        @apply inline-flex shrink-0 items-center gap-2 rounded-xl border px-2.5 py-2 text-sm transition cursor-pointer
+               border-guma-l-border text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-search-kbd {
+        @apply rounded-md border px-1.5 py-0.5 font-sans text-[10px] font-bold uppercase tracking-wider
+               border-guma-l-border-2 bg-guma-l-panel-2 text-guma-l-muted
+               dark:border-guma-border-2 dark:bg-guma-panel-2 dark:text-guma-muted;
+      }
+
+      /* The dialog opens high on the screen rather than centred: the results
+         list grows downwards, so a centred box would jump on every keystroke. */
+      /* display comes from the hidden/flex pair toggled in JS, like the other
+         dialogs in js/components.js. */
+      .guma-search-root {
+        @apply fixed inset-0 z-[80] items-start justify-center px-4 pt-[14vh] sm:pt-[18vh];
+      }
+      .guma-search-overlay {
+        @apply absolute inset-0 bg-black/50;
+      }
+      .guma-search-panel {
+        @apply relative flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border
+               border-guma-l-border bg-guma-l-panel shadow-panel-light
+               dark:border-guma-border dark:bg-guma-panel dark:shadow-panel;
+      }
+      .guma-search-head {
+        @apply flex items-center gap-3 border-b px-4 py-3
+               border-guma-l-border dark:border-guma-border;
+      }
+      .guma-search-field {
+        @apply w-full flex-1 border-0 bg-transparent p-0 text-base outline-none
+               text-guma-l-text placeholder:text-guma-l-muted/70
+               dark:text-guma-text dark:placeholder:text-guma-muted/60;
+      }
+      /* relative so a row's offsetTop is measured against the list itself -
+         that is what the keyboard scrolling in _reveal() counts on. */
+      .guma-search-list {
+        @apply relative min-h-0 flex-1 overflow-y-auto py-2;
+      }
+      /* Rows are keyboard-driven, so the active state is set by JS instead of
+         :hover - the pointer must not fight the arrow keys for the highlight. */
+      .guma-search-item {
+        @apply flex w-full items-center gap-3 px-4 py-2.5 text-left no-underline transition
+               text-guma-l-text dark:text-guma-text;
+      }
+      .guma-search-item.is-active {
+        @apply bg-guma-l-panel-2 dark:bg-guma-panel-2;
+      }
+      .guma-search-item-soon {
+        @apply cursor-not-allowed select-none text-guma-l-muted/60 dark:text-guma-muted/50;
+      }
+      .guma-search-icon {
+        @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border p-1.5
+               border-guma-l-border bg-guma-l-panel-2 text-guma-l-muted
+               dark:border-guma-border dark:bg-guma-panel-2 dark:text-guma-muted;
+      }
+      .guma-search-icon img {
+        @apply h-full w-full object-contain;
+      }
+      .guma-search-title {
+        @apply truncate text-sm font-bold;
+      }
+      .guma-search-item.is-active .guma-search-title {
+        @apply text-guma-l-gold dark:text-guma-gold;
+      }
+      .guma-search-desc {
+        @apply truncate text-xs text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-search-cat {
+        @apply shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]
+               border-guma-l-border-2 text-guma-l-muted/80
+               dark:border-guma-border-2 dark:text-guma-muted/70;
+      }
+      /* Matched fragment inside a result title. */
+      .guma-search-mark {
+        @apply rounded bg-transparent px-0 font-black text-guma-l-gold dark:text-guma-gold;
+      }
+      .guma-search-empty {
+        @apply px-4 py-8 text-center text-sm text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-search-foot {
+        @apply hidden items-center gap-4 border-t px-4 py-2 text-[11px]
+               border-guma-l-border text-guma-l-muted/80
+               dark:border-guma-border dark:text-guma-muted/70 sm:flex;
       }
     }
 

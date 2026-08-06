@@ -1,14 +1,18 @@
-const GUMA_VERSION = "1.8";
+const GUMA_VERSION = "1.9";
 
 // HEADER
 class GumaHeader extends HTMLElement {
   connectedCallback() {
     const current = window.location.pathname.split("/").pop() || "index.html";
 
-    const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html", "personnel_file_generator.html"].includes(
-      current,
-    );
-    const isReport = ["firearm_discharge.html", "traffic_collision_report.html", "arrest_report.html", "prehospital_care_report.html", "investigative_report.html"].includes(current);
+    const isCard = ["officer_generator.html", "firefighter_generator.html", "business_card_generator.html", "personnel_file_generator.html"].includes(current);
+    const isReport = [
+      "firearm_discharge.html",
+      "traffic_collision_report.html",
+      "arrest_report.html",
+      "prehospital_care_report.html",
+      "investigative_report.html",
+    ].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
@@ -22,10 +26,8 @@ class GumaHeader extends HTMLElement {
     const dropActive = "text-guma-l-gold bg-guma-l-panel-2 dark:text-guma-gold dark:bg-guma-panel-2";
     const dropInactive = "text-guma-l-text dark:text-guma-text";
     // Category label inside a dropdown menu / mobile nav group
-    const dropGroupLabel =
-      "px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50";
-    const mobGroupLabel =
-      "px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50";
+    const dropGroupLabel = "px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50";
+    const mobGroupLabel = "px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50";
 
     const mobActive = "text-guma-l-gold bg-guma-l-gold/10 dark:text-guma-gold dark:bg-guma-gold/10";
     const mobInactive = "text-guma-l-muted hover:text-guma-l-text hover:bg-black/5 dark:text-guma-muted dark:hover:text-guma-text dark:hover:bg-white/5";
@@ -38,12 +40,15 @@ class GumaHeader extends HTMLElement {
         <div id="gumaHeaderBar"
              class="mx-auto flex w-full max-w-8xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8 2xl:px-12">
 
-          <!-- Logo -->
-          <a href="index.html" id="gumaLogo"
-             class="flex-shrink-0 flex items-center rounded-xl px-3 py-1.5 transition hover:-translate-y-px cursor-pointer select-none">
-            <img src="assets/logo.png" alt="GUMA Tools" class="h-8 w-auto block dark:hidden" />
-            <img src="assets/logo_dark.png" alt="GUMA Tools" class="h-8 w-auto hidden dark:block" />
-          </a>
+          <!-- Logo. The side wrappers are flex-1 so the nav sits in the true
+               centre of the bar no matter how wide the right-hand controls get. -->
+          <div class="flex flex-1 items-center">
+            <a href="index.html" id="gumaLogo"
+               class="flex-shrink-0 flex items-center rounded-xl px-3 py-1.5 transition hover:-translate-y-px cursor-pointer select-none">
+              <img src="assets/logo.png" alt="GUMA Tools" class="h-8 w-auto block dark:hidden" />
+              <img src="assets/logo_dark.png" alt="GUMA Tools" class="h-8 w-auto hidden dark:block" />
+            </a>
+          </div>
 
           <!-- Desktop nav -->
           <nav class="hidden md:flex items-center gap-0.5">
@@ -182,7 +187,7 @@ class GumaHeader extends HTMLElement {
           </nav>
 
           <!-- Right side -->
-          <div class="flex items-center gap-3">
+          <div class="flex flex-1 items-center justify-end gap-3">
 
             <!-- Live badge (Kick) -->
             <a id="gumaLiveBadge"
@@ -195,6 +200,16 @@ class GumaHeader extends HTMLElement {
               </span>
               LIVE ON
             </a>
+
+            <!-- Search (command palette) -->
+            <button id="gumaSearchBtn" type="button" class="guma-search-trigger"
+                    aria-label="Search generators and reports">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </button>
 
             <!-- Support button -->
             <a href="https://tipply.pl/@dami" target="_blank" rel="noopener noreferrer"
@@ -397,6 +412,24 @@ class GumaHeader extends HTMLElement {
       document.documentElement.classList.toggle("dark", next === "dark");
       if (typeof gumaApplyThemeFavicon === "function") gumaApplyThemeFavicon();
     });
+    // ──────────────────────────────────────────────────────────────
+
+    // ── Command palette trigger ────────────────────────────────────
+    // The palette itself lives in <guma-search> and is mounted on first use;
+    // without js/search-index.js on the page there is nothing to search, so
+    // the button is dropped instead of opening an empty dialog.
+    const searchBtn = this.querySelector("#gumaSearchBtn");
+    if (window.GumaSearch) {
+      searchBtn?.addEventListener("click", () => gumaOpenSearch());
+      // Mounted (hidden) right away rather than on first open: the Tailwind CDN
+      // compiles classes it finds in the DOM, so a palette injected later would
+      // paint unstyled - and therefore in the page flow - for a frame or two.
+      if (!document.querySelector("guma-search")) {
+        document.body.appendChild(document.createElement("guma-search"));
+      }
+    } else {
+      searchBtn?.remove();
+    }
     // ──────────────────────────────────────────────────────────────
 
     // ── Live badge (Kick) ──────────────────────────────────────────
@@ -1057,12 +1090,8 @@ class GumaPreviewModal extends HTMLElement {
     // Export delegates to the page; "Copied!" feedback and the counter bump
     // come from copyDocToClipboard / initDownloadCounter via the ids above.
     // On a multi-page document the visible page's index rides along.
-    this.querySelector("#downloadBtn").addEventListener("click", () =>
-      window.GumaExport?.download?.(this._pages ? this._page : undefined),
-    );
-    this.querySelector("#copyDiscordBtn").addEventListener("click", () =>
-      window.GumaExport?.copy?.(this._pages ? this._page : undefined),
-    );
+    this.querySelector("#downloadBtn").addEventListener("click", () => window.GumaExport?.download?.(this._pages ? this._page : undefined));
+    this.querySelector("#copyDiscordBtn").addEventListener("click", () => window.GumaExport?.copy?.(this._pages ? this._page : undefined));
 
     // Mirror the page counter (#downloadCount) into the modal.
     const src = document.getElementById("downloadCount");
@@ -1210,3 +1239,281 @@ class GumaPreviewModal extends HTMLElement {
   }
 }
 customElements.define("guma-preview-modal", GumaPreviewModal);
+
+// ── COMMAND PALETTE (Ctrl+K) ─────────────────────────────────────
+// One box that reaches every generator, report and page from anywhere in the
+// app. It searches the tool index in js/search-index.js - the nav dropdowns
+// stay as they are, this is the shortcut for people who know what they want.
+//
+// Mounted lazily by gumaOpenSearch() on the first open, so a page that never
+// gets a Ctrl+K pays nothing for it.
+const SP_MAX_RESULTS = 8; // for a typed query; an empty one lists everything
+
+class GumaSearchPalette extends HTMLElement {
+  connectedCallback() {
+    this._build();
+  }
+
+  disconnectedCallback() {
+    if (this._onDocKey) document.removeEventListener("keydown", this._onDocKey);
+  }
+
+  _build() {
+    this.innerHTML = `
+      <div data-sp-root class="guma-search-root hidden">
+        <div data-sp-overlay class="guma-search-overlay"></div>
+        <div role="dialog" aria-modal="true" aria-label="Search GUMA Tools" class="guma-search-panel">
+
+          <div class="guma-search-head">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                 class="shrink-0 text-guma-l-muted dark:text-guma-muted">
+              <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input data-sp-input type="text" class="guma-search-field"
+                   placeholder="Search generators, reports, tools..."
+                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                   role="combobox" aria-expanded="true" aria-autocomplete="list"
+                   aria-controls="gumaSearchResults" />
+            <button type="button" data-sp-close class="guma-search-kbd" aria-label="Close search">Esc</button>
+          </div>
+
+          <div data-sp-results id="gumaSearchResults" role="listbox" aria-label="Search results"
+               class="guma-search-list guma-scroll"></div>
+
+          <div class="guma-search-foot">
+            <span class="flex items-center gap-1"><kbd class="guma-search-kbd">&uarr;</kbd><kbd class="guma-search-kbd">&darr;</kbd> Navigate</span>
+            <span class="flex items-center gap-1"><kbd class="guma-search-kbd">&crarr;</kbd> Open</span>
+            <span class="flex items-center gap-1"><kbd class="guma-search-kbd">Esc</kbd> Close</span>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    this._root = this.querySelector("[data-sp-root]");
+    this._input = this.querySelector("[data-sp-input]");
+    this._list = this.querySelector("[data-sp-results]");
+    this._results = [];
+    this._active = 0;
+    this._opener = null;
+
+    this.querySelector("[data-sp-overlay]").addEventListener("click", () => this.close());
+    this.querySelector("[data-sp-close]").addEventListener("click", () => this.close());
+
+    this._input.addEventListener("input", () => this._render());
+    this._input.addEventListener("keydown", (e) => this._onFieldKey(e));
+
+    // Pointer and keyboard share one highlight, so hovering a row makes it the
+    // Enter target instead of leaving two competing "selected" states.
+    this._list.addEventListener("mousemove", (e) => {
+      const row = e.target.closest("[data-sp-index]");
+      if (!row) return;
+      const index = Number(row.dataset.spIndex);
+      if (index !== this._active) {
+        this._active = index;
+        this._paint(false);
+      }
+    });
+
+    // Esc has to work even when focus escaped the field (e.g. after a click
+    // on the dialog chrome).
+    this._onDocKey = (e) => {
+      if (e.key === "Escape" && !this._root.classList.contains("hidden")) this.close();
+    };
+    document.addEventListener("keydown", this._onDocKey);
+
+    // Rendered while still hidden so every class the rows use is in the DOM
+    // before the first open, and the Tailwind CDN has already compiled them.
+    this._render();
+  }
+
+  open() {
+    if (!this._root.classList.contains("hidden")) return;
+    this._opener = document.activeElement;
+    this._root.classList.remove("hidden");
+    this._root.classList.add("flex");
+    this._input.value = "";
+    this._render();
+    // rAF so the box is laid out first; preventScroll because the host sits at
+    // the end of <body> and the page would otherwise jump to it.
+    requestAnimationFrame(() => this._input.focus({ preventScroll: true }));
+  }
+
+  close() {
+    this._root.classList.add("hidden");
+    this._root.classList.remove("flex");
+    if (this._opener && typeof this._opener.focus === "function") this._opener.focus();
+    this._opener = null;
+  }
+
+  // ── Keyboard inside the field ───────────────────────────────────
+  _onFieldKey(e) {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        this._move(1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        this._move(-1);
+        break;
+      case "Home":
+        e.preventDefault();
+        this._active = 0;
+        this._paint();
+        break;
+      case "End":
+        e.preventDefault();
+        this._active = Math.max(0, this._results.length - 1);
+        this._paint();
+        break;
+      case "Enter": {
+        e.preventDefault();
+        const row = this._list.querySelector(`[data-sp-index="${this._active}"]`);
+        if (row && row.tagName === "A") row.click();
+        break;
+      }
+      case "Escape":
+        e.preventDefault();
+        this.close();
+        break;
+    }
+  }
+
+  _move(step) {
+    if (!this._results.length) return;
+    const count = this._results.length;
+    this._active = (this._active + step + count) % count;
+    this._paint();
+  }
+
+  // ── Rendering ───────────────────────────────────────────────────
+  _render() {
+    const query = this._input.value.trim();
+    const api = window.GumaSearch;
+
+    this._results = api ? api.search(query, query ? SP_MAX_RESULTS : 50) : [];
+    this._active = 0;
+
+    if (!this._results.length) {
+      this._list.innerHTML = `<p class="guma-search-empty">Nothing matches &ldquo;${ghEscapeHtml(query)}&rdquo;.</p>`;
+      return;
+    }
+
+    const tokens = api.tokenize(query);
+    this._list.innerHTML = this._results.map((entry, index) => this._row(entry, index, tokens)).join("");
+    // No scrolling on a fresh list: the first row is already at the top, and
+    // scrollIntoView() would drag the page behind the dialog with it.
+    this._paint(false);
+  }
+
+  _row(entry, index, tokens) {
+    const soon = entry.status === "soon" || !entry.url;
+    const tag = soon ? "div" : "a";
+    const href = soon ? "" : ` href="${ghEscapeHtml(entry.url)}"`;
+
+    const icon = entry.icon
+      ? `<img src="${ghEscapeHtml(entry.icon)}" alt="" />`
+      : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+         </svg>`;
+
+    const soonTag = soon ? ` <span class="text-[10px] font-bold uppercase tracking-widest">(Soon)</span>` : "";
+
+    return `
+      <${tag}${href} role="option" aria-selected="false" data-sp-index="${index}"
+         class="guma-search-item${soon ? " guma-search-item-soon" : ""}">
+        <span class="guma-search-icon">${icon}</span>
+        <span class="min-w-0 flex-1">
+          <span class="guma-search-title block">${this._mark(entry.title, tokens)}${soonTag}</span>
+          <span class="guma-search-desc block">${ghEscapeHtml(entry.summary)}</span>
+        </span>
+        <span class="guma-search-cat">${ghEscapeHtml(entry.category)}</span>
+      </${tag}>`;
+  }
+
+  // Highlights the matched fragments of a title. Ranges are found on the raw
+  // text and every slice is escaped on its own, so a match can never cut an
+  // HTML entity in half. The index is plain ASCII, hence the lowercase compare.
+  _mark(text, tokens) {
+    const lower = String(text).toLowerCase();
+    const ranges = [];
+
+    for (const token of tokens) {
+      let from = 0;
+      let at = lower.indexOf(token, from);
+      while (at !== -1) {
+        ranges.push([at, at + token.length]);
+        from = at + token.length;
+        at = lower.indexOf(token, from);
+      }
+    }
+    if (!ranges.length) return ghEscapeHtml(text);
+
+    ranges.sort((a, b) => a[0] - b[0]);
+
+    let out = "";
+    let cursor = 0;
+    for (const [start, end] of ranges) {
+      if (end <= cursor) continue; // fully inside an earlier match
+      const from = Math.max(start, cursor);
+      out += ghEscapeHtml(text.slice(cursor, from));
+      out += `<mark class="guma-search-mark">${ghEscapeHtml(text.slice(from, end))}</mark>`;
+      cursor = end;
+    }
+    return out + ghEscapeHtml(text.slice(cursor));
+  }
+
+  _paint(scroll = true) {
+    this._list.querySelectorAll("[data-sp-index]").forEach((row) => {
+      const isActive = Number(row.dataset.spIndex) === this._active;
+      row.classList.toggle("is-active", isActive);
+      row.setAttribute("aria-selected", isActive ? "true" : "false");
+      if (isActive && scroll) this._reveal(row);
+    });
+  }
+
+  // Scrolls the results list only. scrollIntoView() would walk up to the
+  // document and move the page behind the dialog as a side effect.
+  _reveal(row) {
+    const list = this._list;
+    const top = row.offsetTop;
+    const bottom = top + row.offsetHeight;
+
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
+  }
+}
+customElements.define("guma-search", GumaSearchPalette);
+
+// Mounts the palette on first use and opens it.
+function gumaOpenSearch() {
+  if (!window.GumaSearch) return;
+  let palette = document.querySelector("guma-search");
+  if (!palette) {
+    palette = document.createElement("guma-search");
+    document.body.appendChild(palette);
+  }
+  palette.open();
+}
+
+// Global shortcuts: Ctrl/Cmd+K anywhere, "/" only outside a text field so it
+// never eats a slash someone is typing into a report.
+document.addEventListener("keydown", (e) => {
+  const key = String(e.key || "").toLowerCase();
+  const inField = e.target?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
+
+  if ((e.metaKey || e.ctrlKey) && !e.altKey && key === "k") {
+    e.preventDefault();
+    gumaOpenSearch();
+    return;
+  }
+  if (key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !inField) {
+    e.preventDefault();
+    gumaOpenSearch();
+  }
+});
