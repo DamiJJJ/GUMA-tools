@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Character Description - GUMA Tools</title>
+
+    <link rel="icon" href="assets/chardesc.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/chardesc.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
+  </head>
+
+  <body class="flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <!-- PAGE TITLE -->
+    <div class="guma-page pt-8 pb-6">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Character Description Generator
+      </h1>
+    </div>
+
+    <!-- MAIN -->
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- ════ FORM PANEL ════ -->
+      <div class="guma-panel w-full p-6 xl:w-[480px] xl:flex-none guma-panel-form">
+        <!-- ── Description ── -->
+        <p class="guma-form-section">Description</p>
+
+        <div class="mb-2">
+          <label class="guma-label">Formatting</label>
+          <!-- Swatches + style buttons are built by js/character-description.js
+               so the colour values live in one place (CD_COLORS). -->
+          <div id="cdToolbar" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div class="mb-1">
+          <label class="guma-label" for="cdText">Your character's description</label>
+          <textarea
+            class="guma-input min-h-[180px] resize-y"
+            id="cdText"
+            rows="8"
+            maxlength="1200"
+            oninput="cdOnInput()"
+            placeholder="A tall man in his early 30s. Faded scar across the left eyebrow, heavy sleeve tattoos on both forearms..."
+          ></textarea>
+        </div>
+        <p class="guma-drop-hint mb-4 text-left">
+          Select part of the text and click a colour or style to wrap it in FiveM ~codes~. Enter becomes ~n~ in the copied command.
+        </p>
+
+        <button type="button" class="btn-add mb-6" onclick="cdLoadExample()">Load example description</button>
+
+        <!-- ── Output ── -->
+        <p class="guma-form-section">Output</p>
+
+        <div class="mb-4">
+          <label class="guma-label" for="cdPrefix">Chat command prefix <span class="normal-case tracking-normal">(optional)</span></label>
+          <input class="guma-input" type="text" id="cdPrefix" maxlength="40" oninput="cdOnInput()" placeholder="/description" />
+          <p class="guma-drop-hint text-left">Whatever your server uses: /description, /desc, /opis. Leave empty to copy the text alone.</p>
+        </div>
+
+        <div>
+          <div class="mb-1 flex items-center justify-between gap-3">
+            <!-- A <div> cannot be the target of <label for>, so the output box
+                 names itself with aria-labelledby instead. -->
+            <span id="cdOutputLabel" class="guma-label mb-0">Game-ready output</span>
+            <span id="cdCount" class="text-[11px] tabular-nums text-guma-l-muted/70 dark:text-guma-muted/60">0 chars</span>
+          </div>
+          <div id="cdOutput" class="guma-cd-output is-empty" tabindex="0" role="group" aria-labelledby="cdOutputLabel">
+            The formatted command will appear here.
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ PREVIEW PANEL ════ -->
+      <div class="guma-panel flex min-w-0 flex-1 flex-col gap-4 p-6 guma-panel-preview">
+        <div class="flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">In-Game Preview</p>
+          <button
+            id="gumaHistoryBtn"
+            type="button"
+            aria-label="Open saved descriptions"
+            onclick="document.querySelector('guma-history-drawer')?.open()"
+            class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 7v5l4 2" />
+            </svg>
+            Saved
+            <span
+              id="gumaHistoryCount"
+              class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+            ></span>
+          </button>
+        </div>
+
+        <!-- ── Stage ── -->
+        <div class="guma-cd-stage">
+          <canvas id="cdCanvas" width="1100" height="700" class="guma-cd-canvas" aria-label="3D character preview"></canvas>
+        </div>
+
+        <!-- ── Scene + rotation controls ── -->
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div id="cdScenes" class="guma-seg sm:max-w-md">
+            <button type="button" class="guma-seg-btn" data-scene="day" onclick="cdSetScene(this.dataset.scene)">Day</button>
+            <button type="button" class="guma-seg-btn" data-scene="sunset" onclick="cdSetScene(this.dataset.scene)">Sunset</button>
+            <button type="button" class="guma-seg-btn" data-scene="night" onclick="cdSetScene(this.dataset.scene)">Night</button>
+            <button type="button" class="guma-seg-btn" data-scene="interior" onclick="cdSetScene(this.dataset.scene)">Interior</button>
+          </div>
+          <label class="flex cursor-pointer select-none items-center gap-2.5">
+            <input type="checkbox" id="cdAutoRotate" checked onchange="cdSetAutoRotate(this.checked)" />
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Auto-rotate</span>
+          </label>
+        </div>
+        <p class="guma-drop-hint mt-0 text-left">Drag the character to rotate it and see how the description reads against each backdrop.</p>
+
+        <!-- ── Actions ── -->
+        <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+          <button class="guma-btn-primary flex-1" id="cdCopyBtn" onclick="cdCopy()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="8" height="4" x="8" y="2" rx="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            </svg>
+            Copy for game
+          </button>
+          <button class="guma-btn-outline flex-1" type="button" onclick="document.querySelector('guma-preview-modal')?.open()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+              <circle cx="9" cy="9" r="2" />
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+            </svg>
+            Export PNG
+          </button>
+        </div>
+
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          <span class="leading-none">Generated <span id="downloadCount" class="tabular-nums">0</span> times</span>
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
+
+    <script src="js/history.js"></script>
+    <script src="js/history-wiring.js"></script>
+    <script src="js/character-description.js"></script>
+    <script src="js/counters.js"></script>
+    <script src="js/search-index.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        cdInit();
+        window.GumaCounters?.initDownloadCounter("chardesc", "downloadCount", "downloadBtn");
+      });
+    </script>
+  </body>
+</html>

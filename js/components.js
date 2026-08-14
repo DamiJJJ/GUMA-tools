@@ -14,6 +14,7 @@ class GumaHeader extends HTMLElement {
       "investigative_report.html",
     ].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
+    const isIngame = ["character_description.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
@@ -150,6 +151,31 @@ class GumaHeader extends HTMLElement {
                   <span class="flex-1">Fire Code Inspection Report</span>
                   <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
                 </span>
+              </div>
+            </div>
+
+            <!-- In-Game Generators dropdown -->
+            <div class="relative" id="gumaIngameDropdown">
+              <button id="gumaIngameBtn"
+                class="flex items-center gap-1.5 ${navLinkBase} ${isIngame ? navActive : navInactive}"
+                aria-haspopup="true" aria-expanded="false">
+                In-Game
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round"
+                     class="transition-transform duration-200" id="gumaIngameChevron">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              <div id="gumaIngameMenu"
+                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                          border border-guma-l-border bg-guma-l-panel shadow-panel-light
+                          dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
+                <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
+                   class="${dropLinkBase} ${current === "character_description.html" ? dropActive : dropInactive}">
+                  <img src="assets/chardesc.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Character Description
+                </a>
               </div>
             </div>
 
@@ -365,6 +391,16 @@ class GumaHeader extends HTMLElement {
             </span>
 
             <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
+              In-Game Generators
+            </p>
+            <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "character_description.html" ? mobActive : mobInactive}">
+              <img src="assets/chardesc.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Character Description
+            </a>
+
+            <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
               Image Tools
             </p>
             <a href="bodycam_overlay.html" data-generator-key="bodycam" data-hot-flag="icon"
@@ -506,6 +542,7 @@ class GumaHeader extends HTMLElement {
 
     setupDropdown("gumaCardsBtn", "gumaCardsMenu", "gumaCardsChevron");
     setupDropdown("gumaReportsBtn", "gumaReportsMenu", "gumaReportsChevron");
+    setupDropdown("gumaIngameBtn", "gumaIngameMenu", "gumaIngameChevron");
     setupDropdown("gumaImageBtn", "gumaImageMenu", "gumaImageChevron");
 
     document.addEventListener("click", () => {
@@ -788,11 +825,15 @@ class GumaHistoryDrawer extends HTMLElement {
     this.render();
   }
 
-  // ── Noun for labels: "card" (default) or "report" ───────────────
+  // ── Noun for labels: "card" (default), "report" or "description" ─
   get _noun() {
-    return window.GUMA_GENERATOR_NOUN === "report"
-      ? { one: "report", many: "reports", title: "Saved Reports" }
-      : { one: "card", many: "cards", title: "Saved Cards" };
+    if (window.GUMA_GENERATOR_NOUN === "report") {
+      return { one: "report", many: "reports", title: "Saved Reports" };
+    }
+    if (window.GUMA_GENERATOR_NOUN === "description") {
+      return { one: "description", many: "descriptions", title: "Saved Descriptions" };
+    }
+    return { one: "card", many: "cards", title: "Saved Cards" };
   }
 
   // ── Render list + button badge ──────────────────────────────────

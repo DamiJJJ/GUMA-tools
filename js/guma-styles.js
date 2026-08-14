@@ -598,6 +598,48 @@
         @apply w-full cursor-pointer accent-guma-gold;
       }
 
+      /* ─── Character description: stage + formatting toolbar ─── */
+      .guma-cd-stage {
+        @apply relative w-full overflow-hidden rounded-xl border p-3
+               border-guma-l-border bg-guma-l-dark
+               dark:border-guma-border dark:bg-guma-dark;
+      }
+      /* pan-y, not none: a horizontal drag spins the mannequin while a
+         vertical swipe still scrolls the page, so the full-width canvas
+         is not a dead zone on a phone. */
+      .guma-cd-canvas {
+        @apply block h-auto w-full rounded-md border
+               border-guma-l-border-2 dark:border-guma-border-2;
+        touch-action: pan-y;
+        cursor: grab;
+      }
+      .guma-cd-canvas.is-dragging {
+        cursor: grabbing;
+      }
+      /* Small square button in the ~code~ toolbar: a colour swatch or a
+         text style (B / I / ~s~ / ~n~). */
+      .guma-fmt-btn {
+        @apply inline-flex h-8 min-w-[2rem] cursor-pointer items-center justify-center rounded-md border px-1.5
+               text-xs transition
+               border-guma-l-border-2 bg-guma-l-input text-guma-l-text
+               hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border-2 dark:bg-guma-input dark:text-guma-text
+               dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-fmt-swatch {
+        @apply h-4 w-4 rounded border border-black/30;
+      }
+      /* Read-only box with the final ~code~ string, wraps like chat input. */
+      .guma-cd-output {
+        @apply w-full whitespace-pre-wrap break-words rounded-lg border px-3 py-2 font-mono text-xs leading-5
+               border-guma-l-border-2 bg-guma-l-dark text-guma-l-text
+               dark:border-guma-border-2 dark:bg-guma-dark dark:text-guma-text;
+        min-height: 3.25rem;
+      }
+      .guma-cd-output.is-empty {
+        @apply font-sans italic text-guma-l-muted/60 dark:text-guma-muted/50;
+      }
+
       /* ─── Reports: dynamic rows ─── */
       .dynamic-row {
         @apply relative mb-3 rounded-xl border p-4

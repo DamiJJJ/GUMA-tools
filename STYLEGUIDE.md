@@ -444,7 +444,7 @@ both go quiet:
 | Supabase | a `downloads_<key>` row |
 
 Current keys: `officer`, `firefighter`, `business_card`, `personnel`, `firearm`,
-`traffic`, `arrest`, `pcr`, `investigative`, `bodycam`.
+`traffic`, `arrest`, `pcr`, `investigative`, `bodycam`, `chardesc`.
 
 **Verify:** open the page. "Generated 0 times" should appear under the export
 button (it stays hidden while the row is missing). Copy to clipboard once,
