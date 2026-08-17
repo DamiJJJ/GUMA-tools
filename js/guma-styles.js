@@ -604,20 +604,22 @@
                border-guma-l-border bg-guma-l-dark
                dark:border-guma-border dark:bg-guma-dark;
       }
-      /* pan-y, not none: a horizontal drag spins the mannequin while a
-         vertical swipe still scrolls the page, so the full-width canvas
-         is not a dead zone on a phone. */
       .guma-cd-canvas {
         @apply block h-auto w-full rounded-md border
                border-guma-l-border-2 dark:border-guma-border-2;
+      }
+      /* pan-y, not none: a horizontal drag turns the mannequin while a
+         vertical swipe still scrolls the page, so the full-width canvas is
+         not a dead zone on a phone. Only set once the 3D preview is live. */
+      .guma-cd-canvas.is-rotatable {
         touch-action: pan-y;
         cursor: grab;
       }
-      .guma-cd-canvas.is-dragging {
+      .guma-cd-canvas.is-rotatable.is-dragging {
         cursor: grabbing;
       }
       /* Small square button in the ~code~ toolbar: a colour swatch or a
-         text style (B / I / ~s~ / ~n~). */
+         text style (B / I / Reset). */
       .guma-fmt-btn {
         @apply inline-flex h-8 min-w-[2rem] cursor-pointer items-center justify-center rounded-md border px-1.5
                text-xs transition

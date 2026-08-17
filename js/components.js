@@ -173,7 +173,7 @@ class GumaHeader extends HTMLElement {
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
                    class="${dropLinkBase} ${current === "character_description.html" ? dropActive : dropInactive}">
-                  <img src="assets/chardesc.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  <img src="assets/character.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Character Description
                 </a>
               </div>
@@ -396,7 +396,7 @@ class GumaHeader extends HTMLElement {
             <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "character_description.html" ? mobActive : mobInactive}">
-              <img src="assets/chardesc.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              <img src="assets/character.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
               Character Description
             </a>
 

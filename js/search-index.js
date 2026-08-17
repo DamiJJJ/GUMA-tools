@@ -137,9 +137,9 @@ window.GUMA_SEARCH_INDEX = [
     title: "Character Description",
     url: "character_description.html",
     category: "In-Game Generators",
-    icon: "assets/chardesc.png",
+    icon: "assets/character.svg",
     status: "available",
-    summary: "Write your character's /description with FiveM colour and style codes, preview it live on a rotatable 3D character and copy the game-ready command.",
+    summary: "Write your character's /description with FiveM colour and style codes, preview it live on a character mannequin and copy the game-ready command.",
     aliases: ["description", "desc", "opis", "fivem description", "text formatting", "character card", "rp description"],
   },
 

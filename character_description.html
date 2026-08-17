@@ -6,7 +6,8 @@
     <meta name="author" content="Dami" />
     <title>Character Description - GUMA Tools</title>
 
-    <link rel="icon" href="assets/chardesc.png" type="image/png" />
+    <link rel="icon" href="assets/character.svg" type="image/svg+xml" />
+    <!-- Apple touch icons must be PNG, so this one keeps the old bitmap. -->
     <link rel="apple-touch-icon" sizes="192x192" href="assets/chardesc.png" />
     <link rel="manifest" href="manifest.json" />
 
@@ -53,7 +54,7 @@
           ></textarea>
         </div>
         <p class="guma-drop-hint mb-4 text-left">
-          Select part of the text and click a colour or style to wrap it in FiveM ~codes~. Enter becomes ~n~ in the copied command.
+          Select part of the text and click a colour or style to format it. Press Enter for a new line (copied as ~n~ for the game).
         </p>
 
         <button type="button" class="btn-add mb-6" onclick="cdLoadExample()">Load example description</button>
@@ -105,10 +106,12 @@
 
         <!-- ── Stage ── -->
         <div class="guma-cd-stage">
-          <canvas id="cdCanvas" width="1100" height="700" class="guma-cd-canvas" aria-label="3D character preview"></canvas>
+          <canvas id="cdCanvas" width="1100" height="700" class="guma-cd-canvas" aria-label="Character preview"></canvas>
         </div>
 
-        <!-- ── Scene + rotation controls ── -->
+        <!-- ── Background switcher (parked) ──
+             Re-enable together with CD_SCENES in js/character-description.js
+             once in-game background screenshots land in /assets.
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div id="cdScenes" class="guma-seg sm:max-w-md">
             <button type="button" class="guma-seg-btn" data-scene="day" onclick="cdSetScene(this.dataset.scene)">Day</button>
@@ -116,12 +119,14 @@
             <button type="button" class="guma-seg-btn" data-scene="night" onclick="cdSetScene(this.dataset.scene)">Night</button>
             <button type="button" class="guma-seg-btn" data-scene="interior" onclick="cdSetScene(this.dataset.scene)">Interior</button>
           </div>
-          <label class="flex cursor-pointer select-none items-center gap-2.5">
-            <input type="checkbox" id="cdAutoRotate" checked onchange="cdSetAutoRotate(this.checked)" />
-            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Auto-rotate</span>
-          </label>
         </div>
-        <p class="guma-drop-hint mt-0 text-left">Drag the character to rotate it and see how the description reads against each backdrop.</p>
+        -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p class="guma-drop-hint mt-0 text-left">Drag the character to turn it and see how the description reads.</p>
+          <button type="button" class="guma-fmt-btn px-3 text-[10px] font-bold uppercase tracking-wide" onclick="cdResetView()">
+            Reset view
+          </button>
+        </div>
 
         <!-- ── Actions ── -->
         <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
@@ -132,13 +137,15 @@
             </svg>
             Copy for game
           </button>
-          <button class="guma-btn-outline flex-1" type="button" onclick="document.querySelector('guma-preview-modal')?.open()">
+          <!-- No export preview modal on this page: the panel above already
+               shows the exact canvas this button saves. -->
+          <button class="guma-btn-outline flex-1" type="button" id="downloadBtn" onclick="cdDownloadPng()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-              <circle cx="9" cy="9" r="2" />
-              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Export PNG
+            Download PNG
           </button>
         </div>
 
@@ -156,10 +163,10 @@
 
     <guma-footer></guma-footer>
     <guma-history-drawer></guma-history-drawer>
-    <guma-preview-modal></guma-preview-modal>
 
     <script src="js/history.js"></script>
     <script src="js/history-wiring.js"></script>
+    <script src="js/mannequin-3d.js"></script>
     <script src="js/character-description.js"></script>
     <script src="js/counters.js"></script>
     <script src="js/search-index.js"></script>
