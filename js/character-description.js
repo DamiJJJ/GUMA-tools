@@ -26,6 +26,51 @@ const CD_COLORS = {
 const CD_COLOR_ALIASES = { t: "c", f: "b" };
 const CD_DEFAULT_COLOR = "#f0f0f0";
 
+// Swatch order in the picker: 12 colours in a 4-wide grid. ~s~ has no button
+// of its own - every colour click already closes its run with it.
+const CD_SWATCH_ORDER = ["w", "r", "g", "b", "y", "o", "p", "q", "c", "m", "l", "d"];
+
+// Style buttons. Icons are lucide paths (bold, italic, dot, corner-down-left,
+// star). The last three insert plain characters, not ~codes~: a newline
+// (copied as ~n~) and the two symbols players use as bullets.
+const CD_STYLES = [
+  {
+    icon: '<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>',
+    label: "Bold",
+    title: "Bold (~h~)",
+    open: "~h~",
+    close: "~h~",
+  },
+  {
+    icon: '<line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/>',
+    label: "Italic",
+    title: "Italic (~italic~)",
+    open: "~italic~",
+    close: "~italic~",
+  },
+  {
+    icon: '<circle cx="12" cy="12" r="2" fill="currentColor"/>',
+    label: "Cond.",
+    title: "Separator dot (·)",
+    open: "·",
+    close: "",
+  },
+  {
+    icon: '<polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/>',
+    label: "Line",
+    title: "New line (copied as ~n~)",
+    open: "\n",
+    close: "",
+  },
+  {
+    icon: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    label: "Star",
+    title: "Star symbol (★)",
+    open: "★",
+    close: "",
+  },
+];
+
 // ── Preview backgrounds (parked) ──────────────────────────────────
 // The background switcher is disabled until in-game screenshots land in
 // /assets. To bring it back: point each scene at its screenshot, re-enable
@@ -177,12 +222,17 @@ function cdReplaceRange(el, start, end, text) {
   }
 }
 
-/** Wraps the textarea selection in open/close codes (or inserts at the caret). */
+/**
+ * Wraps the textarea selection in open/close codes. With nothing selected
+ * both codes go in at the caret and the caret lands between them, so whatever
+ * gets typed next is already closed - there is no dangling colour to reset by
+ * hand.
+ */
 function cdWrapSelection(open, close) {
   const el = document.getElementById("cdText");
   const start = el.selectionStart;
   const end = el.selectionEnd;
-  const added = open.length + (start === end ? 0 : close.length);
+  const added = open.length + close.length;
 
   // The codes count against the same budget as the prose: without this the
   // toolbar could push the value past the cap the textarea enforces on typing.
@@ -197,7 +247,8 @@ function cdWrapSelection(open, close) {
   }
 
   if (start === end) {
-    cdReplaceRange(el, start, end, open);
+    cdReplaceRange(el, start, end, open + close);
+    el.setSelectionRange(start + open.length, start + open.length);
   } else {
     cdReplaceRange(el, start, end, open + el.value.slice(start, end) + close);
     el.setSelectionRange(start, end + added);
@@ -205,44 +256,87 @@ function cdWrapSelection(open, close) {
   cdOnInput();
 }
 
-/** Builds the colour swatches + style buttons. Colours live only in CD_COLORS. */
-function cdBuildToolbar() {
-  const wrap = document.getElementById("cdToolbar");
+/**
+ * Builds one formatting button: swatch or icon in front of the label.
+ * @param {{cls?:string, title:string, aria:string}} opts
+ */
+function cdMakeChip(mark, label, opts, onClick) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "guma-fmt-btn is-wide";
+  btn.title = opts.title;
+  btn.setAttribute("aria-label", opts.aria);
+  btn.appendChild(mark);
+  const text = document.createElement("span");
+  text.className = opts.cls || "";
+  text.textContent = label;
+  btn.appendChild(text);
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
+/** 14x14 lucide-style icon, matching the SVGs used elsewhere on the page. */
+function cdMakeIcon(path) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "14");
+  svg.setAttribute("height", "14");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2.5");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("class", "flex-none");
+  svg.innerHTML = path;
+  return svg;
+}
+
+/** Builds the colour swatches. Colours live only in CD_COLORS. */
+function cdBuildColors() {
+  const wrap = document.getElementById("cdColors");
   if (!wrap) return;
 
-  for (const [code, c] of Object.entries(CD_COLORS)) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "guma-fmt-btn";
-    btn.title = `${c.name} (~${code}~)`;
-    btn.setAttribute("aria-label", `Colour ${c.name}`);
+  for (const code of CD_SWATCH_ORDER) {
+    const c = CD_COLORS[code];
+    if (!c) continue;
     const swatch = document.createElement("span");
     swatch.className = "guma-fmt-swatch";
     swatch.style.background = c.hex;
-    btn.appendChild(swatch);
-    btn.addEventListener("click", () => cdWrapSelection(`~${code}~`, "~s~"));
-    wrap.appendChild(btn);
+    wrap.appendChild(
+      cdMakeChip(swatch, `~${code}~`, { cls: "font-mono", title: `${c.name} (~${code}~)`, aria: c.name }, () =>
+        cdWrapSelection(`~${code}~`, "~s~"),
+      ),
+    );
   }
+}
 
-  const styles = [
-    { label: "B", title: "Bold (~h~)", cls: "font-black", open: "~h~", close: "~h~" },
-    { label: "I", title: "Italic (~italic~)", cls: "italic", open: "~italic~", close: "~italic~" },
-    { label: "Reset", title: "Back to the default colour (~s~)", cls: "text-[10px] font-bold uppercase tracking-wide", open: "~s~", close: "" },
-  ];
-  for (const s of styles) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "guma-fmt-btn " + s.cls;
-    btn.title = s.title;
-    btn.textContent = s.label;
-    btn.addEventListener("click", () => cdWrapSelection(s.open, s.close));
-    wrap.appendChild(btn);
+/** Builds the style + symbol buttons. */
+function cdBuildStyles() {
+  const wrap = document.getElementById("cdStyles");
+  if (!wrap) return;
+
+  for (const s of CD_STYLES) {
+    wrap.appendChild(
+      cdMakeChip(cdMakeIcon(s.icon), s.label, { cls: "uppercase tracking-wide", title: s.title, aria: s.label }, () =>
+        cdWrapSelection(s.open, s.close),
+      ),
+    );
   }
 }
 
 function cdLoadExample() {
   document.getElementById("cdText").value = CD_EXAMPLES[cdExampleIdx];
   cdExampleIdx = (cdExampleIdx + 1) % CD_EXAMPLES.length;
+  cdOnInput();
+}
+
+/** Empties the description. The command prefix is left alone: it is a
+ *  per-server setting the player types once. */
+function cdClear() {
+  const el = document.getElementById("cdText");
+  el.value = "";
+  el.focus();
   cdOnInput();
 }
 
@@ -535,9 +629,8 @@ async function cdCopyText(text) {
 }
 
 /**
- * Bumps the shared "Generated N times" counter and refreshes the label.
- * The modal's own Download button is wired straight to the counter by
- * initDownloadCounter, so only the copy paths come through here.
+ * Bumps the shared "Copied N times" counter and refreshes the label. Copying
+ * is the only action on this page, so every bump comes through here.
  */
 async function cdCountGenerated() {
   const next = await window.GumaCounters?.trackDownload("chardesc");
@@ -561,19 +654,10 @@ async function cdCopy() {
   await window.GumaHistoryWiring?.save(document.getElementById("cdCanvas"));
 }
 
-// ── PNG export ────────────────────────────────────────────────────
-// No guma-preview-modal here: the preview panel already shows the exact
-// canvas that gets saved, so the button downloads it straight away. The
-// "Generated N times" bump rides on the button id (#downloadBtn) via
-// initDownloadCounter.
-async function cdDownloadPng() {
-  const canvas = document.getElementById("cdCanvas");
-  const a = document.createElement("a");
-  a.download = "character_description.png";
-  a.href = canvas.toDataURL("image/png");
-  a.click();
-  await window.GumaHistoryWiring?.save(canvas);
-}
+// No PNG export here: the preview is a mock-up of the in-game nameplate, not
+// a document, so the only output worth taking away is the copied string. The
+// canvas is still rendered - it is the thumbnail saved entries are listed
+// under, written by cdCopy().
 
 // ── Saved descriptions: serialize / hydrate / wiring ──────────────
 function cdSerializeState() {
@@ -618,7 +702,8 @@ window.GumaHistoryWiring?.register({
 function cdInit() {
   const canvas = document.getElementById("cdCanvas");
 
-  cdBuildToolbar();
+  cdBuildColors();
+  cdBuildStyles();
   cdWirePointer(canvas);
   cdOnInput();
 

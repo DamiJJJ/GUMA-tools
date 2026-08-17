@@ -618,8 +618,8 @@
       .guma-cd-canvas.is-rotatable.is-dragging {
         cursor: grabbing;
       }
-      /* Small square button in the ~code~ toolbar: a colour swatch or a
-         text style (B / I / Reset). */
+      /* Button in the ~code~ picker: a colour swatch or a text style. Input
+         coloured on purpose - it sits inside the form, next to the fields. */
       .guma-fmt-btn {
         @apply inline-flex h-8 min-w-[2rem] cursor-pointer items-center justify-center rounded-md border px-1.5
                text-xs transition
@@ -628,8 +628,13 @@
                dark:border-guma-border-2 dark:bg-guma-input dark:text-guma-text
                dark:hover:border-guma-gold dark:hover:text-guma-gold;
       }
+      /* Same button, sized to fill a grid cell: swatch or icon in front of the
+         label (~r~, BOLD, LINE...). */
+      .guma-fmt-btn.is-wide {
+        @apply h-9 w-full justify-start gap-2 px-2.5 font-semibold;
+      }
       .guma-fmt-swatch {
-        @apply h-4 w-4 rounded border border-black/30;
+        @apply h-3.5 w-3.5 flex-none rounded-full border border-black/30;
       }
       /* Read-only box with the final ~code~ string, wraps like chat input. */
       .guma-cd-output {
