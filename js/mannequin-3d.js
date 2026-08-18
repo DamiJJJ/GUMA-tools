@@ -2,10 +2,10 @@
 // Minimal WebGL renderer for the character preview mannequin.
 //
 // Draws one static, unrigged mesh (assets/mannequin.mesh, produced offline
-// from the Mixamo FBX) into an offscreen canvas, which the page then blits
-// into its own 2D canvas. Keeping the 3D pass off to the side is what lets
-// the description text, the PNG export and the history thumbnails go on
-// working against a single 2D canvas.
+// from the "Male base" glTF by Arthur Migranoff, CC-BY 3.0, poly.pizza) into an
+// offscreen canvas, which the page then blits into its own 2D canvas. Keeping
+// the 3D pass off to the side is what lets the description text, the PNG export
+// and the history thumbnails go on working against a single 2D canvas.
 //
 // Raw WebGL on purpose: the project ships no 3D library and adding one for a
 // single lit mesh would cost more than the mesh itself.
@@ -41,10 +41,11 @@
     const vec3 KEY = vec3(-0.550, 0.620, -0.560);
     const vec3 FILL = vec3(0.720, 0.220, -0.620);
     const vec3 RIM = vec3(0.350, 0.350, 0.860);
-    // Tuned so a lit surface lands on roughly #757575: the shader multiplies
-    // this by the light sum and then gamma-encodes, so the albedo sits well
-    // below the target grey.
-    const vec3 ALBEDO = vec3(0.198, 0.200, 0.205);
+    // Base grey #ABABAB. The shader multiplies this by the light sum and then
+    // gamma-encodes, so the albedo sits below the target hex: it is tuned so a
+    // front-lit surface lands back on it, and the tiny spread between the
+    // channels cancels the cool tint of the rig.
+    const vec3 ALBEDO = vec3(0.465, 0.463, 0.460);
     void main() {
       vec3 n = normalize(vNor);
       float key = max(dot(n, normalize(KEY)), 0.0);
