@@ -115,18 +115,14 @@
           <canvas id="cdCanvas" width="1100" height="700" class="guma-cd-canvas" aria-label="Character preview"></canvas>
         </div>
 
-        <!-- ── Background switcher (parked) ──
-             Re-enable together with CD_SCENES in js/character-description.js
-             once in-game background screenshots land in /assets.
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div id="cdScenes" class="guma-seg sm:max-w-md">
-            <button type="button" class="guma-seg-btn" data-scene="day" onclick="cdSetScene(this.dataset.scene)">Day</button>
-            <button type="button" class="guma-seg-btn" data-scene="sunset" onclick="cdSetScene(this.dataset.scene)">Sunset</button>
-            <button type="button" class="guma-seg-btn" data-scene="night" onclick="cdSetScene(this.dataset.scene)">Night</button>
-            <button type="button" class="guma-seg-btn" data-scene="interior" onclick="cdSetScene(this.dataset.scene)">Interior</button>
-          </div>
+        <!-- ── Background ──
+             Tiles are built by js/character-description.js from CD_SCENES, so
+             the screenshot file names live in one place. -->
+        <div>
+          <label class="guma-label">Background</label>
+          <div id="cdScenes" class="grid grid-cols-3 gap-2 sm:grid-cols-5"></div>
         </div>
-        -->
+
         <div class="flex flex-wrap items-center justify-between gap-3">
           <p class="guma-drop-hint mt-0 text-left">Drag the character to turn it and see how the description reads.</p>
           <button type="button" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs" onclick="cdResetView()">Reset view</button>

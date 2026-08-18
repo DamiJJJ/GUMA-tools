@@ -71,29 +71,21 @@ const CD_STYLES = [
   },
 ];
 
-// ── Preview backgrounds (parked) ──────────────────────────────────
-// The background switcher is disabled until in-game screenshots land in
-// /assets. To bring it back: point each scene at its screenshot, re-enable
-// the #cdScenes buttons in character_description.html, restore the
-// cdSetScene() calls in cdInit()/cdSerializeState()/cdHydrateState() and
-// draw the scene image in cdDrawBackdrop() instead of the studio gradient.
-//
-// const CD_SCENES = {
-//   day: { label: "Day", src: "assets/scenes/day.png" },
-//   sunset: { label: "Sunset", src: "assets/scenes/sunset.png" },
-//   night: { label: "Night", src: "assets/scenes/night.png" },
-//   interior: { label: "Interior", src: "assets/scenes/interior.png" },
-// };
-// let cdScene = "day";
-//
-// function cdSetScene(key) {
-//   if (!CD_SCENES[key]) return;
-//   cdScene = key;
-//   document.querySelectorAll("#cdScenes .guma-seg-btn").forEach((b) => {
-//     b.classList.toggle("active", b.dataset.scene === key);
-//   });
-//   cdRequestDraw();
-// }
+// ── Preview backgrounds ───────────────────────────────────────────
+// One list drives both the thumbnail picker and the canvas backdrop. To swap
+// a background or add another one: drop the file in /assets and edit this
+// array - nothing else in the page knows the file names. Keep the files
+// modest (~1400px wide JPG): the picker previews the real image, so every
+// entry is downloaded when the page opens.
+// `src: null` means "no photo" - the built-in studio gradient is drawn.
+const CD_SCENES = [
+  { key: "studio", label: "Studio", src: null },
+  { key: "day1", label: "Day 1", src: "assets/bg_day1.jpg" },
+  { key: "day2", label: "Day 2", src: "assets/bg_day2.jpg" },
+  { key: "day3", label: "Day 3", src: "assets/bg_day3.jpg" },
+  { key: "night", label: "Night", src: "assets/bg_night.jpg" },
+];
+const CD_SCENE_DEFAULT = "studio";
 
 // ── Mannequin ─────────────────────────────────────────────────────
 // The preview figure is a 3D mesh (assets/mannequin.mesh) rendered by
@@ -120,6 +112,10 @@ const cdImg = new Image();
 let cdDrawQueued = false;
 let cdExampleIdx = 0;
 let cd3d = null; // Mannequin3D once WebGL is up, null on the image fallback
+let cdScene = CD_SCENE_DEFAULT;
+// key -> the <img> the picker shows. The very same element is what gets
+// drawn on the canvas, so a scene is fetched once and never twice.
+const cdSceneImgs = new Map();
 let cdYaw = CD_YAW_HOME;
 let cdDragId = null;
 let cdDragLastX = 0;
@@ -340,19 +336,99 @@ function cdClear() {
   cdOnInput();
 }
 
+// ── Background picker ─────────────────────────────────────────────
+/** @returns {?object} the scene entry for a key, or null if it is gone. */
+function cdSceneByKey(key) {
+  return CD_SCENES.find((s) => s.key === key) || null;
+}
+
+/** Builds the thumbnail picker. File names live only in CD_SCENES. */
+function cdBuildScenes() {
+  const wrap = document.getElementById("cdScenes");
+  if (!wrap) return;
+
+  for (const scene of CD_SCENES) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "guma-cd-thumb";
+    btn.dataset.scene = scene.key;
+    btn.title = scene.label;
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-label", `Background: ${scene.label}`);
+
+    if (scene.src) {
+      const img = new Image();
+      // Both jobs at once: the tile the user clicks and the bitmap the canvas
+      // draws. Repaint on load so a slow scene appears as soon as it lands.
+      img.addEventListener("load", cdRequestDraw);
+      img.className = "guma-cd-thumb-img";
+      img.alt = "";
+      img.src = scene.src;
+      cdSceneImgs.set(scene.key, img);
+      btn.appendChild(img);
+    } else {
+      // Same gradient the canvas paints, so the tile is not a lie.
+      const blank = document.createElement("span");
+      blank.className = "guma-cd-thumb-img";
+      blank.style.background = `linear-gradient(180deg, ${CD_BG_TOP}, ${CD_BG_BOTTOM})`;
+      btn.appendChild(blank);
+    }
+
+    const label = document.createElement("span");
+    label.className = "guma-cd-thumb-label";
+    label.textContent = scene.label;
+    btn.appendChild(label);
+
+    btn.addEventListener("click", () => cdSetScene(scene.key));
+    wrap.appendChild(btn);
+  }
+}
+
+/** Picks the backdrop. Unknown keys are ignored, so a scene dropped from
+ *  CD_SCENES cannot strand the preview on a missing file. */
+function cdSetScene(key) {
+  if (!cdSceneByKey(key)) return;
+  cdScene = key;
+  document.querySelectorAll("#cdScenes .guma-cd-thumb").forEach((b) => {
+    const on = b.dataset.scene === key;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+  cdRequestDraw();
+}
+
 // ── Backdrop + mannequin ──────────────────────────────────────────
+/** Scales the screenshot to cover the canvas and centres the overflow. */
+function cdDrawScenePhoto(ctx, W, H, img) {
+  const k = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+  const w = img.naturalWidth * k;
+  const h = img.naturalHeight * k;
+  ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+}
+
 function cdDrawBackdrop(ctx, W, H) {
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, CD_BG_TOP);
-  bg.addColorStop(1, CD_BG_BOTTOM);
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  const scene = cdSceneByKey(cdScene);
+  const img = scene && scene.src ? cdSceneImgs.get(scene.key) : null;
+  // A scene still in flight (or one that failed to load) falls back to the
+  // studio gradient rather than a blank frame.
+  const photo = !!(img && img.complete && img.naturalWidth);
+
+  if (photo) {
+    cdDrawScenePhoto(ctx, W, H, img);
+  } else {
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, CD_BG_TOP);
+    bg.addColorStop(1, CD_BG_BOTTOM);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   // Corners pulled down a touch, so the figure sits in a lit spot rather than
-  // on a flat sheet of white.
+  // on a flat sheet of white. Over a screenshot it does double duty: it darkens
+  // the busy edges the nameplate has to be read against.
   const vig = ctx.createRadialGradient(W / 2, H * 0.52, H * 0.30, W / 2, H * 0.52, H * 0.95);
-  vig.addColorStop(0, "rgba(70,76,92,0)");
-  vig.addColorStop(1, "rgba(70,76,92,0.16)");
+  vig.addColorStop(0, photo ? "rgba(0,0,0,0)" : "rgba(70,76,92,0)");
+  vig.addColorStop(1, photo ? "rgba(0,0,0,0.42)" : "rgba(70,76,92,0.16)");
   ctx.fillStyle = vig;
   ctx.fillRect(0, 0, W, H);
 }
@@ -664,6 +740,8 @@ function cdSerializeState() {
   return {
     text: document.getElementById("cdText").value,
     prefix: document.getElementById("cdPrefix").value,
+    // The backdrop belongs to the shot for the same reason the pose does.
+    scene: cdScene,
     // The pose belongs to the shot: without it a reloaded entry cannot
     // reproduce the thumbnail it is listed under. Rounded so two saves of the
     // same pose still dedupe.
@@ -675,6 +753,9 @@ function cdHydrateState(payload) {
   if (!payload) return;
   window.GumaHistoryWiring?.setVal("cdText", payload.text ?? "");
   window.GumaHistoryWiring?.setVal("cdPrefix", payload.prefix ?? "");
+  // Older saves carry no scene, and a save may name one that has since been
+  // swapped out - both land back on the default rather than on nothing.
+  cdSetScene(cdSceneByKey(payload.scene) ? payload.scene : CD_SCENE_DEFAULT);
   // Saves from the flat-image build carry no yaw: leave the current pose.
   if (typeof payload.yaw === "number" && isFinite(payload.yaw)) cdSetYaw(payload.yaw);
   cdOnInput();
@@ -704,6 +785,8 @@ function cdInit() {
 
   cdBuildColors();
   cdBuildStyles();
+  cdBuildScenes();
+  cdSetScene(cdScene);
   cdWirePointer(canvas);
   cdOnInput();
 

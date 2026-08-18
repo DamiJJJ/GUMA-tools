@@ -618,6 +618,26 @@
       .guma-cd-canvas.is-rotatable.is-dragging {
         cursor: grabbing;
       }
+      /* Background picker: the screenshot itself is the tile, with its name
+         burned into the bottom edge so it reads over any frame. */
+      .guma-cd-thumb {
+        @apply relative block w-full cursor-pointer overflow-hidden rounded-lg border-2 transition
+               border-guma-l-border hover:border-guma-l-gold
+               dark:border-guma-border dark:hover:border-guma-gold;
+        aspect-ratio: 16 / 9;
+      }
+      .guma-cd-thumb.active {
+        @apply border-guma-l-gold dark:border-guma-gold;
+      }
+      .guma-cd-thumb-img {
+        @apply block h-full w-full object-cover;
+      }
+      .guma-cd-thumb-label {
+        @apply pointer-events-none absolute inset-x-0 bottom-0 truncate px-1 py-1
+               text-center text-[10px] font-bold uppercase tracking-wider leading-none text-white;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.78));
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+      }
       /* Button in the ~code~ picker: a colour swatch or a text style. Input
          coloured on purpose - it sits inside the form, next to the fields. */
       .guma-fmt-btn {
