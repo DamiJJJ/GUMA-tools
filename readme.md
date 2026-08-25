@@ -204,6 +204,10 @@ No build tools required. Open `index.html` in a browser or deploy to any static 
 - **Web Components** - shared header (with theme toggle + logo swap) and footer via `js/components.js`
 - **Supabase** (REST API) - visit and download counters via `js/counters.js`
 
+## Credits
+
+- 3D preview mannequin on the Character Description page: _"Male base"_ by Arthur Migranoff, [poly.pizza](https://poly.pizza/m/eWGDnQ0jzmH), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) - converted to the project's own `assets/mannequin.mesh` binary
+
 ---
 
 _Built for FiveM roleplay use. All agencies, names and badge numbers are fictional._

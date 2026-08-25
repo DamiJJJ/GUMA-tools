@@ -131,6 +131,18 @@ window.GUMA_SEARCH_INDEX = [
     aliases: ["fire code", "inspection", "fire marshal"],
   },
 
+  // ── In-Game Generators ──────────────────────────────────────────
+  {
+    id: "chardesc",
+    title: "Character Description",
+    url: "character_description.html",
+    category: "In-Game Generators",
+    icon: "assets/character.svg",
+    status: "available",
+    summary: "Write your character's /description with FiveM colour and style codes, preview it live on a character mannequin and copy the game-ready command.",
+    aliases: ["description", "desc", "opis", "fivem description", "text formatting", "character card", "rp description"],
+  },
+
   // ── Image Tools ─────────────────────────────────────────────────
   {
     id: "bodycam",

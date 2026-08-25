@@ -598,6 +598,75 @@
         @apply w-full cursor-pointer accent-guma-gold;
       }
 
+      /* ─── Character description: stage + formatting toolbar ─── */
+      .guma-cd-stage {
+        @apply relative w-full overflow-hidden rounded-xl border p-3
+               border-guma-l-border bg-guma-l-dark
+               dark:border-guma-border dark:bg-guma-dark;
+      }
+      .guma-cd-canvas {
+        @apply block h-auto w-full rounded-md border
+               border-guma-l-border-2 dark:border-guma-border-2;
+      }
+      /* pan-y, not none: a horizontal drag turns the mannequin while a
+         vertical swipe still scrolls the page, so the full-width canvas is
+         not a dead zone on a phone. Only set once the 3D preview is live. */
+      .guma-cd-canvas.is-rotatable {
+        touch-action: pan-y;
+        cursor: grab;
+      }
+      .guma-cd-canvas.is-rotatable.is-dragging {
+        cursor: grabbing;
+      }
+      /* Background picker: the screenshot itself is the tile, with its name
+         burned into the bottom edge so it reads over any frame. */
+      .guma-cd-thumb {
+        @apply relative block w-full cursor-pointer overflow-hidden rounded-lg border-2 transition
+               border-guma-l-border hover:border-guma-l-gold
+               dark:border-guma-border dark:hover:border-guma-gold;
+        aspect-ratio: 16 / 9;
+      }
+      .guma-cd-thumb.active {
+        @apply border-guma-l-gold dark:border-guma-gold;
+      }
+      .guma-cd-thumb-img {
+        @apply block h-full w-full object-cover;
+      }
+      .guma-cd-thumb-label {
+        @apply pointer-events-none absolute inset-x-0 bottom-0 truncate px-1 py-1
+               text-center text-[10px] font-bold uppercase tracking-wider leading-none text-white;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.78));
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+      }
+      /* Button in the ~code~ picker: a colour swatch or a text style. Input
+         coloured on purpose - it sits inside the form, next to the fields. */
+      .guma-fmt-btn {
+        @apply inline-flex h-8 min-w-[2rem] cursor-pointer items-center justify-center rounded-md border px-1.5
+               text-xs transition
+               border-guma-l-border-2 bg-guma-l-input text-guma-l-text
+               hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border-2 dark:bg-guma-input dark:text-guma-text
+               dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      /* Same button, sized to fill a grid cell: swatch or icon in front of the
+         label (~r~, BOLD, LINE...). */
+      .guma-fmt-btn.is-wide {
+        @apply h-9 w-full justify-start gap-2 px-2.5 font-semibold;
+      }
+      .guma-fmt-swatch {
+        @apply h-3.5 w-3.5 flex-none rounded-full border border-black/30;
+      }
+      /* Read-only box with the final ~code~ string, wraps like chat input. */
+      .guma-cd-output {
+        @apply w-full whitespace-pre-wrap break-words rounded-lg border px-3 py-2 font-mono text-xs leading-5
+               border-guma-l-border-2 bg-guma-l-dark text-guma-l-text
+               dark:border-guma-border-2 dark:bg-guma-dark dark:text-guma-text;
+        min-height: 3.25rem;
+      }
+      .guma-cd-output.is-empty {
+        @apply font-sans italic text-guma-l-muted/60 dark:text-guma-muted/50;
+      }
+
       /* ─── Reports: dynamic rows ─── */
       .dynamic-row {
         @apply relative mb-3 rounded-xl border p-4
