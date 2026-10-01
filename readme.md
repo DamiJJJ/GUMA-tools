@@ -1,6 +1,6 @@
 # GUMA-Tools
 
-A web app for generating fictional Law Enforcement Agency documents, officer/firefighter cards and business cards - inspired by real LAPD/LSSD/CHP/LAFD formats used in FiveM roleplay servers.
+A web app for generating fictional Law Enforcement Agency documents, officer/firefighter cards, business cards and in-game character descriptions - inspired by real LAPD/LSSD/CHP/LAFD formats used in FiveM roleplay servers.
 Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools required.
 
 ## Live Demo
@@ -16,11 +16,13 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 | Business Card                   | `business_card_generator.html`  | Universal business card for LEA, Fire, civilians and business owners                              |
 | Firearm Discharge Investigation | `firearm_discharge.html`        | LAPD-style Officer-Involved Firearm Discharge Investigation report                                |
 | Traffic Collision Report        | `traffic_collision_report.html` | CHP 555-style Traffic Collision Report with dynamic party rows                                    |
-| Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file — attendance, training, commendations, discipline & medical leave |
+| Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file - attendance, training, commendations, discipline & medical leave |
 | Arrest Report                   | `arrest_report.html`            | LAPD-style arrest & booking report with dynamic arresting-officer rows                            |
 | Pre-Hospital Care Report        | `prehospital_care_report.html`  | EMS-style Pre-Hospital Care Report (PCR) with full incident, response, run-times & disposition    |
 | Investigative Report            | `investigative_report.html`     | Two-page LAPD-style Investigative Report with combined crime, evidence & arrest report sections   |
+| Probationary Evaluation         | `probationary_evaluation.html`  | LAPD-style Probationary Police Officer Weekly Evaluation Report, rated by the FTO                 |
 | Bodycam Overlay                 | `bodycam_overlay.html`          | Body-worn camera HUD overlay burned onto your own screenshot - agency & camera branding, timestamp, image effects |
+| Character Description           | `character_description.html`    | In-game `/description` writer with FiveM colour & style codes, previewed on a rotatable 3D character |
 
 ### Coming Soon
 
@@ -38,9 +40,10 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - **Responsive header** - app logo (auto-swapped between light/dark variants), desktop nav with Generator & Report dropdowns, active page detection, "About" item, mobile hamburger menu with full panel
 - **Live on Kick badge** - pulsing badge appears in the header when the streamer is live (preview via `?preview_live=1`)
 - **Latest Video tile** - the newest video from the Kick/YouTube channel shown on the homepage; the tile stays hidden when there is nothing to show
-- **WYSIWYG in-canvas editing** - click a field straight on the rendered document and type into it; available on the Firearm Discharge, Traffic Collision, Arrest, Pre-Hospital Care and Investigative reports, with a shared toolbar and zoom control
+- **WYSIWYG in-canvas editing** - click a field straight on the rendered document and type into it; available on the Firearm Discharge, Traffic Collision, Arrest, Pre-Hospital Care, Investigative and Probationary Evaluation reports, with a shared toolbar and zoom control
 - **Shrink-to-fit text** - overlong values scale down instead of being cut with an ellipsis; inputs are capped to what the field can physically hold
 - **Preview & Download modal** - exports open in a zoomable preview (segmented zoom control, ctrl+wheel, fit-on-resize) with download & clipboard copy from one place
+- **Command palette** - search every tool from a header button, `Ctrl/Cmd+K` or `/` (outside a text field); the tool catalogue lives in `js/search-index.js`
 - **Page animations** - smooth entrance animations on all pages via `js/animations.js`
 - **Per-page favicons** - each generator and report has its own browser-tab icon; the home/about favicon follows the active theme (light/dark logo variant)
 - **Saved Cards / Reports** - every generator stores exported documents in localStorage; slide-in drawer with thumbnails, pin, load & remove
@@ -177,6 +180,20 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - **Copy to clipboard** - export the report as PNG directly to the clipboard
 - Download counter displayed below the export buttons
 
+### Probationary Evaluation
+
+- LAPD-style **Probationary Police Officer Weekly Evaluation Report** with an editable agency name in the header
+- Officer & rating period: probationary officer, serial no., Field Training Officer, division, watch, assignment, report no. and FROM / TO dates
+- **30 rated items** in five sections (Appearance, Attitude, Knowledge, Performance, Relationships) on the 1 / 2 / 3 / 4 / N/O / NRT scale
+- Rating instructions and scale legend printed on the document
+- Weekly Performance (Satisfactory / Unsatisfactory), Minutes of Remediation and "Response Attached" flag
+- Signature blocks for the FTO, Field Sergeant, Watch Commander, P-1 Coordinator, Captain and the probationary officer
+- **WYSIWYG editing** - click any rating box, checkbox or field directly on the document
+- Live preview rendered on HTML Canvas
+- Download the report as a PNG file
+- **Copy to clipboard** - export the report as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
 ### Bodycam Overlay
 
 - Upload your own screenshot / frame - the HUD is burned onto it, no document canvas
@@ -191,6 +208,18 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - **Copy to clipboard** - export the frame as PNG directly to the clipboard
 - Download counter displayed below the export buttons
 
+### Character Description
+
+- Writes a FiveM `/description` with in-game colour and style codes (`~r~`, `~b~`, etc.)
+- **Formatting toolbar** - labelled colour grid and style row above the textarea; clicking a code with nothing selected inserts both the opening and closing code around the caret
+- Enter inserts a new line, converted to `~n~` on copy
+- **Load example** and **Clear** buttons
+- Optional command prefix - every server names the command differently; leave it empty to copy the bare text
+- **3D character preview** - the description rendered as an in-game nameplate over a rotatable mannequin (drag to turn, Reset view); flat image fallback when WebGL is unavailable
+- **Background picker** - thumbnail picker for the preview scene, stored with the saved entry alongside the pose
+- Game-ready output box shown next to the preview
+- **Copy to clipboard** - copies the game-ready command; counter reads "Copied N times"
+
 ## Usage
 
 No build tools required. Open `index.html` in a browser or deploy to any static hosting (GitHub Pages, Netlify, etc.).
@@ -201,8 +230,13 @@ No build tools required. Open `index.html` in a browser or deploy to any static 
 - **Shared theme styles** - `js/guma-styles.js` injects all `@layer base/components/utilities` rules at runtime; `js/theme-init.js` handles anti-FOUC theme initialization
 - **HTML5 Canvas** - document & card rendering, PNG export and clipboard copy
 - **Vanilla JS** - zero runtime dependencies
+- **WebGL** - minimal raw-WebGL renderer for the 3D character preview via `js/mannequin-3d.js`
 - **Web Components** - shared header (with theme toggle + logo swap) and footer via `js/components.js`
 - **Supabase** (REST API) - visit and download counters via `js/counters.js`
+
+## Credits
+
+- 3D preview mannequin on the Character Description page: _"Male base"_ by Arthur Migranoff, [poly.pizza](https://poly.pizza/m/eWGDnQ0jzmH), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) - converted to the project's own `assets/mannequin.mesh` binary
 
 ---
 

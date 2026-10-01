@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="Dami" />
-    <title>Arrest Report - GUMA Tools</title>
+    <title>Probationary Officer Evaluation - GUMA Tools</title>
 
-    <link rel="icon" href="assets/arrest.png" type="image/png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="assets/arrest.png" />
+    <link rel="icon" href="assets/evaluation.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/evaluation.svg" />
     <link rel="manifest" href="manifest.json" />
 
     <script src="js/theme-init.js"></script>
@@ -23,7 +23,7 @@
     <!-- PAGE TITLE -->
     <div class="guma-page pt-8 pb-6">
       <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
-        Arrest Report
+        Probationary Officer Evaluation
       </h1>
     </div>
 
@@ -31,125 +31,93 @@
     <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
       <!-- LEFT: FORM PANEL -->
       <div class="guma-panel w-full p-6 xl:max-w-[640px] xl:flex-none guma-panel-form guma-ce-host">
-        <!-- Booking Info -->
-        <p class="guma-form-section">Booking Info</p>
-        <div class="two-col">
-          <div class="form-group">
-            <label>Location Booked</label>
-            <input type="text" id="location_booked" placeholder="Mission Row Station" />
-          </div>
-          <div class="form-group">
-            <label>Booking No.</label>
-            <input type="text" id="booking_no" placeholder="26-XXXXXX" />
-          </div>
-        </div>
-        <div class="two-col">
-          <div class="form-group">
-            <label>DR No.</label>
-            <input type="text" id="dr_no" placeholder="26-XXXXXXX" />
-          </div>
-          <div class="form-group">
-            <label>Inc. No.</label>
-            <input type="text" id="inc_no" placeholder="0000" />
-          </div>
+        <!-- Agency. Same as the firearm report: the document header is the
+             control, so an empty input falls back to the default agency and
+             keeps the dashed empty-field outline on the canvas. -->
+        <p class="guma-form-section">Agency</p>
+        <div class="form-group">
+          <label>Agency Name (document header)</label>
+          <input type="text" id="agency_name" placeholder="Los Santos Police Department" />
         </div>
 
-        <!-- Arrestee / Suspect -->
-        <p class="guma-form-section">Arrestee / Suspect</p>
-        <div class="form-group">
-          <label>Arrestee/Suspect (Last, First, Middle)</label>
-          <input type="text" id="arrestee_name" placeholder="Doe, John Michael" />
+        <!-- Officer & rating period -->
+        <p class="guma-form-section">Officer &amp; Rating Period</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Probationary Officer's Name</label>
+            <input type="text" id="ppo_name" placeholder="Doe, John" />
+          </div>
+          <div class="form-group">
+            <label>Serial No.</label>
+            <input type="text" id="ppo_serial" placeholder="43817" />
+          </div>
         </div>
         <div class="two-col">
           <div class="form-group">
-            <label>Sex</label>
-            <select id="sex">
-              <option value="-">-</option>
-              <option value="M">M</option>
-              <option value="F">F</option>
-            </select>
+            <label>Field Training Officer</label>
+            <input type="text" id="fto_name" placeholder="Smith, Robert" />
           </div>
           <div class="form-group">
-            <label>Date of Birth</label>
-            <input type="date" id="dob" />
+            <label>Date</label>
+            <input type="date" id="report_date" />
           </div>
-        </div>
-
-        <!-- Residential Address -->
-        <p class="guma-form-section">Residential Address</p>
-        <div class="form-group">
-          <label>Residential Address</label>
-          <input type="text" id="residential_address" placeholder="123 Main St" />
         </div>
         <div class="three-col">
           <div class="form-group">
-            <label>City</label>
-            <input type="text" id="city" placeholder="Los Santos" />
+            <label>Division</label>
+            <input type="text" id="division" placeholder="Mission Row" />
           </div>
           <div class="form-group">
-            <label>Zip</label>
-            <input type="text" id="zip" placeholder="90001" />
+            <label>Watch</label>
+            <input type="text" id="watch" placeholder="Day Watch" />
           </div>
           <div class="form-group">
-            <label>Phone No.</label>
-            <input type="text" id="phone_no" placeholder="(555) 000-0000" />
+            <label>Assignment</label>
+            <input type="text" id="assignment" placeholder="Patrol 1A45" />
+          </div>
+        </div>
+        <div class="three-col mb-2">
+          <div class="form-group">
+            <label>Report No.</label>
+            <input type="text" id="report_no" placeholder="3" />
+          </div>
+          <div class="form-group">
+            <label>Rating Period From</label>
+            <input type="date" id="period_from" />
+          </div>
+          <div class="form-group">
+            <label>Rating Period To</label>
+            <input type="date" id="period_to" />
           </div>
         </div>
 
-        <!-- Occurrence -->
-        <p class="guma-form-section">Occurrence</p>
-        <div class="two-col">
-          <div class="form-group">
-            <label>Location of Occurrence</label>
-            <input type="text" id="location_occurrence" placeholder="Vespucci Blvd" />
-          </div>
-          <div class="form-group">
-            <label>RD</label>
-            <input type="text" id="rd" placeholder="7065" />
-          </div>
-        </div>
-        <div class="two-col">
-          <div class="form-group">
-            <label>Date of Arrest</label>
-            <input type="date" id="date_arrest" />
-          </div>
-          <div class="form-group">
-            <label>Time of Arrest (24h)</label>
-            <input type="time" id="time_arrest" />
-          </div>
-        </div>
-        <div class="two-col">
-          <div class="form-group">
-            <label>Date of this Report</label>
-            <input type="date" id="date_report" />
-          </div>
-          <div class="form-group">
-            <label>Time of this Report (24h)</label>
-            <input type="time" id="time_report" />
-          </div>
+        <!-- Ratings: sections and items are built by js/probationary-evaluation.js
+             from one table, so the form and the document can never drift. -->
+        <p class="guma-form-section">Ratings</p>
+        <p class="guma-rate-legend">
+          <b>1</b> Below Standard <b>2</b> Improvement Required <b>3</b> Standard <b>4</b> Above Standard <b>N/O</b> Not Observed
+          <b>NRT</b> Not Responding to Training. Click a selected rating again to clear it.
+        </p>
+        <div id="ratingsContainer" class="mb-5"></div>
+
+        <!-- Weekly performance -->
+        <p class="guma-form-section">Weekly Performance</p>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="radio" name="weekly" id="weekly_sat" value="sat" /> Satisfactory</label>
+          <label class="checkbox-item"><input type="radio" name="weekly" id="weekly_unsat" value="unsat" /> Unsatisfactory</label>
+          <label class="checkbox-item"><input type="checkbox" id="cb_response" /> Probationary Officer's Response Attached</label>
         </div>
 
-        <!-- Charge -->
-        <p class="guma-form-section">Booking Charge</p>
-        <div class="form-group">
-          <label>Booking Charge</label>
-          <input type="text" id="booking_charge" placeholder="PC 459 - Burglary" />
-        </div>
-        <div class="mb-5 flex flex-col gap-2">
-          <label class="flex items-center gap-2 text-sm text-guma-l-text dark:text-guma-text cursor-pointer select-none">
-            <input type="checkbox" id="cb_misdemeanor" /> Misdemeanor
-          </label>
-          <label class="flex items-center gap-2 text-sm text-guma-l-text dark:text-guma-text cursor-pointer select-none">
-            <input type="checkbox" id="cb_felony" /> Felony
-          </label>
+        <!-- Remediation -->
+        <p class="guma-form-section">Minutes of Remediation</p>
+        <div class="form-group mb-5">
+          <label>Minutes of Remediation</label>
+          <textarea id="remediation" rows="3" maxlength="420" placeholder="30 min - reviewed report writing guidelines..."></textarea>
         </div>
 
-        <!-- Arresting Officers -->
-        <p class="guma-form-section">Arresting Officer(s)</p>
-        <div id="officers-container"></div>
-        <div class="mb-1">
-          <button type="button" id="addOfficerBtn" class="btn-add" onclick="addOfficerRow()">+ Add Officer</button>
-        </div>
+        <!-- Signatures: rows built from the same table the document prints -->
+        <p class="guma-form-section">Signatures</p>
+        <div id="signaturesContainer"></div>
       </div>
       <!-- /form panel -->
 
@@ -199,14 +167,11 @@
             <canvas id="docCanvas" class="guma-ce-canvas bg-white"></canvas>
           </div>
         </div>
+
         <!-- Single export entry point. Width matches one of the two buttons it
-             replaced ((1280 - gap) / 2), centered. -->
-        <div class="flex w-full max-w-[1280px] justify-center">
-          <button
-            type="button"
-            class="guma-btn-primary w-full max-w-[634px]"
-            onclick="document.querySelector('guma-preview-modal')?.open()"
-          >
+             replaced ((1224 - gap) / 2), centered. -->
+        <div class="flex w-full max-w-[1224px] justify-center">
+          <button type="button" class="guma-btn-primary w-full max-w-[606px]" onclick="document.querySelector('guma-preview-modal')?.open()">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -254,18 +219,16 @@
 
     <script src="js/history.js"></script>
     <script src="js/history-wiring.js"></script>
-    <script src="js/factions.js"></script>
-    <script src="js/ui-helpers.js"></script>
     <script src="js/guma-fit.js"></script>
     <script src="js/canvas-edit.js"></script>
-    <script src="js/arrest-report.js"></script>
+    <script src="js/probationary-evaluation.js"></script>
     <script src="js/counters.js"></script>
     <script src="js/search-index.js"></script>
     <script src="js/components.js"></script>
     <script src="js/animations.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        window.GumaCounters?.initDownloadCounter("arrest", "downloadCount", "downloadBtn");
+        window.GumaCounters?.initDownloadCounter("evaluation", "downloadCount", "downloadBtn");
       });
     </script>
   </body>

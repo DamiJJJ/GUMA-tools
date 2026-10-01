@@ -77,7 +77,7 @@ const PAGE = process.env.PAGE;
 const CANVAS_ID = process.env.CANVAS_ID || "docCanvas";
 const OUT = process.env.OUT || path.join(SITE_ROOT, "assets/screenshots", PAGE.replace(/\.html$/, ".png"));
 const FILL = process.env.FILL_FILE ? fs.readFileSync(process.env.FILL_FILE, "utf8") : "";
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png",
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
   ".json": "application/json", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
 
 function findChrome() {

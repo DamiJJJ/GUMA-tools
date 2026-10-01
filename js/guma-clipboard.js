@@ -59,18 +59,32 @@ window.GumaClipboard = (function () {
     }
   }
 
+  // Buttons currently showing a flash, with the markup to put back. Reading
+  // innerHTML on every call would capture the flash label itself, so a second
+  // click inside the window used to restore "Copied!" as the button's
+  // permanent text - icon and all gone.
+  const flashing = new WeakMap();
+
   /**
    * Temporary "Copied!" state on the button that triggered the copy.
+   * Safe to call again while a previous flash is still showing.
    * @param {HTMLElement|null} btn
    * @param {string} [label]
    * @param {number} [ms]
    */
   function flash(btn, label = "Copied!", ms = 2000) {
     if (!btn) return;
-    const original = btn.innerHTML;
+    let state = flashing.get(btn);
+    if (state) {
+      clearTimeout(state.timer);
+    } else {
+      state = { html: btn.innerHTML, timer: null };
+      flashing.set(btn, state);
+    }
     btn.textContent = label;
-    setTimeout(() => {
-      btn.innerHTML = original;
+    state.timer = setTimeout(() => {
+      btn.innerHTML = state.html;
+      flashing.delete(btn);
     }, ms);
   }
 
