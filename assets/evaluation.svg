@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <g stroke="#1f2430" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Clipboard board -->
+    <rect x="40" y="30" width="176" height="212" rx="18" fill="#5b6472"/>
+    <!-- Paper -->
+    <rect x="58" y="52" width="140" height="172" rx="8" fill="#f4f7fb"/>
+    <!-- Clip -->
+    <path d="M96 18h64a10 10 0 0 1 10 10v26H86V28a10 10 0 0 1 10-10z" fill="#c9d6e6"/>
+    <!-- Rating boxes -->
+    <rect x="76" y="80" width="22" height="22" rx="4" fill="#c9d6e6"/>
+    <rect x="76" y="120" width="22" height="22" rx="4" fill="#c9d6e6"/>
+    <rect x="76" y="160" width="22" height="22" rx="4" fill="#c9d6e6"/>
+    <!-- Check marks -->
+    <path d="M80 91l6 6 12-14" fill="none" stroke="#2f8f5b"/>
+    <path d="M80 131l6 6 12-14" fill="none" stroke="#2f8f5b"/>
+    <path d="M81 166l12 12M93 166l-12 12" fill="none" stroke="#d64545"/>
+    <!-- Lines -->
+    <path d="M112 91h66M112 131h52M112 171h60" fill="none" stroke="#9fb3c8"/>
+  </g>
+</svg>

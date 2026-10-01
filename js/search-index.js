@@ -108,6 +108,16 @@ window.GUMA_SEARCH_INDEX = [
     summary: "Two-page LSPD-style investigative report with combined crime, evidence and arrest sections.",
     aliases: ["investigation", "detective", "crime report", "evidence"],
   },
+  {
+    id: "evaluation",
+    title: "Probationary Evaluation",
+    url: "probationary_evaluation.html",
+    category: "Police Reports",
+    icon: "assets/evaluation.svg",
+    status: "available",
+    summary: "Weekly evaluation report for probationary officers, rated by their Field Training Officer.",
+    aliases: ["fto", "probation", "recruit", "rookie", "training", "ppo", "weekly evaluation"],
+  },
 
   // ── Report Generators: Fire / Medical ───────────────────────────
   {

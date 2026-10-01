@@ -30,6 +30,7 @@ Generated from the code. Regenerate with `/styleguide`.
 ├── arrest_report.html
 ├── prehospital_care_report.html
 ├── investigative_report.html
+├── probationary_evaluation.html
 ├── readme.md
 ├── STYLEGUIDE.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
@@ -183,8 +184,8 @@ Sections are separated by `/* ─── Title ─── */` comments, in this or
 Panels, Upload dropzone, Themed scrollbar, Canvas preview, Photo cropping, Section
 titles, Index tiles, Latest video widget, Form labels/inputs, Buttons, Form
 section header, Faction switcher, Segmented control, Bodycam stage, Report
-dynamic rows, Form grid helpers, Checkbox group, WYSIWYG canvas editing,
-Easter egg.
+dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, WYSIWYG
+canvas editing, Easter egg.
 
 Reuse before adding:
 
@@ -444,7 +445,7 @@ both go quiet:
 | Supabase | a `downloads_<key>` row |
 
 Current keys: `officer`, `firefighter`, `business_card`, `personnel`, `firearm`,
-`traffic`, `arrest`, `pcr`, `investigative`, `bodycam`, `chardesc`.
+`traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `bodycam`, `chardesc`.
 
 **Verify:** open the page. "Generated 0 times" should appear under the export
 button (it stays hidden while the row is missing). Copy to clipboard once,

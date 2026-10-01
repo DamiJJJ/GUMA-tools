@@ -12,6 +12,7 @@ class GumaHeader extends HTMLElement {
       "arrest_report.html",
       "prehospital_care_report.html",
       "investigative_report.html",
+      "probationary_evaluation.html",
     ].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
     const isIngame = ["character_description.html"].includes(current);
@@ -136,6 +137,11 @@ class GumaHeader extends HTMLElement {
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "investigative_report.html" ? dropActive : dropInactive}">
                   <img src="assets/investigation.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Investigative Report
+                </a>
+                <a href="probationary_evaluation.html" data-generator-key="evaluation" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "probationary_evaluation.html" ? dropActive : dropInactive}">
+                  <img src="assets/evaluation.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Probationary Evaluation
                 </a>
 
                 <p class="${dropGroupLabel} border-t border-guma-l-border dark:border-guma-border">Fire / Medical</p>
@@ -375,6 +381,12 @@ class GumaHeader extends HTMLElement {
                       ${current === "investigative_report.html" ? mobActive : mobInactive}">
               <img src="assets/investigation.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Investigative Report
+            </a>
+            <a href="probationary_evaluation.html" data-generator-key="evaluation" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "probationary_evaluation.html" ? mobActive : mobInactive}">
+              <img src="assets/evaluation.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Probationary Evaluation
             </a>
 
             <p class="${mobGroupLabel}">Fire / Medical</p>

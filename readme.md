@@ -20,6 +20,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 | Arrest Report                   | `arrest_report.html`            | LAPD-style arrest & booking report with dynamic arresting-officer rows                            |
 | Pre-Hospital Care Report        | `prehospital_care_report.html`  | EMS-style Pre-Hospital Care Report (PCR) with full incident, response, run-times & disposition    |
 | Investigative Report            | `investigative_report.html`     | Two-page LAPD-style Investigative Report with combined crime, evidence & arrest report sections   |
+| Probationary Evaluation         | `probationary_evaluation.html`  | LAPD-style Probationary Police Officer Weekly Evaluation Report, rated by the FTO                 |
 | Bodycam Overlay                 | `bodycam_overlay.html`          | Body-worn camera HUD overlay burned onto your own screenshot - agency & camera branding, timestamp, image effects |
 
 ### Coming Soon
@@ -172,6 +173,20 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Dynamic rows - add/remove Reporting Employees, Suspects, Involved Persons and Combined Evidence items
 - Suspect's vehicle and per-suspect descriptors (descent, hair, eyes, clothing, oddities, weapon)
 - Page 2: booking & arrestee details, charges, Admonition of Rights, Combined Crime Report and Juvenile Disposition
+- Live preview rendered on HTML Canvas
+- Download the report as a PNG file
+- **Copy to clipboard** - export the report as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
+### Probationary Evaluation
+
+- LAPD-style **Probationary Police Officer Weekly Evaluation Report** with an editable agency name in the header
+- Officer & rating period: probationary officer, serial no., Field Training Officer, division, watch, assignment, report no. and FROM / TO dates
+- **30 rated items** in five sections (Appearance, Attitude, Knowledge, Performance, Relationships) on the 1 / 2 / 3 / 4 / N/O / NRT scale
+- Rating instructions and scale legend printed on the document
+- Weekly Performance (Satisfactory / Unsatisfactory), Minutes of Remediation and "Response Attached" flag
+- Signature blocks for the FTO, Field Sergeant, Watch Commander, P-1 Coordinator, Captain and the probationary officer
+- **WYSIWYG editing** - click any rating box, checkbox or field directly on the document
 - Live preview rendered on HTML Canvas
 - Download the report as a PNG file
 - **Copy to clipboard** - export the report as PNG directly to the clipboard

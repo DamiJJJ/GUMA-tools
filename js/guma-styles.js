@@ -727,6 +727,47 @@
                text-guma-l-text dark:text-guma-text;
       }
 
+      /* ─── Rating scale rows (probationary evaluation) ─── */
+      /* One row per rated item: label left, six pill radios right. The radio
+         itself is visually hidden but stays focusable, so arrow keys still
+         move through a row. */
+      .guma-rate-legend {
+        @apply mb-3 text-[11px] leading-5 text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-rate-legend b {
+        @apply ml-1.5 font-bold text-guma-l-gold first:ml-0 dark:text-guma-gold;
+      }
+      .guma-rate-section {
+        @apply mb-1 mt-3 text-[11px] font-bold uppercase tracking-[0.14em]
+               text-guma-l-gold dark:text-guma-gold;
+      }
+      .guma-rate-row {
+        @apply flex flex-col gap-1.5 border-b py-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3
+               border-guma-l-border/60 dark:border-guma-border/60;
+      }
+      .guma-rate-label {
+        @apply min-w-0 text-[13px] text-guma-l-text dark:text-guma-text;
+      }
+      .guma-rate-opts {
+        @apply flex flex-none gap-1;
+      }
+      .guma-rate-opt input {
+        @apply sr-only;
+      }
+      .guma-rate-opt span {
+        @apply inline-flex h-7 min-w-[2.25rem] cursor-pointer select-none items-center justify-center rounded-md border px-1.5
+               text-[11px] font-bold transition
+               border-guma-l-border-2 bg-guma-l-input text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border-2 dark:bg-guma-input dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-rate-opt input:checked + span {
+        @apply border-guma-l-gold bg-guma-l-gold text-white
+               dark:border-guma-gold dark:bg-guma-gold dark:text-guma-dark;
+      }
+      .guma-rate-opt input:focus-visible + span {
+        @apply ring-2 ring-guma-l-gold/50 dark:ring-guma-gold/50;
+      }
+
       /* ─── WYSIWYG canvas editing (report generators) ─── */
       /* The form panel stays in the DOM as the state store; while in-canvas
          editing is active it is visually hidden but focusable. Never
