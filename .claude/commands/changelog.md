@@ -10,9 +10,9 @@ Steps:
 1. Ask the user which range to summarize if not obvious - last tag, last N
    commits, or a date range. Default: commits since the previous
    "Update readme" / "Readme update for X" / version-bump commit.
-2. Determine the **release version**. The current (already released) version
-   is `GUMA_VERSION` in `js/components.js`; the upcoming one is the next minor
-   (`1.9` -> `1.10`, not `2.0`). Confirm with the user if unsure.
+2. Determine the **release version**. `GUMA_VERSION` in `js/components.js`
+   is bumped at the start of each cycle, so it already holds the version
+   being released (e.g. `1.10`). Confirm with the user if unsure.
 3. Read commits in range: `git log --pretty=format:"%h %s" <range>`.
 4. Read finished tasks from Vikunja (see **Vikunja tasks** below).
 5. Merge both sources into one list. A task and a commit describing the same
