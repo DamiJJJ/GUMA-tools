@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Vehicle Pursuit Report - GUMA Tools</title>
+
+    <link rel="icon" href="assets/pursuit.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/pursuit.svg" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
+  </head>
+
+  <body class="theme-navy-soft flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <!-- PAGE TITLE -->
+    <div class="guma-page pt-8 pb-6">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Vehicle Pursuit Report
+      </h1>
+    </div>
+
+    <!-- MAIN -->
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- LEFT: FORM PANEL -->
+      <div class="guma-panel w-full p-6 xl:max-w-[640px] xl:flex-none guma-panel-form guma-ce-host">
+        <!-- One tab per page. Built by js/vehicle-pursuit-report.js from the
+             page list, so added Additional Unit / Receipt pages get theirs. -->
+        <div id="vpTabs" class="guma-tabs" role="tablist" aria-label="Report pages"></div>
+
+        <div id="vpPanels">
+          <!-- ── Page 1: Vehicle Pursuit Report ── -->
+          <section data-vp-panel="main">
+            <p class="guma-form-section">Agency &amp; Numbers</p>
+            <div class="form-group">
+              <label>Agency Name (document header)</label>
+              <input type="text" id="agency_name" placeholder="Los Santos Police Department" />
+            </div>
+            <div class="two-col">
+              <div class="form-group">
+                <label>DR No. (printed on every page)</label>
+                <input type="text" id="dr_no" placeholder="26-0612-0418" />
+              </div>
+              <div class="form-group">
+                <label>Incident No.</label>
+                <input type="text" id="incident_no" placeholder="LS-26-104772" />
+              </div>
+            </div>
+
+            <p class="guma-form-section mt-2">Duration &amp; Speed</p>
+            <div class="four-col">
+              <div class="form-group">
+                <label>Est. Minutes</label>
+                <input type="number" id="dur_min" min="0" placeholder="9" />
+              </div>
+              <div class="form-group">
+                <label>Est. Miles</label>
+                <input type="number" id="dur_miles" min="0" step="0.1" placeholder="6.5" />
+              </div>
+              <div class="form-group">
+                <label>Officer's Top MPH</label>
+                <input type="number" id="spd_officer" min="0" placeholder="85" />
+              </div>
+              <div class="form-group">
+                <label>Suspect's Top MPH</label>
+                <input type="number" id="spd_suspect" min="0" placeholder="90" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Pursuit Average Speed (auto: miles / minutes x 60)</label>
+              <input type="text" id="avg_speed" placeholder="43" />
+            </div>
+
+            <p class="guma-form-section mt-2">Use of Force</p>
+            <div class="two-col mb-3">
+              <div>
+                <p class="guma-sub-label mt-0">Categorical</p>
+                <div class="flex gap-4">
+                  <label class="checkbox-item"><input type="radio" name="uof_cat" id="uof_cat_yes" /> Yes</label>
+                  <label class="checkbox-item"><input type="radio" name="uof_cat" id="uof_cat_no" /> No</label>
+                </div>
+              </div>
+              <div>
+                <p class="guma-sub-label mt-0">Non-Categorical</p>
+                <div class="flex gap-4">
+                  <label class="checkbox-item"><input type="radio" name="uof_noncat" id="uof_noncat_yes" /> Yes</label>
+                  <label class="checkbox-item"><input type="radio" name="uof_noncat" id="uof_noncat_no" /> No</label>
+                </div>
+              </div>
+            </div>
+
+            <p class="guma-form-section mt-2">Time &amp; Place</p>
+            <div class="three-col">
+              <div class="form-group">
+                <label>Initiated</label>
+                <input type="datetime-local" id="init_dt" />
+              </div>
+              <div class="form-group">
+                <label>Day of Week</label>
+                <input type="text" id="day_of_week" placeholder="Friday" />
+              </div>
+              <div class="form-group">
+                <label>Terminated</label>
+                <input type="datetime-local" id="term_dt" />
+              </div>
+            </div>
+            <div class="three-col">
+              <div class="form-group">
+                <label>Location Initiated</label>
+                <input type="text" id="loc_init" placeholder="Vespucci Blvd / San Andreas Ave" />
+              </div>
+              <div class="form-group">
+                <label>City</label>
+                <input type="text" id="city_init" placeholder="Los Santos" />
+              </div>
+              <div class="form-group">
+                <label>RD</label>
+                <input type="text" id="rd_init" placeholder="0145" />
+              </div>
+            </div>
+            <div class="three-col">
+              <div class="form-group">
+                <label>Location Terminated</label>
+                <input type="text" id="loc_term" placeholder="Del Perro Fwy / Exit 9" />
+              </div>
+              <div class="form-group">
+                <label>City</label>
+                <input type="text" id="city_term" placeholder="Del Perro" />
+              </div>
+              <div class="form-group">
+                <label>RD</label>
+                <input type="text" id="rd_term" placeholder="0812" />
+              </div>
+            </div>
+
+            <p class="guma-form-section mt-2">Traffic Collisions</p>
+            <div class="four-col">
+              <div class="form-group">
+                <label>Collisions</label>
+                <input type="number" id="coll_count" min="0" placeholder="1" />
+              </div>
+              <div class="form-group">
+                <label>Officers</label>
+                <input type="number" id="coll_off" min="0" placeholder="0" />
+              </div>
+              <div class="form-group">
+                <label>Suspects</label>
+                <input type="number" id="coll_susp" min="0" placeholder="1" />
+              </div>
+              <div class="form-group">
+                <label>3rd Parties</label>
+                <input type="number" id="coll_third" min="0" placeholder="0" />
+              </div>
+            </div>
+
+            <p class="guma-form-section mt-2">Vehicle Intervention &amp; Air Unit</p>
+            <div class="checkbox-group mb-3 flex-row flex-wrap gap-x-5">
+              <label class="checkbox-item"><input type="checkbox" id="vit_pit_used" /> PIT</label>
+              <label class="checkbox-item"><input type="checkbox" id="vit_tdd_used" /> Tire Deflation Device</label>
+              <label class="checkbox-item"><input type="checkbox" id="vit_none" /> None</label>
+            </div>
+            <div class="two-col mb-1">
+              <div>
+                <p class="guma-sub-label mt-0">Air Unit Involved?</p>
+                <div class="flex gap-4">
+                  <label class="checkbox-item"><input type="radio" name="air" id="air_yes" /> Yes</label>
+                  <label class="checkbox-item"><input type="radio" name="air" id="air_no" /> No</label>
+                </div>
+              </div>
+              <div>
+                <p class="guma-sub-label mt-0">Tracking Mode Initiated?</p>
+                <div class="flex gap-4">
+                  <label class="checkbox-item"><input type="radio" name="track" id="track_yes" /> Yes</label>
+                  <label class="checkbox-item"><input type="radio" name="track" id="track_no" /> No</label>
+                </div>
+              </div>
+            </div>
+            <div class="two-col mt-2">
+              <div class="form-group">
+                <label>Air Unit Designation</label>
+                <input type="text" id="air_desig" placeholder="Air-14" />
+              </div>
+              <div class="form-group">
+                <label>Time of Arrival</label>
+                <input type="time" id="air_arrival" />
+              </div>
+            </div>
+
+            <!-- Primary / Second / Third / Supervisor unit crews. The unit
+                 review pages print these same inputs. -->
+            <p class="guma-form-section mt-2">Units</p>
+            <div id="crewContainer"></div>
+
+            <p class="guma-form-section mt-2">Suspect's Vehicle</p>
+            <div class="three-col">
+              <div class="form-group">
+                <label>Year</label>
+                <input type="text" id="sv_year" placeholder="2019" />
+              </div>
+              <div class="form-group">
+                <label>Make</label>
+                <input type="text" id="sv_make" placeholder="Bravado" />
+              </div>
+              <div class="form-group">
+                <label>Model</label>
+                <input type="text" id="sv_model" placeholder="Buffalo S" />
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="form-group">
+                <label>License No.</label>
+                <input type="text" id="sv_plate" placeholder="8JKT412" />
+              </div>
+              <div class="form-group">
+                <label>State</label>
+                <input type="text" id="sv_state" placeholder="SA" />
+              </div>
+            </div>
+          </section>
+
+          <!-- ── Page 2: Injuries / disposition / VITs ── -->
+          <section data-vp-panel="injuries" hidden>
+            <p class="guma-form-section">Injuries</p>
+            <!-- Two grids built from one table: collision / after pursuit -->
+            <div id="injuryContainer"></div>
+
+            <p class="guma-form-section mt-2">Reason for Initiation &amp; Booking Charge</p>
+            <div id="chargeContainer"></div>
+
+            <p class="guma-form-section mt-2">Arrestee Information</p>
+            <div class="two-col mb-3">
+              <div>
+                <p class="guma-sub-label mt-0">Driver Arrested?</p>
+                <div class="flex gap-4">
+                  <label class="checkbox-item"><input type="radio" name="drv_arrested" id="drv_arrested_yes" /> Yes</label>
+                  <label class="checkbox-item"><input type="radio" name="drv_arrested" id="drv_arrested_no" /> No</label>
+                </div>
+              </div>
+              <div>
+                <p class="guma-sub-label mt-0">Passenger(s) Arrested?</p>
+                <div class="flex gap-4">
+                  <label class="checkbox-item"><input type="radio" name="pas_arrested" id="pas_arrested_yes" /> Yes</label>
+                  <label class="checkbox-item"><input type="radio" name="pas_arrested" id="pas_arrested_no" /> No</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group mb-5">
+              <label>How many passengers arrested?</label>
+              <input type="number" id="pas_arrested_total" min="0" placeholder="1" />
+            </div>
+
+            <p class="guma-form-section">Pursuit Disposition</p>
+            <div id="dispositionContainer" class="checkbox-group mb-2"></div>
+            <div class="form-group mb-5">
+              <label>N. Other (explain)</label>
+              <input type="text" id="disp_other" placeholder="Suspect vehicle ran out of fuel" />
+            </div>
+
+            <p class="guma-form-section">Related Reports</p>
+            <div id="relatedContainer"></div>
+            <div class="form-group mb-5">
+              <label>Supervisor Comments</label>
+              <textarea id="rel_comments" rows="3" maxlength="180" placeholder="Pursuit terminated safely, no policy concerns."></textarea>
+            </div>
+
+            <p class="guma-form-section">Vehicle Intervention Techniques</p>
+            <div id="vitContainer" class="mb-2"></div>
+            <div class="form-group mb-5">
+              <label>Synopsis of property damage as a result of VITs</label>
+              <input type="text" id="vit_synopsis" placeholder="Minor damage to push bumper" />
+            </div>
+
+            <p class="guma-form-section">Pursuit Debrief</p>
+            <div class="three-col mb-2">
+              <div class="form-group">
+                <label>Supervisor</label>
+                <input type="text" id="debrief_name" placeholder="Sgt. R. Whitaker" />
+              </div>
+              <div class="form-group">
+                <label>Serial No.</label>
+                <input type="text" id="debrief_serial" placeholder="31845" />
+              </div>
+              <div class="form-group">
+                <label>Date Completed</label>
+                <input type="date" id="debrief_date" />
+              </div>
+            </div>
+
+            <p class="guma-form-section mt-2">Signatures</p>
+            <div id="signContainer"></div>
+          </section>
+
+          <!-- Unit review, Additional Unit and Receipt panels are appended
+               here by js/vehicle-pursuit-report.js. -->
+        </div>
+      </div>
+      <!-- /form panel -->
+
+      <!-- RIGHT: PREVIEW PANEL -->
+      <!-- min-w-0: a flex item defaults to min-width:auto, which would let the
+           zoomed canvas stretch this panel and the whole page instead of
+           scrolling inside .guma-ce-wrap. -->
+      <div class="guma-panel flex min-w-0 flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
+          <button
+            id="gumaHistoryBtn"
+            type="button"
+            aria-label="Open saved cards"
+            onclick="document.querySelector('guma-history-drawer')?.open()"
+            class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3v5h5" />
+              <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+              <path d="M12 7v5l4 2" />
+            </svg>
+            Saved
+            <span
+              id="gumaHistoryCount"
+              class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+            ></span>
+          </button>
+        </div>
+
+        <!-- Pages in the document. Lives here, not in the form, so it stays
+             usable while the form is hidden for in-canvas editing. -->
+        <div class="flex w-full flex-col gap-1.5">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-guma-l-muted dark:text-guma-muted">Pages in this report</p>
+          <div id="vpPages" class="guma-pages"></div>
+        </div>
+
+        <!-- WYSIWYG toolbar: zoom seg + hint are injected by canvas-edit.js -->
+        <div id="ceToolbar" class="guma-ce-toolbar hidden w-full xl:flex"></div>
+
+        <div id="vpWrap" class="guma-canvas-wrap guma-scroll guma-ce-wrap">
+          <div id="ceFrame" class="guma-ce-frame">
+            <canvas id="docCanvas" class="guma-ce-canvas bg-white"></canvas>
+          </div>
+        </div>
+
+        <!-- Single export entry point. Width matches one of the two buttons it
+             replaced ((1224 - gap) / 2), centered. -->
+        <div class="flex w-full max-w-[1224px] justify-center">
+          <button type="button" class="guma-btn-primary w-full max-w-[606px]" onclick="document.querySelector('guma-preview-modal')?.open()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Preview &amp; Download
+          </button>
+        </div>
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60 mt-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          Generated <span id="downloadCount">0</span> times
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
+
+    <script src="js/history.js"></script>
+    <script src="js/history-wiring.js"></script>
+    <script src="js/guma-fit.js"></script>
+    <script src="js/guma-radio.js"></script>
+    <script src="js/canvas-edit.js"></script>
+    <script src="js/vehicle-pursuit-report.js"></script>
+    <script src="js/counters.js"></script>
+    <script src="js/search-index.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GumaCounters?.initDownloadCounter("pursuit", "downloadCount", "downloadBtn");
+      });
+    </script>
+  </body>
+</html>

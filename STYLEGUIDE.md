@@ -31,6 +31,7 @@ Generated from the code. Regenerate with `/styleguide`.
 ├── prehospital_care_report.html
 ├── investigative_report.html
 ├── probationary_evaluation.html
+├── vehicle_pursuit_report.html
 ├── readme.md
 ├── STYLEGUIDE.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
@@ -55,6 +56,7 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── guma-clipboard.js       # GumaClipboard - canvas -> clipboard, one error copy
     ├── guma-upload.js          # GumaUpload - dropzone: click, drag & drop, paste
     ├── guma-fit.js             # GumaFit - shrink-to-fit text + input caps
+    ├── guma-radio.js           # GumaRadio - radio groups that can be cleared again
     ├── photo-crop.js           # GumaPhotoCrop - drag/zoom photo inside the card frame
     ├── canvas-edit.js          # GumaCanvasEdit - WYSIWYG editing on the document
     ├── ui-helpers.js           # buildFactionSwitcher() and small shared UI bits
@@ -184,8 +186,8 @@ Sections are separated by `/* ─── Title ─── */` comments, in this or
 Panels, Upload dropzone, Themed scrollbar, Canvas preview, Photo cropping, Section
 titles, Index tiles, Latest video widget, Form labels/inputs, Buttons, Form
 section header, Faction switcher, Segmented control, Bodycam stage, Report
-dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, WYSIWYG
-canvas editing, Easter egg.
+dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, Multi-page
+report (page strip + form tabs), WYSIWYG canvas editing, Easter egg.
 
 Reuse before adding:
 
@@ -198,6 +200,14 @@ Reuse before adding:
   `-popular` colour modifiers) - Hot/Popular badges, injected by `applyHotFlags()`.
 - `guma-zoom-*` - the shared zoom segmented control, used by both the WYSIWYG
   toolbar and `<guma-preview-modal>`.
+- `guma-pages` + `guma-page-pill` (+ `.is-on`, `guma-page-pill-rm`) and
+  `guma-page-add` - the "pages in this report" strip above the preview of a
+  multi-page report with optional pages. A pill wraps a sr-only checkbox; `+` /
+  check glyphs show the state. `guma-page-add` also styles a `<select>` used as
+  an "add ..." menu.
+- `guma-tabs` + `guma-tab` (+ `.active`, `.is-off`), `guma-tab-note`,
+  `guma-sub-label` - one form tab per document page, for forms too long to
+  scroll (vehicle pursuit report).
 
 **Report form helpers (unprefixed - deliberate exception):** report pages share a
 set of non-`guma-` layout classes, also under `@layer components`, reused across
@@ -234,6 +244,7 @@ of forking a per-page variant.
 | `guma-clipboard.js` | `GumaClipboard` | canvas -> PNG -> clipboard, plus the single insecure-context / unsupported error copy |
 | `guma-upload.js` | `GumaUpload` | `init()` on a dropzone: click, keyboard, drag & drop and paste routing |
 | `guma-fit.js` | `GumaFit` | `fitFont`, `fitBlock`, `wrapLines`, `colFonts`, `capFor`, `applyCaps`, `applyCapsBySelector` |
+| `guma-radio.js` | `GumaRadio` | `makeClearable(root)` - clicking a selected radio clears it (paper "pick one" boxes may stay blank); idempotent, re-run on new rows |
 | `photo-crop.js` | `GumaPhotoCrop` | `attach`, `setSource`, `paint`, `hasImage`, `getState`, `setState`, `reset` |
 | `canvas-edit.js` | `GumaCanvasEdit` | `attach`, `begin`, `field`, `action`, `end`, `schedule`, `commitEdit`, `cancelEdit`, `isEditing`, `setZoom`, `fitZoom` |
 | `history.js` | `GumaHistory` | localStorage store, thumbnails, quota recovery |
@@ -298,6 +309,17 @@ shows one sheet at a time with a `‹ Page n / N ›` pager (arrow keys work) an
 passes the visible index into `download(pageIndex)` / `copy(pageIndex)`, so each
 sheet exports as its own readable PNG. History always stores the full stacked
 document.
+
+**Optional pages (`vehicle_pursuit_report`):** the same stacked canvas, but the
+page set is chosen by the user. Fixed pages are toggled by `pg_<key>` checkboxes
+in a `guma-pages` strip that lives in the preview panel, not the form - the form
+is visually hidden while in-canvas editing is on, and the page set must stay
+editable there. Repeatable pages (Additional Unit, Findings Receipt) are added
+and removed from the same strip, each with its own form tab and its own id
+prefix (`ua<n>_`, `rc<n>_`). Because the form is generated from tables and grows
+with the pages, history serializes every id'd control under the form panel and
+the strip, plus the lists of repeatable page numbers, instead of a hand-kept
+field list.
 
 ### Multi-file features
 
@@ -445,7 +467,8 @@ both go quiet:
 | Supabase | a `downloads_<key>` row |
 
 Current keys: `officer`, `firefighter`, `business_card`, `personnel`, `firearm`,
-`traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `bodycam`, `chardesc`.
+`traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `pursuit`, `bodycam`,
+`chardesc`.
 
 **Verify:** open the page. "Generated 0 times" should appear under the export
 button (it stays hidden while the row is missing). Copy to clipboard once,

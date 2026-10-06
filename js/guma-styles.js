@@ -768,6 +768,98 @@
         @apply ring-2 ring-guma-l-gold/50 dark:ring-guma-gold/50;
       }
 
+      /* ─── Multi-page report: page strip + form tabs (vehicle pursuit) ─── */
+      /* The strip sits above the preview, outside the form panel, because the
+         form is visually hidden while in-canvas editing is on (xl+) and the
+         page set still has to be editable there. A pill is a label around a
+         sr-only checkbox: lit = the page is in the document. Pills of pages
+         that can be added more than once carry a remove button instead. */
+      .guma-pages {
+        @apply flex w-full flex-wrap items-center gap-1.5;
+      }
+      .guma-page-pill {
+        @apply inline-flex h-7 cursor-pointer select-none items-center gap-1.5 rounded-md border px-2.5
+               text-[11px] font-bold uppercase tracking-[0.1em] transition
+               border-guma-l-border-2 bg-guma-l-input text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border-2 dark:bg-guma-input dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-page-pill input {
+        @apply sr-only;
+      }
+      .guma-page-pill:has(input:checked),
+      .guma-page-pill.is-on {
+        @apply border-guma-l-gold bg-guma-l-gold/15 text-guma-l-gold
+               dark:border-guma-gold dark:bg-guma-gold/15 dark:text-guma-gold;
+      }
+      .guma-page-pill:has(input:focus-visible) {
+        @apply ring-2 ring-guma-l-gold/50 dark:ring-guma-gold/50;
+      }
+      /* Glyph in front of the name: + for a page left out, a check for one in
+         the document, so the state does not rest on colour alone. */
+      .guma-page-pill::before {
+        content: "+";
+        @apply -ml-0.5 text-[12px] leading-none;
+      }
+      .guma-page-pill:has(input:checked)::before,
+      .guma-page-pill.is-on::before {
+        content: "\\2713";
+      }
+      .guma-page-pill-rm {
+        @apply -mr-1 inline-flex h-4 w-4 items-center justify-center rounded text-[10px] leading-none transition
+               hover:bg-guma-danger hover:text-white;
+      }
+      /* "+ Add" control. Also used on a <select>, so the native arrow is
+         dropped and the text stays centred like the button variant. */
+      .guma-page-add {
+        @apply inline-flex h-7 cursor-pointer items-center rounded-md border border-dashed px-2.5
+               text-[11px] font-bold uppercase tracking-[0.1em] transition appearance-none
+               border-guma-l-gold bg-transparent text-guma-l-gold hover:bg-guma-l-panel-2
+               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-l-gold/50
+               dark:border-guma-gold dark:text-guma-gold dark:hover:bg-guma-panel-2
+               dark:focus-visible:ring-guma-gold/50;
+      }
+      /* A select is as wide as its longest option (crew names); size it to
+         the visible label instead, capped where field-sizing is missing. */
+      select.guma-page-add {
+        field-sizing: content;
+        max-width: 11rem;
+      }
+      .guma-page-add option {
+        @apply bg-guma-l-input text-guma-l-text normal-case tracking-normal font-normal
+               dark:bg-guma-input dark:text-guma-text;
+      }
+      /* Form tabs, one per page. A tab whose page is left out of the document
+         stays reachable (page 1 also holds the unit crews), just dimmed. */
+      .guma-tabs {
+        @apply mb-5 flex flex-wrap gap-1.5 border-b pb-3
+               border-guma-l-border dark:border-guma-border;
+      }
+      .guma-tab {
+        @apply inline-flex h-8 cursor-pointer items-center rounded-lg border px-3
+               text-[11px] font-bold uppercase tracking-[0.1em] transition
+               border-guma-l-border-2 bg-guma-l-input text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border-2 dark:bg-guma-input dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-tab.is-off {
+        @apply opacity-50;
+      }
+      .guma-tab.active {
+        @apply border-guma-l-gold bg-guma-l-gold text-white opacity-100
+               dark:border-guma-gold dark:bg-guma-gold dark:text-guma-dark;
+      }
+      /* Small caption inside a form tab: which canvas page it feeds, notes. */
+      .guma-tab-note {
+        @apply mb-4 text-[12px] leading-5 text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-tab-note button {
+        @apply font-semibold underline underline-offset-2 text-guma-l-gold dark:text-guma-gold;
+      }
+      /* Sub-heading inside a dynamic row (Pursuit Initiation, Tactics ...). */
+      .guma-sub-label {
+        @apply mb-1.5 mt-2 text-[11px] font-bold uppercase tracking-[0.12em]
+               text-guma-l-text dark:text-guma-text;
+      }
+
       /* ─── WYSIWYG canvas editing (report generators) ─── */
       /* The form panel stays in the DOM as the state store; while in-canvas
          editing is active it is visually hidden but focusable. Never

@@ -13,6 +13,7 @@ class GumaHeader extends HTMLElement {
       "prehospital_care_report.html",
       "investigative_report.html",
       "probationary_evaluation.html",
+      "vehicle_pursuit_report.html",
     ].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
     const isIngame = ["character_description.html"].includes(current);
@@ -142,6 +143,11 @@ class GumaHeader extends HTMLElement {
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "probationary_evaluation.html" ? dropActive : dropInactive}">
                   <img src="assets/evaluation.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Probationary Evaluation
+                </a>
+                <a href="vehicle_pursuit_report.html" data-generator-key="pursuit" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "vehicle_pursuit_report.html" ? dropActive : dropInactive}">
+                  <img src="assets/pursuit.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Vehicle Pursuit Report
                 </a>
 
                 <p class="${dropGroupLabel} border-t border-guma-l-border dark:border-guma-border">Fire / Medical</p>
@@ -387,6 +393,12 @@ class GumaHeader extends HTMLElement {
                       ${current === "probationary_evaluation.html" ? mobActive : mobInactive}">
               <img src="assets/evaluation.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
               Probationary Evaluation
+            </a>
+            <a href="vehicle_pursuit_report.html" data-generator-key="pursuit" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "vehicle_pursuit_report.html" ? mobActive : mobInactive}">
+              <img src="assets/pursuit.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Vehicle Pursuit Report
             </a>
 
             <p class="${mobGroupLabel}">Fire / Medical</p>
