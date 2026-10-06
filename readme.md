@@ -19,8 +19,9 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 | Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file - attendance, training, commendations, discipline & medical leave |
 | Arrest Report                   | `arrest_report.html`            | LAPD-style arrest & booking report with dynamic arresting-officer rows                            |
 | Pre-Hospital Care Report        | `prehospital_care_report.html`  | EMS-style Pre-Hospital Care Report (PCR) with full incident, response, run-times & disposition    |
-| Investigative Report            | `investigative_report.html`     | Two-page LAPD-style Investigative Report with combined crime, evidence & arrest report sections   |
+| Investigative Report            | `investigative_report.html`     | Two-page Investigative Report with combined crime, evidence & arrest report sections              |
 | Probationary Evaluation         | `probationary_evaluation.html`  | LAPD-style Probationary Police Officer Weekly Evaluation Report, rated by the FTO                 |
+| Vehicle Pursuit Report          | `vehicle_pursuit_report.html`   | Vehicle Pursuit Report with unit classification reviews & findings receipts                       |
 | Bodycam Overlay                 | `bodycam_overlay.html`          | Body-worn camera HUD overlay burned onto your own screenshot - agency & camera branding, timestamp, image effects |
 | Character Description           | `character_description.html`    | In-game `/description` writer with FiveM colour & style codes, previewed on a rotatable 3D character |
 
@@ -40,7 +41,7 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - **Responsive header** - app logo (auto-swapped between light/dark variants), desktop nav with Generator & Report dropdowns, active page detection, "About" item, mobile hamburger menu with full panel
 - **Live on Kick badge** - pulsing badge appears in the header when the streamer is live (preview via `?preview_live=1`)
 - **Latest Video tile** - the newest video from the Kick/YouTube channel shown on the homepage; the tile stays hidden when there is nothing to show
-- **WYSIWYG in-canvas editing** - click a field straight on the rendered document and type into it; available on the Firearm Discharge, Traffic Collision, Arrest, Pre-Hospital Care, Investigative and Probationary Evaluation reports, with a shared toolbar and zoom control
+- **WYSIWYG in-canvas editing** - click a field straight on the rendered document and type into it; available on the Firearm Discharge, Traffic Collision, Arrest, Pre-Hospital Care, Investigative, Probationary Evaluation and Vehicle Pursuit reports, with a shared toolbar and zoom control
 - **Shrink-to-fit text** - overlong values scale down instead of being cut with an ellipsis; inputs are capped to what the field can physically hold
 - **Preview & Download modal** - exports open in a zoomable preview (segmented zoom control, ctrl+wheel, fit-on-resize) with download & clipboard copy from one place
 - **Command palette** - search every tool from a header button, `Ctrl/Cmd+K` or `/` (outside a text field); the tool catalogue lives in `js/search-index.js`
@@ -192,6 +193,18 @@ Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools requi
 - Live preview rendered on HTML Canvas
 - Download the report as a PNG file
 - **Copy to clipboard** - export the report as PNG directly to the clipboard
+- Download counter displayed below the export buttons
+
+### Vehicle Pursuit Report
+
+- One module for the whole **pursuit packet** - every page is optional and toggled from the **Pages in this report** strip above the preview
+- **Vehicle Pursuit Report (page 1)** - DR / incident no., duration & speed, use of force, average speed (auto-calculated from miles and minutes), date/time & day of week (auto-filled), locations, traffic collisions, VIT used, air unit & tracking mode, Primary / Second / Third / Supervisor unit crews and the suspect's vehicle
+- **Injuries (page 2)** - injury counts for collision and post-pursuit injuries, reason for initiation & booking charge, arrestee information, pursuit disposition A-N, related reports, supervisor comments, PIT / TDD statistics, pursuit debrief and three supervisor signature blocks
+- **Unit classification reviews** - a "Unit in Pursuit" page for the Primary, Second and Third unit, plus any number of **Additional Units**; Area/Division, Bureau/Group and final DTC classification for the driver and the passenger. Crews are entered once on page 1 and reused
+- **Pursuit Findings Internal Process Receipts** - add one per officer; pick a crew member to pre-fill name, serial no. and division, with the DR no. and date of occurrence carried over
+- Automatic "Page X of N" numbering and the DR no. repeated on every page
+- Form organised in **tabs**, one per page; **WYSIWYG editing** straight on the document
+- Multi-page preview - export each sheet on its own as PNG or to the clipboard
 - Download counter displayed below the export buttons
 
 ### Bodycam Overlay

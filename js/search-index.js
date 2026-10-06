@@ -105,7 +105,7 @@ window.GUMA_SEARCH_INDEX = [
     category: "Police Reports",
     icon: "assets/investigation.png",
     status: "available",
-    summary: "Two-page LSPD-style investigative report with combined crime, evidence and arrest sections.",
+    summary: "Two-page investigative report with combined crime, evidence and arrest sections.",
     aliases: ["investigation", "detective", "crime report", "evidence"],
   },
   {
@@ -117,6 +117,16 @@ window.GUMA_SEARCH_INDEX = [
     status: "available",
     summary: "Weekly evaluation report for probationary officers, rated by their Field Training Officer.",
     aliases: ["fto", "probation", "recruit", "rookie", "training", "ppo", "weekly evaluation"],
+  },
+  {
+    id: "pursuit",
+    title: "Vehicle Pursuit Report",
+    url: "vehicle_pursuit_report.html",
+    category: "Police Reports",
+    icon: "assets/pursuit.svg",
+    status: "available",
+    summary: "Vehicle pursuit report generator with unit classification reviews and findings receipts.",
+    aliases: ["pursuit", "chase", "vpr", "pit", "tdd", "spike strip", "air unit", "findings receipt"],
   },
 
   // ── Report Generators: Fire / Medical ───────────────────────────
