@@ -137,7 +137,11 @@ module must precede the page JS that calls it. The two established tails:
   to make it eligible for a trend badge (`applyHotFlags()` decorates the top 2 by
   download count). Index tiles use the bare attribute (corner pill, moved to the
   front of their grid); nav links add `data-hot-flag="icon"` (small right-edge
-  icon, out of the text flow).
+  icon in the `guma-nav-flags` slot, out of the text flow).
+- **New flags**: keys listed in `GUMA_NEW_GENERATORS` (`js/components.js`, next
+  to `GUMA_VERSION`) get a "New" pill on their index tile and a star in their nav
+  links' flag slot (`applyNewFlags()`), and move to the front of their group.
+  It runs before `applyHotFlags()`, so the order is Hot, Popular, New, the rest.
 
 ## Tailwind & design tokens
 
@@ -198,6 +202,13 @@ Reuse before adding:
   mutually exclusive options (card layout picker, zoom control).
 - `guma-tile-flag` (+ `-corner` / `-icon` position modifiers, `-hot` /
   `-popular` colour modifiers) - Hot/Popular badges, injected by `applyHotFlags()`.
+- `guma-status` (+ `-new` / `-soon`) - pill under an index tile's description.
+  `guma-status-soon` is static markup on disabled "Coming soon" tiles;
+  `guma-status-new` (star + "New") is injected by `applyNewFlags()`. Released
+  tiles carry no pill otherwise; an invisible placeholder reserves its line so
+  all tiles keep the same height.
+- `guma-nav-flags` - right-edge slot on a nav link holding its
+  `guma-tile-flag-icon`s (Hot/Popular icon, New star).
 - `guma-zoom-*` - the shared zoom segmented control, used by both the WYSIWYG
   toolbar and `<guma-preview-modal>`.
 - `guma-pages` + `guma-page-pill` (+ `.is-on`, `guma-page-pill-rm`) and
@@ -412,7 +423,8 @@ copy it. Paired HTML pages stay `snake_case.html` regardless.
    arrays and the dropdown + mobile link lists (with `data-generator-key` and
    `data-hot-flag="icon"`), so the header highlights correctly and the page joins
    the Hot/Popular flags. Add the same `data-generator-key` to its `index.html`
-   tile.
+   tile, and add that key to `GUMA_NEW_GENERATORS` (reset the list when
+   `GUMA_VERSION` is bumped).
 7. Wire **Saved Cards / Reports** (see below): page-specific `serialize` /
    `hydrate` / `buildLabel` (+ `buildFaction`), one `GumaHistoryWiring.register`,
    `await GumaHistoryWiring.save(canvas)` in the download and copy paths, and the

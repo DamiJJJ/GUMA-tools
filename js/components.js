@@ -1,5 +1,10 @@
 const GUMA_VERSION = "1.10";
 
+// Generator keys (data-generator-key) released in the current GUMA_VERSION.
+// Their index tiles get a "New" pill and their nav links a star, and both
+// move to the front of their group - refresh this list with every release.
+const GUMA_NEW_GENERATORS = ["pursuit", "wanted"];
+
 // HEADER
 class GumaHeader extends HTMLElement {
   connectedCallback() {
@@ -619,14 +624,19 @@ class GumaHeader extends HTMLElement {
       }
     });
 
-    // ── Hot/Popular flags - decorate nav links + page elements ────
+    // ── Hot/Popular + New flags - decorate nav links + page elements ──
     // Deferred to DOMContentLoaded so page-level [data-generator-key]
     // targets (index tiles, page titles) are already in the DOM.
-    const decorateHotFlags = () => window.GumaCounters?.applyHotFlags?.();
+    // New goes first: the async Hot/Popular pass then moves trending items
+    // ahead of the new ones.
+    const decorateFlags = () => {
+      window.GumaCounters?.applyNewFlags?.(GUMA_NEW_GENERATORS);
+      window.GumaCounters?.applyHotFlags?.();
+    };
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", decorateHotFlags, { once: true });
+      document.addEventListener("DOMContentLoaded", decorateFlags, { once: true });
     } else {
-      decorateHotFlags();
+      decorateFlags();
     }
   }
 }

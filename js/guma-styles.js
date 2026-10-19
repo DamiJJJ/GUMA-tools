@@ -352,15 +352,23 @@
       .guma-card-desc {
         @apply mt-3 text-sm leading-6 text-guma-l-muted dark:text-guma-muted;
       }
-      .guma-status {
-        @apply mt-5 inline-flex w-fit items-center rounded-full border px-3 py-1
+      /* Tiles without a pill get an invisible one as ::after, so every tile
+         keeps one height. Shares the selector list instead of @apply-ing
+         guma-status, which would make the rule apply itself. */
+      .guma-status,
+      .guma-card > div:last-of-type:not(:has(> .guma-status))::after {
+        @apply mt-5 inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1
                text-[11px] font-bold uppercase tracking-[0.18em];
       }
-      .guma-status-available {
-        @apply border-guma-l-gold bg-guma-l-input text-guma-l-gold
-               dark:border-guma-gold dark:bg-guma-input dark:text-guma-gold;
+      .guma-card > div:last-of-type:not(:has(> .guma-status))::after {
+        @apply invisible;
+        content: "\\00a0";
       }
-      .guma-status-soon {
+      /* Injected by applyNewFlags() for GUMA_NEW_GENERATORS */
+      .guma-status-new {
+        @apply border-guma-l-gold bg-guma-l-gold text-white
+               dark:border-guma-gold dark:bg-guma-gold dark:text-guma-dark;
+      }      .guma-status-soon {
         @apply border-slate-300 bg-slate-100 text-slate-500
                dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300;
       }
@@ -375,8 +383,11 @@
       [data-hot-flag="icon"] {
         @apply relative;
       }
+      .guma-nav-flags {
+        @apply absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5;
+      }
       .guma-tile-flag-icon {
-        @apply absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center;
+        @apply inline-flex items-center;
       }
       .guma-tile-flag-hot {
         @apply border-orange-500/50 bg-orange-100 text-orange-600
