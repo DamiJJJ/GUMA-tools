@@ -21,7 +21,7 @@ class GumaHeader extends HTMLElement {
       "vehicle_pursuit_report.html",
     ].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
-    const isIngame = ["character_description.html"].includes(current);
+    const isIngame = ["character_description.html", "wanted_poster.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
@@ -188,8 +188,13 @@ class GumaHeader extends HTMLElement {
                    class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
+                <a href="wanted_poster.html" data-generator-key="wanted" data-hot-flag="icon"
+                   class="${dropLinkBase} ${current === "wanted_poster.html" ? dropActive : dropInactive}">
+                  <img src="assets/wanted.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Wanted Poster
+                </a>
                 <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
-                   class="${dropLinkBase} ${current === "character_description.html" ? dropActive : dropInactive}">
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "character_description.html" ? dropActive : dropInactive}">
                   <img src="assets/character.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Character Description
                 </a>
@@ -422,6 +427,12 @@ class GumaHeader extends HTMLElement {
             <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
               In-Game Generators
             </p>
+            <a href="wanted_poster.html" data-generator-key="wanted" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "wanted_poster.html" ? mobActive : mobInactive}">
+              <img src="assets/wanted.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Wanted Poster
+            </a>
             <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "character_description.html" ? mobActive : mobInactive}">
@@ -859,13 +870,16 @@ class GumaHistoryDrawer extends HTMLElement {
     this.render();
   }
 
-  // ── Noun for labels: "card" (default), "report" or "description" ─
+  // ── Noun for labels: "card" (default), "report", "description" or "poster" ─
   get _noun() {
     if (window.GUMA_GENERATOR_NOUN === "report") {
       return { one: "report", many: "reports", title: "Saved Reports" };
     }
     if (window.GUMA_GENERATOR_NOUN === "description") {
       return { one: "description", many: "descriptions", title: "Saved Descriptions" };
+    }
+    if (window.GUMA_GENERATOR_NOUN === "poster") {
+      return { one: "poster", many: "posters", title: "Saved Posters" };
     }
     return { one: "card", many: "cards", title: "Saved Cards" };
   }

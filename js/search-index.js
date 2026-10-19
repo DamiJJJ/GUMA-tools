@@ -153,6 +153,16 @@ window.GUMA_SEARCH_INDEX = [
 
   // ── In-Game Generators ──────────────────────────────────────────
   {
+    id: "wanted",
+    title: "Wanted Poster",
+    url: "wanted_poster.html",
+    category: "In-Game Generators",
+    icon: "assets/wanted.svg",
+    status: "available",
+    summary: "Wanted, BOLO and missing person posters in a modern bulletin or classic flyer layout, ready for in-game boards and Discord.",
+    aliases: ["wanted", "poszukiwany", "list gończy", "bolo", "person of interest", "missing person", "most wanted", "fugitive", "bulletin", "flyer"],
+  },
+  {
     id: "chardesc",
     title: "Character Description",
     url: "character_description.html",

@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Wanted Poster Generator - GUMA Tools</title>
+
+    <link rel="icon" href="assets/wanted.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/wanted.svg" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
+  </head>
+
+  <body class="theme-navy-soft flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <!-- ── Page title ── -->
+    <div class="guma-page pt-8 pb-4">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.2em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Wanted Poster Generator
+      </h1>
+    </div>
+
+    <!-- ── Faction Switcher ── -->
+    <div class="guma-page pb-4 guma-faction-switcher-wrap">
+      <div id="factionSwitcher" class="flex flex-wrap justify-center gap-3"></div>
+    </div>
+
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- ════ FORM PANEL ════ -->
+      <div id="wpForm" class="guma-panel w-full p-6 xl:w-[480px] xl:flex-none guma-panel-form">
+        <!-- Custom agency: name + optional logo -->
+        <div
+          id="customFactionPanel"
+          style="display: none"
+          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
+          <p class="guma-form-section mb-3">Custom Agency</p>
+          <div class="mb-3">
+            <label class="guma-label" for="wpCustomAgency">Agency Name</label>
+            <input class="guma-input" type="text" id="wpCustomAgency" placeholder="Los Santos Police Department" />
+          </div>
+          <label class="guma-label">Agency Logo <span class="guma-label-note">(optional)</span></label>
+          <div id="wpLogoDrop" class="guma-drop" role="button" tabindex="0" aria-label="Upload agency logo">
+            <input type="file" id="wpLogoInput" accept="image/*" class="hidden" />
+            <span id="wpLogoText">Click to upload logo</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
+            <img id="wpLogoPreview" class="mt-2 hidden max-h-[96px] max-w-[160px] object-contain" alt="logo preview" />
+          </div>
+          <button type="button" id="wpLogoClear" class="guma-link-remove hidden" onclick="wpClearImage('logo')">✕ Remove logo</button>
+        </div>
+
+        <!-- ── Bulletin ── -->
+        <p class="guma-form-section mb-4">Bulletin</p>
+
+        <div class="mb-4">
+          <label class="guma-label">Bulletin Type</label>
+          <div id="wpTypeSwitcher" class="guma-seg">
+            <button type="button" class="guma-seg-btn" data-type="wanted" onclick="wpSelectType('wanted')">Wanted</button>
+            <button type="button" class="guma-seg-btn" data-type="poi" onclick="wpSelectType('poi')">POI / BOLO</button>
+            <button type="button" class="guma-seg-btn" data-type="missing" onclick="wpSelectType('missing')">Missing</button>
+          </div>
+        </div>
+
+        <div class="mb-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="guma-label" for="wpHeadline">Headline</label>
+            <select class="guma-select" id="wpHeadline" onchange="wpOnHeadlineChange()"></select>
+            <input type="text" id="wpHeadlineCustom" class="guma-input mt-2 hidden" placeholder="Custom headline" />
+          </div>
+          <div>
+            <label class="guma-label" for="wpSubtitle" id="wpSubtitleLabel">Wanted For</label>
+            <input class="guma-input" type="text" id="wpSubtitle" placeholder="Armed Robbery" />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="wpDivision">Issuing Division</label>
+          <select class="guma-select" id="wpDivision" onchange="wpOnDivisionChange()"></select>
+          <input type="text" id="wpDivisionCustom" class="guma-input mt-2 hidden" placeholder="Custom division name" />
+        </div>
+
+        <div class="mb-5 grid grid-cols-3 gap-3">
+          <div>
+            <label class="guma-label" for="wpBulletinNo">Bulletin #</label>
+            <input class="guma-input" type="text" id="wpBulletinNo" placeholder="26-0117" />
+          </div>
+          <div>
+            <label class="guma-label" for="wpCaseNo">Case #</label>
+            <input class="guma-input" type="text" id="wpCaseNo" placeholder="26-03-01178" />
+          </div>
+          <div>
+            <label class="guma-label" for="wpIssueDate">Issued</label>
+            <input class="guma-input" type="date" id="wpIssueDate" />
+          </div>
+        </div>
+
+        <!-- ── Subject ── -->
+        <p class="guma-form-section mb-4" id="wpSubjectTitle">Suspect</p>
+
+        <div class="mb-4">
+          <label class="guma-label">Photo</label>
+          <div id="wpPhotoDrop" class="guma-drop" role="button" tabindex="0" aria-label="Upload photo">
+            <input type="file" id="wpPhotoInput" accept="image/*" class="hidden" />
+            <span id="wpPhotoText">Click to upload photo</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
+            <img id="wpPhotoPreview" class="mt-2 hidden h-[120px] w-[96px] rounded object-cover" alt="photo preview" />
+          </div>
+          <button type="button" id="wpPhotoClear" class="guma-link-remove hidden" onclick="wpClearImage('photo')">✕ Remove photo</button>
+          <p class="guma-field-hint">Drag the photo on the poster to frame it, scroll to zoom.</p>
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="wpPhotoDate">Photo Date <span class="guma-label-note">(optional)</span></label>
+          <input class="guma-input" type="date" id="wpPhotoDate" />
+        </div>
+
+        <div class="mb-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="guma-label" for="wpName">Full Name</label>
+            <input class="guma-input" type="text" id="wpName" placeholder="Unknown if empty" />
+          </div>
+          <div>
+            <label class="guma-label" for="wpAka">AKA / Alias</label>
+            <input class="guma-input" type="text" id="wpAka" placeholder="&quot;Deke&quot;" />
+          </div>
+        </div>
+
+        <div class="mb-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="guma-label" for="wpSex">Sex</label>
+            <select class="guma-select" id="wpSex">
+              <option value="">-</option>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
+          <div>
+            <label class="guma-label" for="wpRace">Race</label>
+            <select class="guma-select" id="wpRace">
+              <option value="">-</option>
+              <option>White</option>
+              <option>Black</option>
+              <option>Hispanic</option>
+              <option>Asian</option>
+              <option>Middle Eastern</option>
+              <option>Native American</option>
+              <option>Pacific Islander</option>
+              <option>Mixed</option>
+              <option>Unknown</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="guma-label" for="wpAge">Age</label>
+            <input class="guma-input" type="text" id="wpAge" placeholder="34 or 25-30" />
+          </div>
+          <div>
+            <label class="guma-label" for="wpDob">Date of Birth</label>
+            <input class="guma-input" type="date" id="wpDob" />
+          </div>
+        </div>
+
+        <div class="mb-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="guma-label" for="wpHeight">Height</label>
+            <input class="guma-input" type="text" id="wpHeight" placeholder="6'1&quot;" />
+          </div>
+          <div>
+            <label class="guma-label" for="wpWeight">Weight (lbs)</label>
+            <input class="guma-input" type="text" id="wpWeight" placeholder="190" />
+          </div>
+        </div>
+
+        <div class="mb-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="guma-label" for="wpHair">Hair</label>
+            <select class="guma-select" id="wpHair">
+              <option value="">-</option>
+              <option>Black</option>
+              <option>Brown</option>
+              <option>Blonde</option>
+              <option>Red</option>
+              <option>Auburn</option>
+              <option>Gray</option>
+              <option>White</option>
+              <option>Bald</option>
+              <option>Dyed</option>
+              <option>Unknown</option>
+            </select>
+          </div>
+          <div>
+            <label class="guma-label" for="wpEyes">Eyes</label>
+            <select class="guma-select" id="wpEyes">
+              <option value="">-</option>
+              <option>Brown</option>
+              <option>Blue</option>
+              <option>Green</option>
+              <option>Hazel</option>
+              <option>Gray</option>
+              <option>Black</option>
+              <option>Unknown</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="wpMarks">Scars / Marks / Tattoos</label>
+          <input class="guma-input" type="text" id="wpMarks" placeholder="Tattoo of a skull on left side of neck" />
+        </div>
+
+        <div class="mb-3" id="wpWeaponRow">
+          <label class="guma-label" for="wpWeapon">Weapon(s)</label>
+          <input class="guma-input" type="text" id="wpWeapon" placeholder="Semi-automatic handgun" />
+        </div>
+
+        <div class="mb-5 rounded-xl border p-3 border-guma-l-border-2 dark:border-guma-border-2">
+          <label class="flex cursor-pointer select-none items-center gap-2.5">
+            <input type="checkbox" id="wpCaution" checked />
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-red-500 dark:text-red-400">Caution Strip</span>
+          </label>
+          <input class="guma-input mt-2" type="text" id="wpCautionText" placeholder="Armed and dangerous - do not approach" />
+        </div>
+
+        <!-- ── Charges (wanted / POI only) ── -->
+        <div id="wpChargesSection" class="mb-5">
+          <div class="mb-2 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Charges</p>
+            <button type="button" id="wpAddChargeBtn" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs shrink-0" onclick="wpAddCharge()">+ Add</button>
+          </div>
+          <div id="wpChargeRows" class="space-y-2"></div>
+          <div class="mt-3 grid grid-cols-2 gap-3">
+            <div>
+              <label class="guma-label" for="wpWarrant">Warrant #</label>
+              <input class="guma-input" type="text" id="wpWarrant" placeholder="BW-26-004417" />
+            </div>
+            <div>
+              <label class="guma-label" for="wpBail">Bail</label>
+              <input class="guma-input" type="text" id="wpBail" placeholder="$500,000" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Last Seen ── -->
+        <p class="guma-form-section mb-4">Last Seen</p>
+
+        <div class="mb-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="guma-label" for="wpSeenDate">Date</label>
+            <input class="guma-input" type="date" id="wpSeenDate" />
+          </div>
+          <div>
+            <label class="guma-label" for="wpSeenTime">Time</label>
+            <input class="guma-input" type="time" id="wpSeenTime" />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="wpLocation">Location</label>
+          <input class="guma-input" type="text" id="wpLocation" placeholder="Vespucci Blvd &amp; San Andreas Ave, Del Perro" />
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="wpClothing">Last Seen Wearing</label>
+          <input class="guma-input" type="text" id="wpClothing" placeholder="Black hoodie, gray jeans, white sneakers" />
+        </div>
+
+        <div class="mb-4">
+          <label class="guma-label" for="wpVehicle">Vehicle</label>
+          <input class="guma-input" type="text" id="wpVehicle" placeholder="Black Karin Sultan, plate 8ABC123" />
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label">Additional Photo <span class="guma-label-note">(vehicle, CCTV, last seen)</span></label>
+          <div id="wpPhoto2Drop" class="guma-drop" role="button" tabindex="0" aria-label="Upload additional photo">
+            <input type="file" id="wpPhoto2Input" accept="image/*" class="hidden" />
+            <span id="wpPhoto2Text">Click to upload photo</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
+            <img id="wpPhoto2Preview" class="mt-2 hidden max-h-[96px] max-w-[160px] rounded object-contain" alt="additional photo preview" />
+          </div>
+          <button type="button" id="wpPhoto2Clear" class="guma-link-remove hidden" onclick="wpClearImage('photo2')">✕ Remove photo</button>
+        </div>
+
+        <div class="mb-5">
+          <label class="guma-label" for="wpPhoto2Caption">Photo Caption</label>
+          <input class="guma-input" type="text" id="wpPhoto2Caption" placeholder="Last seen driving this vehicle" />
+        </div>
+
+        <!-- ── Details ── -->
+        <p class="guma-form-section mb-4" id="wpDetailsTitle">Details</p>
+
+        <div class="mb-5">
+          <textarea
+            class="guma-input min-h-[120px] resize-y"
+            id="wpDetails"
+            maxlength="700"
+            placeholder="On October 17, 2026, at approximately 11:40 PM, the suspect entered a convenience store on Vespucci Blvd..."
+          ></textarea>
+        </div>
+
+        <!-- ── Reward & Contact ── -->
+        <p class="guma-form-section mb-4">Reward &amp; Contact</p>
+
+        <div class="mb-3">
+          <label class="guma-label" for="wpReward">Reward <span class="guma-label-note">(optional)</span></label>
+          <input class="guma-input" type="text" id="wpReward" placeholder="$10,000" />
+        </div>
+
+        <div class="mb-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="guma-label" for="wpContactName">Contact</label>
+            <input class="guma-input" type="text" id="wpContactName" placeholder="Det. Maria Alvarez" />
+          </div>
+          <div>
+            <label class="guma-label" for="wpContactPhone">Phone</label>
+            <input class="guma-input" type="text" id="wpContactPhone" placeholder="(213) 555-0148" />
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <label class="guma-label" for="wpTipLine">Anonymous Tip Line</label>
+          <input class="guma-input" type="text" id="wpTipLine" placeholder="Crime Stoppers 1-800-222-TIPS" />
+        </div>
+
+        <!-- ── Case status: resolved stamp ── -->
+        <div class="border-t border-guma-l-border dark:border-guma-border pt-4">
+          <label class="flex cursor-pointer select-none items-center gap-2.5">
+            <input type="checkbox" id="wpStamp" />
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-red-500 dark:text-red-400">Mark as Resolved (Stamp)</span>
+          </label>
+          <div id="wpStampFields" class="mt-3 hidden grid grid-cols-2 gap-3">
+            <div>
+              <label class="guma-label" for="wpStampText">Stamp</label>
+              <select class="guma-select" id="wpStampText">
+                <option>APPREHENDED</option>
+                <option>IN CUSTODY</option>
+                <option>LOCATED</option>
+                <option>IDENTIFIED</option>
+                <option>CANCELLED</option>
+              </select>
+            </div>
+            <div>
+              <label class="guma-label" for="wpStampDate">Date</label>
+              <input class="guma-input" type="date" id="wpStampDate" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ PREVIEW PANEL ════ -->
+      <div class="guma-panel flex flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
+          <button
+            id="gumaHistoryBtn"
+            type="button"
+            aria-label="Open saved posters"
+            onclick="document.querySelector('guma-history-drawer')?.open()"
+            class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3v5h5" />
+              <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+              <path d="M12 7v5l4 2" />
+            </svg>
+            Saved
+            <span
+              id="gumaHistoryCount"
+              class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+            ></span>
+          </button>
+        </div>
+
+        <!-- ── Layout picker ── -->
+        <div class="w-full max-w-[700px]">
+          <p class="guma-label mb-2">Poster Layout</p>
+          <div id="wpLayoutSwitcher" class="guma-seg">
+            <button type="button" class="guma-seg-btn" data-layout="modern" onclick="wpSelectLayout('modern')">Modern Bulletin</button>
+            <button type="button" class="guma-seg-btn" data-layout="classic" onclick="wpSelectLayout('classic')">Classic Flyer</button>
+          </div>
+        </div>
+
+        <!-- guma-pc-wrap: positioned box both photo croppers mount their chrome
+             into. The layout picker costs the same ~77px as on the business
+             card page, so the same taller reservation applies. The poster is
+             shown like a document (full width, scrolls) rather than fitted
+             like a card: fitted, a tall sheet is too small to read or frame. -->
+        <div class="guma-canvas-wrap guma-scroll guma-pc-wrap xl:max-h-[calc(100vh_-_26rem)]">
+          <canvas id="posterCanvas" width="1400" height="1800" class="guma-canvas-preview guma-canvas-preview-doc"></canvas>
+        </div>
+
+        <!-- Single export entry point -->
+        <div class="flex w-full max-w-[700px] justify-center">
+          <button type="button" class="guma-btn-primary w-full max-w-[346px]" onclick="document.querySelector('guma-preview-modal')?.open()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Preview &amp; Download
+          </button>
+        </div>
+
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-muted/60 mt-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          Generated <span id="downloadCount">0</span> times
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
+
+    <script src="js/history.js"></script>
+    <script src="js/history-wiring.js"></script>
+    <script src="js/counters.js"></script>
+    <script src="js/search-index.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/factions.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    <script src="js/guma-upload.js"></script>
+    <script src="js/guma-fit.js"></script>
+    <script src="js/photo-crop.js"></script>
+    <script src="js/wanted-poster.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GUMA_GENERATOR_KEY = "wanted";
+        initWantedPoster({ defaultFaction: "lspd" });
+        window.GumaCounters?.initDownloadCounter("wanted", "downloadCount", "downloadBtn");
+      });
+    </script>
+  </body>
+</html>

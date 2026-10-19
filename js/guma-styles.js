@@ -490,6 +490,21 @@
       .guma-select {
         @apply guma-input appearance-auto;
       }
+      /* Quiet aside inside a label: "(optional)", "(vehicle, CCTV...)". */
+      .guma-label-note {
+        @apply font-normal normal-case tracking-normal
+               text-guma-l-muted/70 dark:text-guma-muted/60;
+      }
+      /* One-line help under a field. */
+      .guma-field-hint {
+        @apply mt-1.5 text-[11px] leading-5 text-guma-l-muted/80 dark:text-guma-muted/70;
+      }
+      /* Small destructive text action under a field ("✕ Remove photo"). */
+      .guma-link-remove {
+        @apply mt-1.5 text-xs font-semibold transition
+               text-red-500 hover:text-red-400
+               dark:text-red-400 dark:hover:text-red-300;
+      }
 
       /* ─── Buttons ─── */
       .guma-btn-outline {
