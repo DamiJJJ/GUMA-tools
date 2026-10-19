@@ -146,28 +146,52 @@ async function _getHotRanking(generatorKeys) {
   return top;
 }
 
-function _hotFlagSvg(icon, size) {
+function _flagSvg(icon, size, fill = "none") {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"` +
-    ` fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"` +
+    ` fill="${fill}" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"` +
     ` stroke-linejoin="round" aria-hidden="true">${icon}</svg>`
   );
 }
 
-// variant: undefined → corner pill (index tiles), "icon" → bare tinted icon
-// pinned to the link's right edge, out of text flow (nav links).
-function _makeHotFlag(flag, variant) {
+// Bare tinted icon for a nav link (title doubles as the tooltip).
+function _makeFlagIcon(flag, fill) {
   const el = document.createElement("span");
-  if (variant === "icon") {
-    el.className = `guma-tile-flag-icon ${flag.iconCls}`;
-    el.title = flag.label;
-    el.setAttribute("aria-label", flag.label);
-    el.innerHTML = _hotFlagSvg(flag.icon, 12);
-    return el;
-  }
-  el.className = `guma-tile-flag guma-tile-flag-corner ${flag.cls}`;
-  el.innerHTML = _hotFlagSvg(flag.icon, 12) + flag.label;
+  el.className = `guma-tile-flag-icon ${flag.iconCls}`;
+  el.title = flag.label;
+  el.setAttribute("aria-label", flag.label);
+  el.innerHTML = _flagSvg(flag.icon, 12, fill);
   return el;
+}
+
+// variant: undefined → corner pill (index tiles), "icon" → bare tinted icon
+// for the nav link's flag slot.
+function _makeHotFlag(flag, variant) {
+  if (variant === "icon") return _makeFlagIcon(flag);
+  const el = document.createElement("span");
+  el.className = `guma-tile-flag guma-tile-flag-corner ${flag.cls}`;
+  el.innerHTML = _flagSvg(flag.icon, 12) + flag.label;
+  return el;
+}
+
+/**
+ * Nav links keep their trend / new icons in one slot pinned to the right edge,
+ * out of the text flow, so a link that is both new and trending shows both.
+ */
+function _navFlagSlot(link) {
+  let slot = link.querySelector(":scope > .guma-nav-flags");
+  if (!slot) {
+    slot = document.createElement("span");
+    slot.className = "guma-nav-flags";
+    link.appendChild(slot);
+  }
+  return slot;
+}
+
+// Moves a nav link to the front of its category (no-op if already first).
+function _moveToNavGroupStart(link) {
+  const first = _navGroupStart(link);
+  if (first !== link) first.parentElement.insertBefore(link, first);
 }
 
 /**
@@ -185,15 +209,18 @@ function _navGroupStart(el) {
 }
 
 /**
- * The desktop dropdowns draw their dividers as a top border on every link but
- * the first, so after a reorder the borders have to follow the new order.
+ * The desktop dropdowns draw their dividers as a top border on every link that
+ * follows another link (a group label already carries its own), so after a
+ * reorder the borders have to follow the new order.
  */
-function _restripeDropdown(menu) {
-  const links = [...menu.children].filter((n) => n.matches("a"));
-  links.forEach((a, i) => {
-    a.classList.toggle("border-t", i > 0);
-    a.classList.toggle("border-guma-l-border", i > 0);
-    a.classList.toggle("dark:border-guma-border", i > 0);
+function _restripeDropdowns() {
+  document.querySelectorAll("#gumaCardsMenu, #gumaReportsMenu, #gumaIngameMenu, #gumaImageMenu").forEach((menu) => {
+    menu.querySelectorAll(":scope > a").forEach((a) => {
+      const divided = !!a.previousElementSibling?.matches("a");
+      a.classList.toggle("border-t", divided);
+      a.classList.toggle("border-guma-l-border", divided);
+      a.classList.toggle("dark:border-guma-border", divided);
+    });
   });
 }
 
@@ -215,7 +242,9 @@ async function applyHotFlags() {
     const rank = top.indexOf(el.dataset.generatorKey);
     if (rank === -1) return;
     const variant = el.dataset.hotFlag;
-    el.appendChild(_makeHotFlag(HOT_FLAGS[rank], variant));
+    const flag = _makeHotFlag(HOT_FLAGS[rank], variant);
+    if (variant === "icon") _navFlagSlot(el).prepend(flag);
+    else el.appendChild(flag);
     if (variant === "icon" && el.matches("a[data-generator-key]")) trendingNav.push({ el, rank });
     else if (!variant) trendingTiles.push({ el, rank });
   });
@@ -227,11 +256,43 @@ async function applyHotFlags() {
 
   trendingNav
     .sort((a, b) => b.rank - a.rank)
-    .forEach(({ el }) => {
-      const first = _navGroupStart(el);
-      if (first !== el) first.parentElement.insertBefore(el, first);
-    });
-  document.querySelectorAll("#gumaCardsMenu, #gumaReportsMenu").forEach(_restripeDropdown);
+    .forEach(({ el }) => _moveToNavGroupStart(el));
+  _restripeDropdowns();
+}
+
+// ── "New" generator flags ────────────────────────────────────────
+const NEW_FLAG = {
+  label: "New",
+  iconCls: "text-guma-l-gold dark:text-guma-gold",
+  // lucide: star
+  icon: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+};
+
+/**
+ * Marks the generators of the current release: index tiles get a "New" pill
+ * under their description, nav links a star in their flag slot. Both move to
+ * the front of their group. Must run before applyHotFlags() - its pass moves
+ * Hot/Popular items to the very front, so they stay ahead of the new ones.
+ */
+function applyNewFlags(newKeys) {
+  if (!newKeys || !newKeys.length) return;
+  const isNew = (el) => newKeys.includes(el.dataset.generatorKey);
+  const tiles = [...document.querySelectorAll(".guma-card[data-generator-key]")].filter(isNew);
+  const navLinks = [...document.querySelectorAll('a[data-generator-key][data-hot-flag="icon"]')].filter(isNew);
+
+  tiles.forEach((tile) => {
+    const pill = document.createElement("span");
+    pill.className = "guma-status guma-status-new";
+    pill.innerHTML = _flagSvg(NEW_FLAG.icon, 12, "currentColor") + NEW_FLAG.label;
+    tile.querySelector(".guma-card-desc")?.after(pill);
+  });
+  navLinks.forEach((link) => _navFlagSlot(link).appendChild(_makeFlagIcon(NEW_FLAG, "currentColor")));
+
+  // Walk backwards so moving each to the front keeps the new ones in their
+  // original relative order.
+  tiles.reverse().forEach((tile) => tile.parentElement.prepend(tile));
+  navLinks.reverse().forEach(_moveToNavGroupStart);
+  _restripeDropdowns();
 }
 
 window.GumaCounters = {
@@ -242,5 +303,6 @@ window.GumaCounters = {
   initVisitCounter,
   initDownloadCounter,
   applyHotFlags,
+  applyNewFlags,
   fmt: _fmt,
 };

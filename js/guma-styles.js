@@ -352,15 +352,23 @@
       .guma-card-desc {
         @apply mt-3 text-sm leading-6 text-guma-l-muted dark:text-guma-muted;
       }
-      .guma-status {
-        @apply mt-5 inline-flex w-fit items-center rounded-full border px-3 py-1
+      /* Tiles without a pill get an invisible one as ::after, so every tile
+         keeps one height. Shares the selector list instead of @apply-ing
+         guma-status, which would make the rule apply itself. */
+      .guma-status,
+      .guma-card > div:last-of-type:not(:has(> .guma-status))::after {
+        @apply mt-5 inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1
                text-[11px] font-bold uppercase tracking-[0.18em];
       }
-      .guma-status-available {
-        @apply border-guma-l-gold bg-guma-l-input text-guma-l-gold
-               dark:border-guma-gold dark:bg-guma-input dark:text-guma-gold;
+      .guma-card > div:last-of-type:not(:has(> .guma-status))::after {
+        @apply invisible;
+        content: "\\00a0";
       }
-      .guma-status-soon {
+      /* Injected by applyNewFlags() for GUMA_NEW_GENERATORS */
+      .guma-status-new {
+        @apply border-guma-l-gold bg-guma-l-gold text-white
+               dark:border-guma-gold dark:bg-guma-gold dark:text-guma-dark;
+      }      .guma-status-soon {
         @apply border-slate-300 bg-slate-100 text-slate-500
                dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300;
       }
@@ -375,8 +383,11 @@
       [data-hot-flag="icon"] {
         @apply relative;
       }
+      .guma-nav-flags {
+        @apply absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5;
+      }
       .guma-tile-flag-icon {
-        @apply absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center;
+        @apply inline-flex items-center;
       }
       .guma-tile-flag-hot {
         @apply border-orange-500/50 bg-orange-100 text-orange-600
@@ -478,6 +489,21 @@
       }
       .guma-select {
         @apply guma-input appearance-auto;
+      }
+      /* Quiet aside inside a label: "(optional)", "(vehicle, CCTV...)". */
+      .guma-label-note {
+        @apply font-normal normal-case tracking-normal
+               text-guma-l-muted/70 dark:text-guma-muted/60;
+      }
+      /* One-line help under a field. */
+      .guma-field-hint {
+        @apply mt-1.5 text-[11px] leading-5 text-guma-l-muted/80 dark:text-guma-muted/70;
+      }
+      /* Small destructive text action under a field ("✕ Remove photo"). */
+      .guma-link-remove {
+        @apply mt-1.5 text-xs font-semibold transition
+               text-red-500 hover:text-red-400
+               dark:text-red-400 dark:hover:text-red-300;
       }
 
       /* ─── Buttons ─── */

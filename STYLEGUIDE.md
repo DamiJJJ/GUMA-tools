@@ -32,6 +32,7 @@ Generated from the code. Regenerate with `/styleguide`.
 ├── investigative_report.html
 ├── probationary_evaluation.html
 ├── vehicle_pursuit_report.html
+├── wanted_poster.html
 ├── readme.md
 ├── STYLEGUIDE.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
@@ -58,6 +59,7 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── guma-fit.js             # GumaFit - shrink-to-fit text + input caps
     ├── guma-radio.js           # GumaRadio - radio groups that can be cleared again
     ├── photo-crop.js           # GumaPhotoCrop - drag/zoom photo inside the card frame
+    │                           # (GumaPhotoCrop.create() for more than one photo)
     ├── canvas-edit.js          # GumaCanvasEdit - WYSIWYG editing on the document
     ├── ui-helpers.js           # buildFactionSwitcher() and small shared UI bits
     ├── tire-spin.js            # GumaTireSpin - rolling-tire SVG (about page)
@@ -137,7 +139,11 @@ module must precede the page JS that calls it. The two established tails:
   to make it eligible for a trend badge (`applyHotFlags()` decorates the top 2 by
   download count). Index tiles use the bare attribute (corner pill, moved to the
   front of their grid); nav links add `data-hot-flag="icon"` (small right-edge
-  icon, out of the text flow).
+  icon in the `guma-nav-flags` slot, out of the text flow).
+- **New flags**: keys listed in `GUMA_NEW_GENERATORS` (`js/components.js`, next
+  to `GUMA_VERSION`) get a "New" pill on their index tile and a star in their nav
+  links' flag slot (`applyNewFlags()`), and move to the front of their group.
+  It runs before `applyHotFlags()`, so the order is Hot, Popular, New, the rest.
 
 ## Tailwind & design tokens
 
@@ -198,6 +204,16 @@ Reuse before adding:
   mutually exclusive options (card layout picker, zoom control).
 - `guma-tile-flag` (+ `-corner` / `-icon` position modifiers, `-hot` /
   `-popular` colour modifiers) - Hot/Popular badges, injected by `applyHotFlags()`.
+- `guma-status` (+ `-new` / `-soon`) - pill under an index tile's description.
+  `guma-status-soon` is static markup on disabled "Coming soon" tiles;
+  `guma-status-new` (star + "New") is injected by `applyNewFlags()`. Released
+  tiles carry no pill otherwise; an invisible placeholder reserves its line so
+  all tiles keep the same height.
+- `guma-nav-flags` - right-edge slot on a nav link holding its
+  `guma-tile-flag-icon`s (Hot/Popular icon, New star).
+- `guma-label-note` (quiet "(optional)" aside inside a label), `guma-field-hint`
+  (one-line help under a field), `guma-link-remove` (small red "✕ Remove photo"
+  action under a dropzone).
 - `guma-zoom-*` - the shared zoom segmented control, used by both the WYSIWYG
   toolbar and `<guma-preview-modal>`.
 - `guma-pages` + `guma-page-pill` (+ `.is-on`, `guma-page-pill-rm`) and
@@ -245,13 +261,28 @@ of forking a per-page variant.
 | `guma-upload.js` | `GumaUpload` | `init()` on a dropzone: click, keyboard, drag & drop and paste routing |
 | `guma-fit.js` | `GumaFit` | `fitFont`, `fitBlock`, `wrapLines`, `colFonts`, `capFor`, `applyCaps`, `applyCapsBySelector` |
 | `guma-radio.js` | `GumaRadio` | `makeClearable(root)` - clicking a selected radio clears it (paper "pick one" boxes may stay blank); idempotent, re-run on new rows |
-| `photo-crop.js` | `GumaPhotoCrop` | `attach`, `setSource`, `paint`, `hasImage`, `getState`, `setState`, `reset` |
+| `photo-crop.js` | `GumaPhotoCrop` | `attach`, `setSource`, `paint`, `hasImage`, `getState`, `setState`, `reset`, `create` |
 | `canvas-edit.js` | `GumaCanvasEdit` | `attach`, `begin`, `field`, `action`, `end`, `schedule`, `commitEdit`, `cancelEdit`, `isEditing`, `setZoom`, `fitZoom` |
 | `history.js` | `GumaHistory` | localStorage store, thumbnails, quota recovery |
 | `history-wiring.js` | `GumaHistoryWiring` | `register`, `save`, `buildFaction`, `setVal`, `setChecked` |
 | `counters.js` | `GumaCounters` | Supabase counters, `initDownloadCounter`, `applyHotFlags` |
 | `random-character.js` | `randomizeCharacter(generatorKey)` | shared form filler |
 | `tire-spin.js` | `GumaTireSpin` | tread-only rotation of `assets/tire.svg` |
+
+### More than one photo (`GumaPhotoCrop.create`)
+
+`window.GumaPhotoCrop` is one cropper, enough for a card with one photo. A page
+with several photo slots on one canvas (the wanted poster) makes one cropper per
+slot with `GumaPhotoCrop.create()` and attaches each to the same canvas and
+`.guma-pc-wrap` host; croppers sharing a canvas settle its cursor and
+`guma-pc-on` between them. On a redraw where a slot is not on the canvas, call
+`crop.paint(ctx, null)` so the stale slot stops catching drags and its tool bar
+hides.
+
+History photos are stored with `GumaHistory._downscaleAvatar(src, w, h,
+"contain")`. Pass `"jpeg"` as a fifth argument when an entry carries more than
+one photograph - PNG copies of two photos fill the localStorage quota after a
+handful of saves. Keep PNG for anything that needs transparency (logos).
 
 ### Shrink-to-fit text (`GumaFit`)
 
@@ -412,7 +443,8 @@ copy it. Paired HTML pages stay `snake_case.html` regardless.
    arrays and the dropdown + mobile link lists (with `data-generator-key` and
    `data-hot-flag="icon"`), so the header highlights correctly and the page joins
    the Hot/Popular flags. Add the same `data-generator-key` to its `index.html`
-   tile.
+   tile, and add that key to `GUMA_NEW_GENERATORS` (reset the list when
+   `GUMA_VERSION` is bumped).
 7. Wire **Saved Cards / Reports** (see below): page-specific `serialize` /
    `hydrate` / `buildLabel` (+ `buildFaction`), one `GumaHistoryWiring.register`,
    `await GumaHistoryWiring.save(canvas)` in the download and copy paths, and the
@@ -468,7 +500,7 @@ both go quiet:
 
 Current keys: `officer`, `firefighter`, `business_card`, `personnel`, `firearm`,
 `traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `pursuit`, `bodycam`,
-`chardesc`.
+`chardesc`, `wanted`.
 
 **Verify:** open the page. "Generated 0 times" should appear under the export
 button (it stays hidden while the row is missing). Copy to clipboard once,
@@ -501,7 +533,7 @@ Three shared pieces (do not fork them):
 | Global                | Set by                  | Purpose                                        |
 | --------------------- | ----------------------- | ---------------------------------------------- |
 | `GUMA_GENERATOR_KEY`  | `register({ key })`     | storage namespace (`guma:history:<key>`)       |
-| `GUMA_GENERATOR_NOUN` | `register({ noun })`    | `"card"` (default) or `"report"` - drawer copy |
+| `GUMA_GENERATOR_NOUN` | `register({ noun })`    | `"card"` (default), `"report"`, `"description"` or `"poster"` - drawer copy |
 | `GUMA_HYDRATE`        | `register({ hydrate })` | function the drawer calls on load              |
 
 ### Wiring a new generator (recipe)
