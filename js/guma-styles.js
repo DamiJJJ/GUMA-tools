@@ -223,6 +223,19 @@
       .guma-canvas-preview-doc {
         @apply xl:max-h-none;
       }
+      /* Zoomable preview (js/canvas-zoom.js), switched on from xl. The script
+         sets the canvas width, so the shared caps must let go of it, and the
+         box scrolls both ways once the sheet outgrows it. The canvas centres
+         by auto margins rather than justify-center: a centred overflow would
+         push its left edge out of reach of the scrollbar. min-width:0 keeps
+         the flex chain from sizing itself to the zoomed sheet. */
+      .guma-cz-on {
+        @apply justify-start overflow-x-auto;
+        min-width: 0;
+      }
+      .guma-cz-on > canvas {
+        @apply mx-auto max-h-none max-w-none flex-none;
+      }
 
       /* ─── Photo cropping on the card canvas ─── */
       /* Positioned box the crop chrome is absolutely placed in. It goes on the

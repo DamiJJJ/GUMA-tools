@@ -357,54 +357,72 @@
 
       <!-- ════ PREVIEW PANEL ════ -->
       <div class="guma-panel flex flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
-        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+        <!-- From xl a 1fr / auto / 1fr grid: equal side columns put the layout
+             picker on the panel's centre line (over the poster) however wide
+             the right-hand group is. If that group outgrows its column, the
+             grid shifts the picker left instead of overlapping it. -->
+        <div
+          class="mb-0 flex w-full flex-wrap items-center gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border xl:grid xl:grid-cols-[1fr_auto_1fr]"
+        >
           <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
-          <button
-            id="gumaHistoryBtn"
-            type="button"
-            aria-label="Open saved posters"
-            onclick="document.querySelector('guma-history-drawer')?.open()"
-            class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+          <!-- ── Layout picker ── own line below xl; from xl it sits in this
+               row so the poster box gets the height a separate row would take. -->
+          <div
+            id="wpLayoutSwitcher"
+            role="group"
+            aria-label="Poster layout"
+            class="guma-seg order-last w-full xl:order-none xl:w-auto"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
+            <button type="button" class="guma-seg-btn xl:flex-none xl:px-5 xl:py-1.5" data-layout="modern" onclick="wpSelectLayout('modern')">
+              Modern Bulletin
+            </button>
+            <button type="button" class="guma-seg-btn xl:flex-none xl:px-5 xl:py-1.5" data-layout="classic" onclick="wpSelectLayout('classic')">
+              Classic Flyer
+            </button>
+          </div>
+          <div class="ml-auto flex items-center gap-3">
+            <!-- Zoom buttons are injected by canvas-zoom.js -->
+            <div id="wpZoom" class="guma-zoom guma-zoom-sm hidden xl:flex"></div>
+            <button
+              id="gumaHistoryBtn"
+              type="button"
+              aria-label="Open saved posters"
+              onclick="document.querySelector('guma-history-drawer')?.open()"
+              class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
             >
-              <path d="M3 3v5h5" />
-              <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
-              <path d="M12 7v5l4 2" />
-            </svg>
-            Saved
-            <span
-              id="gumaHistoryCount"
-              class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
-            ></span>
-          </button>
-        </div>
-
-        <!-- ── Layout picker ── -->
-        <div class="w-full max-w-[700px]">
-          <p class="guma-label mb-2">Poster Layout</p>
-          <div id="wpLayoutSwitcher" class="guma-seg">
-            <button type="button" class="guma-seg-btn" data-layout="modern" onclick="wpSelectLayout('modern')">Modern Bulletin</button>
-            <button type="button" class="guma-seg-btn" data-layout="classic" onclick="wpSelectLayout('classic')">Classic Flyer</button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 3v5h5" />
+                <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+                <path d="M12 7v5l4 2" />
+              </svg>
+              Saved
+              <span
+                id="gumaHistoryCount"
+                class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+              ></span>
+            </button>
           </div>
         </div>
 
         <!-- guma-pc-wrap: positioned box both photo croppers mount their chrome
-             into. The layout picker costs the same ~77px as on the business
-             card page, so the same taller reservation applies. The poster is
-             shown like a document (full width, scrolls) rather than fitted
-             like a card: fitted, a tall sheet is too small to read or frame. -->
-        <div class="guma-canvas-wrap guma-scroll guma-pc-wrap xl:max-h-[calc(100vh_-_26rem)]">
+             into. The poster is fitted by height, so every pixel of box height
+             is a bigger poster: the layout picker shares the header row and
+             the cap is measured to end the panel ~2rem above the fold, tighter
+             than the shared card cap. From xl canvas-zoom.js opens the poster
+             fitted whole and zooms from there; below xl it is shown like a
+             document (full width, page scrolls). -->
+        <div class="guma-canvas-wrap guma-scroll guma-pc-wrap xl:max-h-[calc(100vh_-_17.5rem)]">
           <canvas id="posterCanvas" width="1400" height="1800" class="guma-canvas-preview guma-canvas-preview-doc"></canvas>
         </div>
 
@@ -467,6 +485,7 @@
     <script src="js/guma-upload.js"></script>
     <script src="js/guma-fit.js"></script>
     <script src="js/photo-crop.js"></script>
+    <script src="js/canvas-zoom.js"></script>
     <script src="js/wanted-poster.js"></script>
     <script src="js/animations.js"></script>
     <script>

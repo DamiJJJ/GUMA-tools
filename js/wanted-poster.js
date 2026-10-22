@@ -28,6 +28,7 @@ let wpLogoURL = null; // custom agency only
 // One cropper per photo slot; both share the poster canvas.
 const wpCrop = GumaPhotoCrop.create();
 const wpCrop2 = GumaPhotoCrop.create();
+const wpZoom = GumaCanvasZoom.create();
 
 // ── Sheet geometry ───────────────────────────────────────────────────────────
 const WP_W = 1400;
@@ -430,6 +431,8 @@ function wpRender() {
 
   const stampAt = wpLayout === "classic" ? wpDrawClassic(ctx, d) : wpDrawModern(ctx, d);
   if (d.stamp) wpDrawStamp(ctx, stampAt.x, stampAt.y, d.stamp);
+  // The sheet's height follows its content, so the fit moves with every draw.
+  wpZoom.refresh();
 }
 
 /** Size the sheet; resets the context, so call it after measuring. */
@@ -1769,6 +1772,7 @@ function initWantedPoster({ defaultFaction = "lspd" } = {}) {
   const canvas = wpCanvas();
   wpCrop.attach({ canvas, host, redraw: wpRender });
   wpCrop2.attach({ canvas, host, redraw: wpRender });
+  wpZoom.attach({ canvas, wrap: host, control: document.getElementById("wpZoom") });
 
   [
     ["photo", "wpPhotoDrop", "wpPhotoInput"],
