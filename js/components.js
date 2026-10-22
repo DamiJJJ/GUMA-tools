@@ -1608,3 +1608,14 @@ document.addEventListener("keydown", (e) => {
     gumaOpenSearch();
   }
 });
+
+// ── Service worker (PWA install + offline) ────────────────────
+// Every page loads this file, so the worker is registered app-wide.
+// Skipped on file:// where service workers are unavailable.
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch((err) => {
+      console.warn("[GUMA] service worker registration failed:", err);
+    });
+  });
+}

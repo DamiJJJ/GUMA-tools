@@ -1,14 +1,30 @@
 {
-  "name": "Guma LEA Generator",
-  "short_name": "Guma LEA",
+  "name": "GUMA Tools",
+  "short_name": "GUMA Tools",
+  "description": "Document, report and card generators for FiveM roleplay - LSPD, LSSD, BCSO, SAHP, LSFD, LSCoFD and more.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#04045e",
+  "background_color": "#04045e",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "any",
-      "type": "image/x-icon"
+      "src": "assets/icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon_maskable_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ],
-  "theme_color": "#f0c040",
-  "background_color": "#04045e",
-  "display": "standalone"
+  ]
 }
