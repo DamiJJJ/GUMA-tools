@@ -392,12 +392,14 @@
       .guma-tile-flag-corner {
         @apply absolute right-3 top-3 z-10;
       }
-      /* Nav links: the trend icon sits out of flow so labels never wrap */
+      /* Nav links: labels never wrap, and the flag icons sit in flow at the
+         right edge, so a long label widens the dropdown instead of running
+         under the icons. */
       [data-hot-flag="icon"] {
-        @apply relative;
+        @apply whitespace-nowrap;
       }
       .guma-nav-flags {
-        @apply absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5;
+        @apply ml-auto inline-flex shrink-0 items-center gap-1.5 pl-3;
       }
       .guma-tile-flag-icon {
         @apply inline-flex items-center;

@@ -81,7 +81,7 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaCardsMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="officer_generator.html" data-generator-key="officer" data-hot-flag="icon"
@@ -120,10 +120,10 @@ class GumaHeader extends HTMLElement {
                   <polyline points="6 9 12 15 18 9"/>
                 </svg>
               </button>
-              <!-- 280px: "Fire Code Inspection Report" plus two flag icons (Hot + New)
-                   in the absolutely positioned guma-nav-flags slot. -->
+              <!-- 280px: "Fire Code Inspection Report" plus two flag icons (Hot + New);
+                   links don't wrap, so a longer label still widens the menu. -->
               <div id="gumaReportsMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[280px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[280px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <p class="${dropGroupLabel}">Police</p>
@@ -186,7 +186,7 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaIngameMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="wanted_poster.html" data-generator-key="wanted" data-hot-flag="icon"
@@ -216,7 +216,7 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaImageMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="bodycam_overlay.html" data-generator-key="bodycam" data-hot-flag="icon"
