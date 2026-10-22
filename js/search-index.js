@@ -143,12 +143,12 @@ window.GUMA_SEARCH_INDEX = [
   {
     id: "fire_inspection",
     title: "Fire Code Inspection Report",
-    url: null,
+    url: "fire_code_inspection_report.html",
     category: "Fire / Medical",
     icon: "assets/extinguisher.png",
-    status: "soon",
-    summary: "Future generator for Fire Code Inspection Report.",
-    aliases: ["fire code", "inspection", "fire marshal"],
+    status: "available",
+    summary: "Official fire code inspection report with a violation checklist, re-inspection date and inspector sign-off.",
+    aliases: ["fire code", "inspection", "fire marshal", "fire prevention", "violation notice", "code enforcement", "lscofd", "lsfd"],
   },
 
   // ── In-Game Generators ──────────────────────────────────────────

@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>Fire Code Inspection Report - GUMA Tools</title>
+
+    <link rel="icon" href="assets/extinguisher.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/extinguisher.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
+  </head>
+
+  <body class="theme-red flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <!-- PAGE TITLE -->
+    <div class="guma-page pt-8 pb-4">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        Fire Code Inspection Report
+      </h1>
+    </div>
+
+    <!-- Agency switcher. Outside the form panel on purpose: from xl the form is
+         hidden while the document is edited in place, and the agency (seal,
+         header, code names) must stay switchable there. -->
+    <div class="guma-page pb-4 guma-faction-switcher-wrap">
+      <div id="factionSwitcher" class="flex flex-wrap justify-center gap-3"></div>
+    </div>
+
+    <!-- MAIN -->
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- LEFT: FORM PANEL -->
+      <div class="guma-panel w-full p-6 xl:max-w-[580px] xl:flex-none guma-panel-form guma-ce-host">
+        <!-- Agency. LSCoFD / LSFD bring their own header and address; Custom
+             prints the typed name instead of a seal. Both inputs may stay
+             empty: the document falls back to a default and keeps the dashed
+             empty-field outline on the canvas. -->
+        <p class="guma-form-section">Agency</p>
+        <div id="customAgencyRow" class="form-group hidden">
+          <label>Agency Name (document header)</label>
+          <input type="text" id="agency_name" placeholder="Blaine County Fire Department" />
+        </div>
+        <div class="form-group">
+          <label>Headquarters Address <span class="guma-label-note">(under the title)</span></label>
+          <input type="text" id="hq_address" placeholder="1320 N. El Rancho Boulevard, Los Santos, San Andreas 90063-3294" />
+        </div>
+
+        <!-- Premises -->
+        <p class="guma-form-section">Premises</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Jurisdiction / Shift</label>
+            <input type="text" id="jurisdiction" placeholder="26 / FP" />
+          </div>
+          <div class="form-group">
+            <label>Inspection Date</label>
+            <input type="date" id="inspection_date" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" id="site_address" placeholder="1185 El Rancho Blvd, Cypress Flats" />
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Business Name</label>
+            <input type="text" id="business_name" placeholder="Cypress Flats Cold Storage" />
+          </div>
+          <div class="form-group">
+            <label>Business Phone</label>
+            <input type="text" id="bus_phone" placeholder="(213) 555-0148" />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Responsible Party</label>
+            <input type="text" id="responsible_party" placeholder="James T. Whitfield" />
+          </div>
+          <div class="form-group">
+            <label>Emergency Phone</label>
+            <input type="text" id="emg_phone" placeholder="(213) 555-0193" />
+          </div>
+        </div>
+        <div class="mb-4 flex gap-6">
+          <label class="checkbox-item"><input type="checkbox" id="rp_owner" /> Owner</label>
+          <label class="checkbox-item"><input type="checkbox" id="rp_occupant" /> Occupant</label>
+        </div>
+        <div class="three-col">
+          <div class="form-group">
+            <label>Type of Occupancy</label>
+            <input type="text" id="occupancy_type" placeholder="S-1" />
+          </div>
+          <div class="form-group">
+            <label>Type of Construction</label>
+            <input type="text" id="construction_type" placeholder="II-B" />
+          </div>
+          <div class="form-group">
+            <label># Bldg / Sq Ft</label>
+            <input type="text" id="bldg_sqft" placeholder="42,000" />
+          </div>
+        </div>
+
+        <!-- Violation notice -->
+        <p class="guma-form-section">Violation Notice</p>
+        <p class="guma-sub-label">The property is in violation of the</p>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" id="code_local" /> <span id="codeLocalLabel">Los Santos County Fire Code</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="code_state" /> San Andreas Fire Code</label>
+          <label class="checkbox-item"><input type="checkbox" id="code_regs" /> San Andreas Code of Regulations Title 19</label>
+        </div>
+        <div class="form-group mb-5">
+          <label>Re-Inspection Date</label>
+          <input type="date" id="reinspection_date" />
+        </div>
+
+        <!-- Violations: items, sub-boxes and blanks are built by
+             js/fire-code-inspection-report.js from the same table the document
+             prints, so the two can never drift. -->
+        <p class="guma-form-section">Violations</p>
+        <p class="guma-field-hint mb-3 mt-0">Ticking a sub-item or filling a blank also ticks its numbered item.</p>
+        <div id="violationsContainer"></div>
+
+        <!-- Other -->
+        <p class="guma-form-section">Other</p>
+        <label class="checkbox-item mb-3"><input type="checkbox" id="v_other" /> Other</label>
+        <div class="form-group mb-5">
+          <label>Other Violations / Required Corrections</label>
+          <textarea
+            id="other_text"
+            data-fi-parent="v_other"
+            rows="3"
+            maxlength="330"
+            placeholder="Provide current fire sprinkler certification / remove pallets blocking east exit corridor..."
+          ></textarea>
+        </div>
+
+        <!-- Inspector -->
+        <p class="guma-form-section">Inspector</p>
+        <div class="two-col">
+          <div class="form-group">
+            <label>Signature</label>
+            <input type="text" id="inspector_signature" placeholder="D. Moreno" />
+          </div>
+          <div class="form-group">
+            <label>Print Name</label>
+            <input type="text" id="inspector_name" placeholder="Daniel K. Moreno 41C" />
+          </div>
+        </div>
+        <div class="form-group mb-1">
+          <label>For Information Call</label>
+          <input type="text" id="info_phone" placeholder="(213) 555-0126" />
+        </div>
+      </div>
+
+      <!-- RIGHT: PREVIEW PANEL -->
+      <!-- min-w-0: a flex item defaults to min-width:auto, which would let the
+           zoomed canvas stretch this panel and the whole page instead of
+           scrolling inside .guma-ce-wrap. -->
+      <div class="guma-panel flex min-w-0 flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full items-center justify-between gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
+          <button
+            id="gumaHistoryBtn"
+            type="button"
+            aria-label="Open saved reports"
+            onclick="document.querySelector('guma-history-drawer')?.open()"
+            class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3v5h5" />
+              <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+              <path d="M12 7v5l4 2" />
+            </svg>
+            Saved
+            <span
+              id="gumaHistoryCount"
+              class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+            ></span>
+          </button>
+        </div>
+
+        <!-- WYSIWYG toolbar: zoom seg + hint are injected by canvas-edit.js -->
+        <div id="ceToolbar" class="guma-ce-toolbar hidden w-full xl:flex"></div>
+
+        <div class="guma-canvas-wrap guma-scroll guma-ce-wrap">
+          <div id="ceFrame" class="guma-ce-frame">
+            <canvas id="docCanvas" class="guma-ce-canvas bg-white"></canvas>
+          </div>
+        </div>
+        <!-- Single export entry point. Width matches one of the two buttons it
+             replaced ((1224 - gap) / 2), centered. -->
+        <div class="flex w-full max-w-[1224px] justify-center">
+          <button
+            type="button"
+            class="guma-btn-primary w-full max-w-[606px]"
+            onclick="document.querySelector('guma-preview-modal')?.open()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Preview &amp; Download
+          </button>
+        </div>
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-l-muted/60 dark:text-guma-muted/60 mt-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          Generated <span id="downloadCount">0</span> times
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
+
+    <script src="js/history.js"></script>
+    <script src="js/history-wiring.js"></script>
+    <script src="js/factions.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    <script src="js/guma-fit.js"></script>
+    <script src="js/canvas-edit.js"></script>
+    <script src="js/fire-code-inspection-report.js"></script>
+    <script src="js/counters.js"></script>
+    <script src="js/search-index.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GumaCounters?.initDownloadCounter("fire_inspection", "downloadCount", "downloadBtn");
+      });
+    </script>
+  </body>
+</html>

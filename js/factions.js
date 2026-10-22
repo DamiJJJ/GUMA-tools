@@ -282,6 +282,15 @@ const FACTIONS = {
       websiteMain: "www.LSCoFDonline.org",
       websiteJoin: "www.joinLSCoFD.org",
     },
+    // Fire Code Inspection Report wording (js/fire-code-inspection-report.js)
+    inspection: {
+      header: ["COUNTY OF LOS SANTOS", "FIRE DEPARTMENT"],
+      address: "1320 N. EL RANCHO BOULEVARD, LOS SANTOS, SAN ANDREAS 90063-3294",
+      fireCode: "LOS SANTOS COUNTY FIRE CODE",
+      gov: "County",
+      hotline: "(800) 555-0186",
+      fraudWeb: "www.lscountyfraud.org",
+    },
     ranks: [
       "Firefighter Trainee",
       "Firefighter EMT",
@@ -355,6 +364,15 @@ const FACTIONS = {
       recruitPhone: "(866) 444-LSFD",
       websiteMain: "www.LSFDonline.org",
       websiteJoin: "www.joinLSFD.org",
+    },
+    // Fire Code Inspection Report wording (js/fire-code-inspection-report.js)
+    inspection: {
+      header: ["CITY OF LOS SANTOS", "FIRE DEPARTMENT"],
+      address: "200 N. ALTA STREET, LOS SANTOS, SAN ANDREAS 90012-4801",
+      fireCode: "LOS SANTOS FIRE CODE",
+      gov: "City",
+      hotline: "(800) 555-0173",
+      fraudWeb: "www.lscityfraud.org",
     },
     ranks: [
       "Firefighter I / EMT",
