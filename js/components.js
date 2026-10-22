@@ -81,7 +81,7 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaCardsMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="officer_generator.html" data-generator-key="officer" data-hot-flag="icon"
@@ -120,10 +120,10 @@ class GumaHeader extends HTMLElement {
                   <polyline points="6 9 12 15 18 9"/>
                 </svg>
               </button>
-              <!-- 280px: "Fire Code Inspection Report" plus two flag icons (Hot + New)
-                   in the absolutely positioned guma-nav-flags slot. -->
+              <!-- 280px: "Fire Code Inspection Report" plus two flag icons (Hot + New);
+                   links don't wrap, so a longer label still widens the menu. -->
               <div id="gumaReportsMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[280px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[280px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <p class="${dropGroupLabel}">Police</p>
@@ -186,7 +186,7 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaIngameMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="wanted_poster.html" data-generator-key="wanted" data-hot-flag="icon"
@@ -216,7 +216,7 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaImageMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="bodycam_overlay.html" data-generator-key="bodycam" data-hot-flag="icon"
@@ -1033,6 +1033,56 @@ class GumaHistoryDrawer extends HTMLElement {
 }
 
 customElements.define("guma-history-drawer", GumaHistoryDrawer);
+
+// ── Draft restore banner ───────────────────────────────────────
+// Mounted by GumaDraft when a page opens with a stored draft. Set .savedAt
+// (ms), .onRestore and .onDiscard before appending. It stays until one of
+// them is picked; GumaDraft removes it.
+class GumaDraftBanner extends HTMLElement {
+  connectedCallback() {
+    this._build();
+  }
+
+  _when() {
+    const d = new Date(this.savedAt || Date.now());
+    const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    if (d.toDateString() === new Date().toDateString()) return "today, " + time;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + time;
+  }
+
+  _build() {
+    this.innerHTML = `
+      <!-- Phone: text on top, two equal buttons below. sm+: one row. -->
+      <div role="status"
+           class="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 flex-col gap-3
+                  rounded-xl border p-4 shadow-2xl sm:flex-row sm:items-center sm:py-3
+                  bg-guma-l-panel border-guma-l-border text-guma-l-text
+                  dark:bg-guma-panel dark:border-guma-border dark:text-guma-text">
+        <div class="flex min-w-0 flex-1 items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+               stroke-linejoin="round" class="shrink-0 text-guma-l-gold dark:text-guma-gold" aria-hidden="true">
+            <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
+          </svg>
+          <div class="min-w-0 text-xs leading-5">
+            <p class="font-bold">Unsaved draft found</p>
+            <p class="text-guma-l-muted dark:text-guma-muted">Last edited ${this._when()}</p>
+          </div>
+        </div>
+        <div class="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:items-center">
+          <button data-db-discard type="button" class="guma-btn-outline !py-2 !px-3 !text-xs sm:!w-auto sm:!py-1.5">Discard</button>
+          <button data-db-restore type="button" class="guma-btn-primary !min-h-0 !py-2 !px-3 !text-xs sm:!py-1.5">Restore</button>
+        </div>
+      </div>`;
+    this.querySelector("[data-db-discard]").addEventListener("click", () => {
+      if (typeof this.onDiscard === "function") this.onDiscard();
+    });
+    this.querySelector("[data-db-restore]").addEventListener("click", () => {
+      if (typeof this.onRestore === "function") this.onRestore();
+    });
+  }
+}
+customElements.define("guma-draft-banner", GumaDraftBanner);
 
 // ── PREVIEW MODAL (WYSIWYG report pages) ─────────────────────────
 // The single export surface of a WYSIWYG page: shows the current document
