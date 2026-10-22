@@ -3,7 +3,7 @@ const GUMA_VERSION = "1.10";
 // Generator keys (data-generator-key) released in the current GUMA_VERSION.
 // Their index tiles get a "New" pill and their nav links a star, and both
 // move to the front of their group - refresh this list with every release.
-const GUMA_NEW_GENERATORS = ["pursuit", "wanted"];
+const GUMA_NEW_GENERATORS = ["pursuit", "wanted", "fire_inspection"];
 
 // HEADER
 class GumaHeader extends HTMLElement {
@@ -16,6 +16,7 @@ class GumaHeader extends HTMLElement {
       "traffic_collision_report.html",
       "arrest_report.html",
       "prehospital_care_report.html",
+      "fire_code_inspection_report.html",
       "investigative_report.html",
       "probationary_evaluation.html",
       "vehicle_pursuit_report.html",
@@ -119,8 +120,10 @@ class GumaHeader extends HTMLElement {
                   <polyline points="6 9 12 15 18 9"/>
                 </svg>
               </button>
+              <!-- 280px: "Fire Code Inspection Report" plus two flag icons (Hot + New)
+                   in the absolutely positioned guma-nav-flags slot. -->
               <div id="gumaReportsMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[240px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 min-w-[280px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <p class="${dropGroupLabel}">Police</p>
@@ -161,13 +164,11 @@ class GumaHeader extends HTMLElement {
                   <img src="assets/hospital.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Pre-Hospital Care Report
                 </a>
-                <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
-                             border-guma-l-border text-guma-l-muted/50
-                             dark:border-guma-border dark:text-guma-muted/40">
-                  <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-30" alt="" />
-                  <span class="flex-1">Fire Code Inspection Report</span>
-                  <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
-                </span>
+                <a href="fire_code_inspection_report.html" data-generator-key="fire_inspection" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "fire_code_inspection_report.html" ? dropActive : dropInactive}">
+                  <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Fire Code Inspection Report
+                </a>
               </div>
             </div>
 
@@ -418,11 +419,12 @@ class GumaHeader extends HTMLElement {
               <img src="assets/hospital.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Pre-Hospital Care Report
             </a>
-            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
-              <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-40" alt="" />
-              <span class="flex-1">Fire Code Inspection Report</span>
-              <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
-            </span>
+            <a href="fire_code_inspection_report.html" data-generator-key="fire_inspection" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "fire_code_inspection_report.html" ? mobActive : mobInactive}">
+              <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Fire Code Inspection Report
+            </a>
 
             <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
               In-Game Generators

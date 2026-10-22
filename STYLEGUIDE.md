@@ -29,6 +29,7 @@ Generated from the code. Regenerate with `/styleguide`.
 ├── traffic_collision_report.html
 ├── arrest_report.html
 ├── prehospital_care_report.html
+├── fire_code_inspection_report.html
 ├── investigative_report.html
 ├── probationary_evaluation.html
 ├── vehicle_pursuit_report.html
@@ -228,7 +229,8 @@ Reuse before adding:
 **Report form helpers (unprefixed - deliberate exception):** report pages share a
 set of non-`guma-` layout classes, also under `@layer components`, reused across
 `firearm_discharge`, `arrest_report`, `traffic_collision_report`,
-`prehospital_care_report` and `investigative_report`:
+`prehospital_care_report`, `investigative_report` and
+`fire_code_inspection_report`:
 
 - `.form-group` - label-over-input wrapper (`.form-group label` and
   `.form-group input/select` style the children, so a bare
@@ -340,6 +342,17 @@ shows one sheet at a time with a `‹ Page n / N ›` pager (arrow keys work) an
 passes the visible index into `download(pageIndex)` / `copy(pageIndex)`, so each
 sheet exports as its own readable PNG. History always stores the full stacked
 document.
+
+**Agency seal on a report (`fire_code_inspection_report`):** most reports have
+no faction switcher - the agency is an editable header line. A report whose paper
+original carries a department seal uses `buildFactionSwitcher()` instead
+(LSCoFD / LSFD / Custom, filtered by `FACTION_TYPE.FIRE`). The switcher sits
+above `<main>`, outside the form panel, because `.guma-ce-host` hides the form
+while the document is edited in place. Document wording that follows the agency
+(header lines, HQ address, local fire code name, hotline) lives in a per-report
+sub-object on the faction (`FACTIONS[key].inspection`, like `businessCard`).
+Custom draws no seal and its typed name becomes the editable header line, the
+same as the agency-line reports.
 
 **Optional pages (`vehicle_pursuit_report`):** the same stacked canvas, but the
 page set is chosen by the user. Fixed pages are toggled by `pg_<key>` checkboxes
@@ -500,7 +513,7 @@ both go quiet:
 
 Current keys: `officer`, `firefighter`, `business_card`, `personnel`, `firearm`,
 `traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `pursuit`, `bodycam`,
-`chardesc`, `wanted`.
+`chardesc`, `wanted`, `fire_inspection`.
 
 **Verify:** open the page. "Generated 0 times" should appear under the export
 button (it stays hidden while the row is missing). Copy to clipboard once,
