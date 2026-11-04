@@ -121,8 +121,6 @@
   </tr>
 </table>
 
-<sub>Coming soon: Coroner Autopsy Report.</sub>
-
 ## Highlights
 
 - ✏️ **Edit on the document** - click a field on the rendered report and type
