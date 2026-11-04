@@ -1,256 +1,144 @@
-# GUMA-Tools
+<p align="center">
+  <a href="https://damijjj.github.io/GUMA-tools/">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/logo_dark.png" />
+      <img src="assets/logo.png" alt="GUMA Tools" width="340" />
+    </picture>
+  </a>
+</p>
 
-A web app for generating fictional Law Enforcement Agency documents, officer/firefighter cards, business cards and in-game character descriptions - inspired by real LAPD/LSSD/CHP/LAFD formats used in FiveM roleplay servers.
-Built with HTML, Tailwind CSS (CDN) and Vanilla JavaScript. No build tools required.
+<p align="center">
+  <b>Document & card generators for FiveM roleplay.</b><br />
+  Fill in a form, get a realistic PNG - for LSPD, LSSD, BCSO, SAHP, LSFD and LSCoFD.
+</p>
 
-## Live Demo
+<p align="center">
+  <a href="https://damijjj.github.io/GUMA-tools/"><img src="https://img.shields.io/badge/%E2%96%B6%20Open%20the%20app-04045e?style=for-the-badge" alt="Open the app" /></a>
+</p>
 
-[🔗 View on GitHub Pages](https://damijjj.github.io/GUMA-tools/)
+<p align="center">
+  <img src="https://img.shields.io/badge/generators-16-e8b84a?style=flat-square" alt="16 generators" />
+  <img src="https://img.shields.io/badge/build-none-0a0a72?style=flat-square" alt="No build step" />
+  <img src="https://img.shields.io/badge/vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=black" alt="Vanilla JS" />
+  <img src="https://img.shields.io/badge/Tailwind-CSS-38bdf8?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/PWA-installable-5a0fc8?style=flat-square&logo=pwa&logoColor=white" alt="PWA" />
+</p>
 
-## Available Generators
+<p align="center">
+  <img src="assets/showcase.gif" alt="Sample outputs from GUMA Tools generators" width="800" />
+</p>
 
-| Generator                       | File                            | Description                                                                                       |
-| ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Officer Card                    | `officer_generator.html`        | LSPD / LSSD / BCSO / SAHP / Custom officer profile card with faction switcher                     |
-| Firefighter Card                | `firefighter_generator.html`    | LSCoFD / LSFD / Custom firefighter profile card with faction switcher                             |
-| Business Card                   | `business_card_generator.html`  | Universal business card for LEA, Fire, civilians and business owners                              |
-| Firearm Discharge Investigation | `firearm_discharge.html`        | LAPD-style Officer-Involved Firearm Discharge Investigation report                                |
-| Traffic Collision Report        | `traffic_collision_report.html` | CHP 555-style Traffic Collision Report with dynamic party rows                                    |
-| Personnel File                  | `personnel_file_generator.html` | Confidential LEA personnel file - attendance, training, commendations, discipline & medical leave |
-| Arrest Report                   | `arrest_report.html`            | LAPD-style arrest & booking report with dynamic arresting-officer rows                            |
-| Pre-Hospital Care Report        | `prehospital_care_report.html`  | EMS-style Pre-Hospital Care Report (PCR) with full incident, response, run-times & disposition    |
-| Investigative Report            | `investigative_report.html`     | Two-page Investigative Report with combined crime, evidence & arrest report sections              |
-| Probationary Evaluation         | `probationary_evaluation.html`  | LAPD-style Probationary Police Officer Weekly Evaluation Report, rated by the FTO                 |
-| Vehicle Pursuit Report          | `vehicle_pursuit_report.html`   | Vehicle Pursuit Report with unit classification reviews & findings receipts                       |
-| Bodycam Overlay                 | `bodycam_overlay.html`          | Body-worn camera HUD overlay burned onto your own screenshot - agency & camera branding, timestamp, image effects |
-| Character Description           | `character_description.html`    | In-game `/description` writer with FiveM colour & style codes, previewed on a rotatable 3D character |
+## Generators
 
-### Coming Soon
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/officer_generator.html"><img src="assets/readme/officer_generator.jpg" alt="Officer Card" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/officer_generator.html">Officer Card</a></b><br />
+      <sub>LSPD / LSSD / BCSO / SAHP</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/firefighter_generator.html"><img src="assets/readme/firefighter_generator.jpg" alt="Firefighter Card" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/firefighter_generator.html">Firefighter Card</a></b><br />
+      <sub>LSFD / LSCoFD</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/business_card_generator.html"><img src="assets/readme/business_card_generator.jpg" alt="Business Card" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/business_card_generator.html">Business Card</a></b><br />
+      <sub>LEA, fire or civilian</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/personnel_file_generator.html"><img src="assets/readme/personnel_file_generator.jpg" alt="Personnel File" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/personnel_file_generator.html">Personnel File</a></b><br />
+      <sub>Confidential LEA record</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/arrest_report.html"><img src="assets/readme/arrest_report.jpg" alt="Arrest Report" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/arrest_report.html">Arrest Report</a></b><br />
+      <sub>Arrest & booking</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/firearm_discharge.html"><img src="assets/readme/firearm_discharge.jpg" alt="Firearm Discharge" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/firearm_discharge.html">Firearm Discharge</a></b><br />
+      <sub>Officer-involved shooting</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/traffic_collision_report.html"><img src="assets/readme/traffic_collision_report.jpg" alt="Traffic Collision" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/traffic_collision_report.html">Traffic Collision</a></b><br />
+      <sub>CHP 555-style</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/investigative_report.html"><img src="assets/readme/investigative_report.jpg" alt="Investigative Report" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/investigative_report.html">Investigative Report</a></b><br />
+      <sub>Crime, evidence & arrest</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/use_of_force_report.html"><img src="assets/readme/use_of_force_report.jpg" alt="Use of Force" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/use_of_force_report.html">Use of Force</a></b><br />
+      <sub>With a body diagram</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/vehicle_pursuit_report.html"><img src="assets/readme/vehicle_pursuit_report.jpg" alt="Vehicle Pursuit" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/vehicle_pursuit_report.html">Vehicle Pursuit</a></b><br />
+      <sub>Full pursuit packet</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/probationary_evaluation.html"><img src="assets/readme/probationary_evaluation.jpg" alt="Probationary Evaluation" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/probationary_evaluation.html">Probationary Evaluation</a></b><br />
+      <sub>Weekly FTO rating</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/prehospital_care_report.html"><img src="assets/readme/prehospital_care_report.jpg" alt="Pre-Hospital Care" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/prehospital_care_report.html">Pre-Hospital Care</a></b><br />
+      <sub>EMS run sheet</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/fire_code_inspection_report.html"><img src="assets/readme/fire_code_inspection_report.jpg" alt="Fire Code Inspection" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/fire_code_inspection_report.html">Fire Code Inspection</a></b><br />
+      <sub>Violation checklist</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/wanted_poster.html"><img src="assets/readme/wanted_poster.jpg" alt="Wanted Poster" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/wanted_poster.html">Wanted Poster</a></b><br />
+      <sub>Wanted, BOLO, missing</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/bodycam_overlay.html"><img src="assets/readme/bodycam_overlay.jpg" alt="Bodycam Overlay" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/bodycam_overlay.html">Bodycam Overlay</a></b><br />
+      <sub>HUD on your screenshot</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="https://damijjj.github.io/GUMA-tools/character_description.html"><img src="assets/readme/character_description.jpg" alt="Character Description" /></a><br />
+      <b><a href="https://damijjj.github.io/GUMA-tools/character_description.html">Character Description</a></b><br />
+      <sub>In-game /description</sub>
+    </td>
+  </tr>
+</table>
 
-| Generator                   | Description                                |
-| --------------------------- | ------------------------------------------ |
-| Fire Code Inspection Report | Fire code compliance inspection form       |
-| Coroner Autopsy Report      | Coroner / medical examiner autopsy report  |
+<sub>Coming soon: Coroner Autopsy Report.</sub>
 
-## Features
+## Highlights
 
-### Shared / App-Wide
+- ✏️ **Edit on the document** - click a field on the rendered report and type
+- 📤 **Export** - download as PNG or copy to clipboard
+- 💾 **Saved documents & drafts** - kept in your browser, an unfinished form survives a reload
+- 🎲 **Randomize** - one click fills in a random character
+- 🌗 **Dark / light mode**, ⌨️ **Ctrl+K search**, 📱 installable as a **PWA**
 
-- **Dark / Light mode** - pill-shaped slider switch in the header, persisted across pages via localStorage, dark as default; per-page accent gradients in dark mode (navy / navy-soft / red); first-load anti-FOUC init via `js/theme-init.js`
-- **Centralised theme styles** - all `@layer base/components/utilities` rules live in a single `js/guma-styles.js` injected at runtime; HTML pages are style-free
-- **Responsive header** - app logo (auto-swapped between light/dark variants), desktop nav with Generator & Report dropdowns, active page detection, "About" item, mobile hamburger menu with full panel
-- **Live on Kick badge** - pulsing badge appears in the header when the streamer is live (preview via `?preview_live=1`)
-- **Latest Video tile** - the newest video from the Kick/YouTube channel shown on the homepage; the tile stays hidden when there is nothing to show
-- **WYSIWYG in-canvas editing** - click a field straight on the rendered document and type into it; available on the Firearm Discharge, Traffic Collision, Arrest, Pre-Hospital Care, Investigative, Probationary Evaluation and Vehicle Pursuit reports, with a shared toolbar and zoom control
-- **Shrink-to-fit text** - overlong values scale down instead of being cut with an ellipsis; inputs are capped to what the field can physically hold
-- **Preview & Download modal** - exports open in a zoomable preview (segmented zoom control, ctrl+wheel, fit-on-resize) with download & clipboard copy from one place
-- **Command palette** - search every tool from a header button, `Ctrl/Cmd+K` or `/` (outside a text field); the tool catalogue lives in `js/search-index.js`
-- **Page animations** - smooth entrance animations on all pages via `js/animations.js`
-- **Per-page favicons** - each generator and report has its own browser-tab icon; the home/about favicon follows the active theme (light/dark logo variant)
-- **Saved Cards / Reports** - every generator stores exported documents in localStorage; slide-in drawer with thumbnails, pin, load & remove
-- **Randomize Character** - one-click random character seed on the Officer, Firefighter, Business Card and Personnel File generators: name & gender from randomuser.me (offline fallback pool included), weighted rank & division from the selected faction, age, height, weight, ethnicity, badge/serial numbers and a random Los Santos / Blaine County address; custom-faction mode fills personal fields only
-- **Hot / Popular badges** - the two most-generated tools get flame / trending-up badges on the home tiles (sorted first within their section) and small icons in the nav menus, based on global download counters
-- **Visit counter** - global page-visit count displayed in the footer (Supabase-backed)
-- **Kick social link** in the footer (replaced Twitch)
+## Run locally
 
-### Officer Card Generator
-
-- Faction switcher - LSPD / LSSD / BCSO / SAHP + Custom
-- Fill in officer details: name, rank, division, serial & badge number
-- Custom faction: custom rank, division or email domain
-- Upload a photo - **in-canvas cropping**: drag & zoom the photo directly in its frame on the card
-- Ethnicity, gender, age, year hired, height & weight fields
-- **Realistic pay randomization** - based on rank, years of service and division
-- **Employment History** - optional section attached below the card: add/remove previous positions with employer, rank, dates and reason for leaving; rendered directly on Canvas; empty fields show placeholders, ordered chronologically
-- Live preview rendered on HTML Canvas
-- Download the card as a PNG file
-- **Copy to clipboard** - export the card as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Firefighter Card Generator
-
-- Faction switcher - LSCoFD / LSFD + Custom
-- Fill in firefighter details: name, rank, division, serial & badge number
-- Custom faction: custom rank, division or email domain
-- Upload a photo - **in-canvas cropping**, same as Officer Card
-- Ethnicity, gender, age, year hired, height & weight fields
-- Realistic pay randomization based on rank
-- **Employment History** - optional section attached below the card, same as Officer Card
-- Live preview rendered on HTML Canvas
-- Download the card as a PNG file
-- **Copy to clipboard** - export the card as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Business Card Generator
-
-- **Multi-faction switcher** - LSPD / LSSD / BCSO / SAHP / LSCoFD / LSFD + Custom (civilian / business)
-- **Custom mode** - upload your own logo / image, custom header title, custom footer lines
-- **Logo size slider** (30%-100%) for fine-tuning the badge / logo scale
-- **Watermark toggle** - subtle paper-texture watermark on the card surface
-- Card details: rank, full name, badge number (optional in Custom mode), area, role, telephone, cell, TDD line, email (with auto-appended domain per faction), two-line address
-- Live preview rendered on HTML Canvas with paper texture
-- Download the card as a PNG file
-- **Copy to clipboard** - export the card as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Firearm Discharge Investigation
-
-- Agency name edited directly in the document header (no faction switcher)
-- Incident type checkboxes (Tactical, Non-Tactical, Animal Shooting, Warning Shot)
-- Section I - General Information (FID No., DR No., date, time, location, RD)
-- Day of Week dropdown, datetime-local picker for report date/time
-- Dynamic rows - add/remove Involved Officers and Witnessing Officers
-- Dynamic civilian witness rows with full contact details
-- Y/N fields as dropdowns (In Uniform, Vest, On Duty, Injured, IOD, Light Duty)
-- Live preview updated instantly on canvas - proportioned to A4 format with column-aware font scaling
-- Download the report as a PNG file
-- **Copy to clipboard** - export the report as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Traffic Collision Report
-
-- Based on CHP 555 format
-- Special Conditions: Hit & Run (Misdemeanor / Felony), number injured/killed
-- Location section: street, intersection, date/time, day of week, Tow Away, State Hwy Related
-- Dynamic party rows - add/remove parties (driver, pedestrian, parked vehicle, etc.)
-- Each party: DL#, vehicle info (year/make/model/color/plate), name, address, insurance, physical description, phone numbers, vehicle damage
-- **Auto age** - the age field fills in automatically from the date of birth
-- Report footer: Preparer, Reviewer, Dispatch Notified, Date Reviewed
-- Live preview rendered on HTML Canvas
-- Download the report as a PNG file
-- **Copy to clipboard** - export the report as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Personnel File Generator
-
-- Agency switcher with custom agency name input
-- Subject details: name, residence address
-- **Mark as Confidential** toggle
-- Status, clearance level and date completed fields
-- **Attendance** - days scheduled / present, sick days used, late arrivals
-- **Emergency Contacts** - dynamic add/remove rows
-- **Training Records** - dynamic add/remove rows
-- **Commendations** - dynamic add/remove rows
-- **Disciplinary Record** - dynamic add/remove rows
-- **Medical Leave** & **Workers' Compensation** sections
-- Free-text personal notes field
-- Live preview rendered on HTML Canvas
-- Download the document as a PNG file
-- **Copy to clipboard** - export the document as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Arrest Report
-
-- Booking info: location booked, booking / DR / incident numbers
-- Arrestee details: name, sex, date of birth, residential address & phone
-- Occurrence section: location, RD, arrest and report date/time (24h)
-- Booking charge with Misdemeanor / Felony checkboxes
-- Dynamic rows - add/remove Arresting Officers
-- Live preview rendered on HTML Canvas
-- Download the report as a PNG file
-- **Copy to clipboard** - export the report as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Pre-Hospital Care Report
-
-- Report / response numbers, incident date, EMS agency, call sign, vehicle & station
-- Dispatch details: complaint, Emergency Medical Dispatch performed, primary role of unit
-- Level of care, type of service requested and response mode (to & from scene)
-- Full delay checklists (dispatch & response) and EMS transport mode
-- Run times block in military time (18-27) plus unit back-in-service
-- Incident / patient disposition, intercept agency, patient count & mass-casualty flags
-- Scene details: incident location type, GPS latitude/longitude, odometer readings, incident FAC ID
-- Live preview rendered on HTML Canvas
-- Download the report as a PNG file
-- **Copy to clipboard** - export the report as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Investigative Report
-
-- **Two-page document** rendered as one export: Investigative Report face sheet (page 1) + Arrest Report (page 2)
-- Report header: type of crime, UCR code / CC, investigating division, incident & DR numbers, editable agency name
-- Case Screening Factors checklist with premises type & ATM flag
-- Victim block: personal details, address, contact, ID and occupation
-- Occurrence & entry: point of entry/exit, method, instrument, occurrence/reported date-times, property values
-- **Free-text MO and Narrative boxes** - multiline, editable directly on the document
-- Dynamic rows - add/remove Reporting Employees, Suspects, Involved Persons and Combined Evidence items
-- Suspect's vehicle and per-suspect descriptors (descent, hair, eyes, clothing, oddities, weapon)
-- Page 2: booking & arrestee details, charges, Admonition of Rights, Combined Crime Report and Juvenile Disposition
-- Live preview rendered on HTML Canvas
-- Download the report as a PNG file
-- **Copy to clipboard** - export the report as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Probationary Evaluation
-
-- LAPD-style **Probationary Police Officer Weekly Evaluation Report** with an editable agency name in the header
-- Officer & rating period: probationary officer, serial no., Field Training Officer, division, watch, assignment, report no. and FROM / TO dates
-- **30 rated items** in five sections (Appearance, Attitude, Knowledge, Performance, Relationships) on the 1 / 2 / 3 / 4 / N/O / NRT scale
-- Rating instructions and scale legend printed on the document
-- Weekly Performance (Satisfactory / Unsatisfactory), Minutes of Remediation and "Response Attached" flag
-- Signature blocks for the FTO, Field Sergeant, Watch Commander, P-1 Coordinator, Captain and the probationary officer
-- **WYSIWYG editing** - click any rating box, checkbox or field directly on the document
-- Live preview rendered on HTML Canvas
-- Download the report as a PNG file
-- **Copy to clipboard** - export the report as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Vehicle Pursuit Report
-
-- One module for the whole **pursuit packet** - every page is optional and toggled from the **Pages in this report** strip above the preview
-- **Vehicle Pursuit Report (page 1)** - DR / incident no., duration & speed, use of force, average speed (auto-calculated from miles and minutes), date/time & day of week (auto-filled), locations, traffic collisions, VIT used, air unit & tracking mode, Primary / Second / Third / Supervisor unit crews and the suspect's vehicle
-- **Injuries (page 2)** - injury counts for collision and post-pursuit injuries, reason for initiation & booking charge, arrestee information, pursuit disposition A-N, related reports, supervisor comments, PIT / TDD statistics, pursuit debrief and three supervisor signature blocks
-- **Unit classification reviews** - a "Unit in Pursuit" page for the Primary, Second and Third unit, plus any number of **Additional Units**; Area/Division, Bureau/Group and final DTC classification for the driver and the passenger. Crews are entered once on page 1 and reused
-- **Pursuit Findings Internal Process Receipts** - add one per officer; pick a crew member to pre-fill name, serial no. and division, with the DR no. and date of occurrence carried over
-- Automatic "Page X of N" numbering and the DR no. repeated on every page
-- Form organised in **tabs**, one per page; **WYSIWYG editing** straight on the document
-- Multi-page preview - export each sheet on its own as PNG or to the clipboard
-- Download counter displayed below the export buttons
-
-### Bodycam Overlay
-
-- Upload your own screenshot / frame - the HUD is burned onto it, no document canvas
-- **Agency picker** - LSPD / LSSD / BCSO / SAHP / LSCoFD / LSFD, Custom logo upload or None
-- **Camera branding** - camera brand picker or custom camera logo, device label and officer / device number
-- Timestamp block: date, time and optional time zone
-- Recording HUD: REC indicator, elapsed timer and battery percentage
-- **Elements toggles** - show or hide individual HUD parts
-- **Image effects** - vignette, film grain, scanlines and chromatic aberration, each with its own strength
-- **Direct manipulation** - drag HUD elements around on the frame to reposition them
-- Download the frame as a PNG file
-- **Copy to clipboard** - export the frame as PNG directly to the clipboard
-- Download counter displayed below the export buttons
-
-### Character Description
-
-- Writes a FiveM `/description` with in-game colour and style codes (`~r~`, `~b~`, etc.)
-- **Formatting toolbar** - labelled colour grid and style row above the textarea; clicking a code with nothing selected inserts both the opening and closing code around the caret
-- Enter inserts a new line, converted to `~n~` on copy
-- **Load example** and **Clear** buttons
-- Optional command prefix - every server names the command differently; leave it empty to copy the bare text
-- **3D character preview** - the description rendered as an in-game nameplate over a rotatable mannequin (drag to turn, Reset view); flat image fallback when WebGL is unavailable
-- **Background picker** - thumbnail picker for the preview scene, stored with the saved entry alongside the pose
-- Game-ready output box shown next to the preview
-- **Copy to clipboard** - copies the game-ready command; counter reads "Copied N times"
-
-## Usage
-
-No build tools required. Open `index.html` in a browser or deploy to any static hosting (GitHub Pages, Netlify, etc.).
-
-## Tech Stack
-
-- **Tailwind CSS** (CDN, `darkMode: 'class'`) - utility-first styling with custom `guma-*` design tokens for both light and dark palettes; config in `js/tailwind-config.js`
-- **Shared theme styles** - `js/guma-styles.js` injects all `@layer base/components/utilities` rules at runtime; `js/theme-init.js` handles anti-FOUC theme initialization
-- **HTML5 Canvas** - document & card rendering, PNG export and clipboard copy
-- **Vanilla JS** - zero runtime dependencies
-- **WebGL** - minimal raw-WebGL renderer for the 3D character preview via `js/mannequin-3d.js`
-- **Web Components** - shared header (with theme toggle + logo swap) and footer via `js/components.js`
-- **Supabase** (REST API) - visit and download counters via `js/counters.js`
+No build step - open `index.html` in a browser or serve the folder from any static host.
 
 ## Credits
 
-- 3D preview mannequin on the Character Description page: _"Male base"_ by Arthur Migranoff, [poly.pizza](https://poly.pizza/m/eWGDnQ0jzmH), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) - converted to the project's own `assets/mannequin.mesh` binary
+3D mannequin: _"Male base"_ by Arthur Migranoff, [poly.pizza](https://poly.pizza/m/eWGDnQ0jzmH), [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
 
 ---
 
-_Built for FiveM roleplay use. All agencies, names and badge numbers are fictional._
+<p align="center"><sub>Built for FiveM roleplay. All agencies, names and badge numbers are fictional.</sub></p>
