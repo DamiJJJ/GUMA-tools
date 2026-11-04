@@ -1,4 +1,9 @@
-const GUMA_VERSION = "1.9";
+const GUMA_VERSION = "1.10";
+
+// Generator keys (data-generator-key) released in the current GUMA_VERSION.
+// Their index tiles get a "New" pill and their nav links a star, and both
+// move to the front of their group - refresh this list with every release.
+const GUMA_NEW_GENERATORS = ["uof", "pursuit", "wanted", "fire_inspection"];
 
 // HEADER
 class GumaHeader extends HTMLElement {
@@ -11,11 +16,14 @@ class GumaHeader extends HTMLElement {
       "traffic_collision_report.html",
       "arrest_report.html",
       "prehospital_care_report.html",
+      "fire_code_inspection_report.html",
       "investigative_report.html",
       "probationary_evaluation.html",
+      "vehicle_pursuit_report.html",
+      "use_of_force_report.html",
     ].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
-    const isIngame = ["character_description.html"].includes(current);
+    const isIngame = ["character_description.html", "wanted_poster.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
@@ -74,7 +82,7 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaCardsMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="officer_generator.html" data-generator-key="officer" data-hot-flag="icon"
@@ -113,8 +121,10 @@ class GumaHeader extends HTMLElement {
                   <polyline points="6 9 12 15 18 9"/>
                 </svg>
               </button>
+              <!-- 280px: "Fire Code Inspection Report" plus two flag icons (Hot + New);
+                   links don't wrap, so a longer label still widens the menu. -->
               <div id="gumaReportsMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[240px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[280px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <p class="${dropGroupLabel}">Police</p>
@@ -143,6 +153,16 @@ class GumaHeader extends HTMLElement {
                   <img src="assets/evaluation.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Probationary Evaluation
                 </a>
+                <a href="vehicle_pursuit_report.html" data-generator-key="pursuit" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "vehicle_pursuit_report.html" ? dropActive : dropInactive}">
+                  <img src="assets/pursuit.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Vehicle Pursuit Report
+                </a>
+                <a href="use_of_force_report.html" data-generator-key="uof" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "use_of_force_report.html" ? dropActive : dropInactive}">
+                  <img src="assets/use_of_force.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Use of Force Report
+                </a>
 
                 <p class="${dropGroupLabel} border-t border-guma-l-border dark:border-guma-border">Fire / Medical</p>
                 <a href="prehospital_care_report.html" data-generator-key="pcr" data-hot-flag="icon"
@@ -150,13 +170,11 @@ class GumaHeader extends HTMLElement {
                   <img src="assets/hospital.png" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Pre-Hospital Care Report
                 </a>
-                <span class="flex items-center gap-2 px-4 py-3 text-sm border-t cursor-not-allowed select-none
-                             border-guma-l-border text-guma-l-muted/50
-                             dark:border-guma-border dark:text-guma-muted/40">
-                  <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-30" alt="" />
-                  <span class="flex-1">Fire Code Inspection Report</span>
-                  <span class="ml-2 text-[10px] font-bold tracking-widest uppercase shrink-0 text-slate-400 dark:text-slate-600">(Soon)</span>
-                </span>
+                <a href="fire_code_inspection_report.html" data-generator-key="fire_inspection" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "fire_code_inspection_report.html" ? dropActive : dropInactive}">
+                  <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Fire Code Inspection Report
+                </a>
               </div>
             </div>
 
@@ -174,11 +192,16 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaIngameMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
+                <a href="wanted_poster.html" data-generator-key="wanted" data-hot-flag="icon"
+                   class="${dropLinkBase} ${current === "wanted_poster.html" ? dropActive : dropInactive}">
+                  <img src="assets/wanted.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Wanted Poster
+                </a>
                 <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
-                   class="${dropLinkBase} ${current === "character_description.html" ? dropActive : dropInactive}">
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "character_description.html" ? dropActive : dropInactive}">
                   <img src="assets/character.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Character Description
                 </a>
@@ -199,7 +222,7 @@ class GumaHeader extends HTMLElement {
                 </svg>
               </button>
               <div id="gumaImageMenu"
-                   class="hidden absolute top-full left-0 mt-2 min-w-[230px] rounded-xl overflow-hidden z-50
+                   class="hidden absolute top-full left-0 mt-2 w-max min-w-[230px] rounded-xl overflow-hidden z-50
                           border border-guma-l-border bg-guma-l-panel shadow-panel-light
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="bodycam_overlay.html" data-generator-key="bodycam" data-hot-flag="icon"
@@ -388,6 +411,18 @@ class GumaHeader extends HTMLElement {
               <img src="assets/evaluation.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
               Probationary Evaluation
             </a>
+            <a href="vehicle_pursuit_report.html" data-generator-key="pursuit" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "vehicle_pursuit_report.html" ? mobActive : mobInactive}">
+              <img src="assets/pursuit.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Vehicle Pursuit Report
+            </a>
+            <a href="use_of_force_report.html" data-generator-key="uof" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "use_of_force_report.html" ? mobActive : mobInactive}">
+              <img src="assets/use_of_force.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Use of Force Report
+            </a>
 
             <p class="${mobGroupLabel}">Fire / Medical</p>
             <a href="prehospital_care_report.html" data-generator-key="pcr" data-hot-flag="icon"
@@ -396,15 +431,22 @@ class GumaHeader extends HTMLElement {
               <img src="assets/hospital.png" class="h-5 w-5 object-contain opacity-70" alt="" />
               Pre-Hospital Care Report
             </a>
-            <span class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm cursor-not-allowed select-none text-guma-l-muted/50 dark:text-guma-muted/40">
-              <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-40" alt="" />
-              <span class="flex-1">Fire Code Inspection Report</span>
-              <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-600">(Soon)</span>
-            </span>
+            <a href="fire_code_inspection_report.html" data-generator-key="fire_inspection" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "fire_code_inspection_report.html" ? mobActive : mobInactive}">
+              <img src="assets/extinguisher.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Fire Code Inspection Report
+            </a>
 
             <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-muted/60 dark:text-guma-muted/50">
               In-Game Generators
             </p>
+            <a href="wanted_poster.html" data-generator-key="wanted" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "wanted_poster.html" ? mobActive : mobInactive}">
+              <img src="assets/wanted.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Wanted Poster
+            </a>
             <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "character_description.html" ? mobActive : mobInactive}">
@@ -607,14 +649,19 @@ class GumaHeader extends HTMLElement {
       }
     });
 
-    // ── Hot/Popular flags - decorate nav links + page elements ────
+    // ── Hot/Popular + New flags - decorate nav links + page elements ──
     // Deferred to DOMContentLoaded so page-level [data-generator-key]
     // targets (index tiles, page titles) are already in the DOM.
-    const decorateHotFlags = () => window.GumaCounters?.applyHotFlags?.();
+    // New goes first: the async Hot/Popular pass then moves trending items
+    // ahead of the new ones.
+    const decorateFlags = () => {
+      window.GumaCounters?.applyNewFlags?.(GUMA_NEW_GENERATORS);
+      window.GumaCounters?.applyHotFlags?.();
+    };
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", decorateHotFlags, { once: true });
+      document.addEventListener("DOMContentLoaded", decorateFlags, { once: true });
     } else {
-      decorateHotFlags();
+      decorateFlags();
     }
   }
 }
@@ -837,13 +884,16 @@ class GumaHistoryDrawer extends HTMLElement {
     this.render();
   }
 
-  // ── Noun for labels: "card" (default), "report" or "description" ─
+  // ── Noun for labels: "card" (default), "report", "description" or "poster" ─
   get _noun() {
     if (window.GUMA_GENERATOR_NOUN === "report") {
       return { one: "report", many: "reports", title: "Saved Reports" };
     }
     if (window.GUMA_GENERATOR_NOUN === "description") {
       return { one: "description", many: "descriptions", title: "Saved Descriptions" };
+    }
+    if (window.GUMA_GENERATOR_NOUN === "poster") {
+      return { one: "poster", many: "posters", title: "Saved Posters" };
     }
     return { one: "card", many: "cards", title: "Saved Cards" };
   }
@@ -995,6 +1045,56 @@ class GumaHistoryDrawer extends HTMLElement {
 }
 
 customElements.define("guma-history-drawer", GumaHistoryDrawer);
+
+// ── Draft restore banner ───────────────────────────────────────
+// Mounted by GumaDraft when a page opens with a stored draft. Set .savedAt
+// (ms), .onRestore and .onDiscard before appending. It stays until one of
+// them is picked; GumaDraft removes it.
+class GumaDraftBanner extends HTMLElement {
+  connectedCallback() {
+    this._build();
+  }
+
+  _when() {
+    const d = new Date(this.savedAt || Date.now());
+    const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    if (d.toDateString() === new Date().toDateString()) return "today, " + time;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + time;
+  }
+
+  _build() {
+    this.innerHTML = `
+      <!-- Phone: text on top, two equal buttons below. sm+: one row. -->
+      <div role="status"
+           class="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 flex-col gap-3
+                  rounded-xl border p-4 shadow-2xl sm:flex-row sm:items-center sm:py-3
+                  bg-guma-l-panel border-guma-l-border text-guma-l-text
+                  dark:bg-guma-panel dark:border-guma-border dark:text-guma-text">
+        <div class="flex min-w-0 flex-1 items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+               stroke-linejoin="round" class="shrink-0 text-guma-l-gold dark:text-guma-gold" aria-hidden="true">
+            <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
+          </svg>
+          <div class="min-w-0 text-xs leading-5">
+            <p class="font-bold">Unsaved draft found</p>
+            <p class="text-guma-l-muted dark:text-guma-muted">Last edited ${this._when()}</p>
+          </div>
+        </div>
+        <div class="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:items-center">
+          <button data-db-discard type="button" class="guma-btn-outline !py-2 !px-3 !text-xs sm:!w-auto sm:!py-1.5">Discard</button>
+          <button data-db-restore type="button" class="guma-btn-primary !min-h-0 !py-2 !px-3 !text-xs sm:!py-1.5">Restore</button>
+        </div>
+      </div>`;
+    this.querySelector("[data-db-discard]").addEventListener("click", () => {
+      if (typeof this.onDiscard === "function") this.onDiscard();
+    });
+    this.querySelector("[data-db-restore]").addEventListener("click", () => {
+      if (typeof this.onRestore === "function") this.onRestore();
+    });
+  }
+}
+customElements.define("guma-draft-banner", GumaDraftBanner);
 
 // ── PREVIEW MODAL (WYSIWYG report pages) ─────────────────────────
 // The single export surface of a WYSIWYG page: shows the current document
@@ -1570,3 +1670,14 @@ document.addEventListener("keydown", (e) => {
     gumaOpenSearch();
   }
 });
+
+// ── Service worker (PWA install + offline) ────────────────────
+// Every page loads this file, so the worker is registered app-wide.
+// Skipped on file:// where service workers are unavailable.
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch((err) => {
+      console.warn("[GUMA] service worker registration failed:", err);
+    });
+  });
+}

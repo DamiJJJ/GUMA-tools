@@ -155,27 +155,6 @@ function buildSignatureRows() {
     .join("");
 }
 
-/**
- * Radios cannot be unchecked by clicking them, but a rating has to be
- * clearable. Remember the state at pointerdown on the label, and if the click
- * lands on an already-selected radio, clear it.
- */
-function peMakeRadiosClearable(root) {
-  root.querySelectorAll('input[type="radio"]').forEach((input) => {
-    const label = input.closest("label");
-    (label || input).addEventListener("pointerdown", () => {
-      input.dataset.was = input.checked ? "1" : "";
-    });
-    input.addEventListener("click", () => {
-      if (input.dataset.was === "1") {
-        input.checked = false;
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      }
-      input.dataset.was = "";
-    });
-  });
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function peRawVal(id) {
   const el = document.getElementById(id);
@@ -748,7 +727,7 @@ async function copyDocToClipboard() {
 buildRatingRows();
 buildSignatureRows();
 peApplyCaps(document);
-peMakeRadiosClearable(document);
+GumaRadio.makeClearable(document);
 document.querySelectorAll("input,select,textarea").forEach((el) => {
   el.addEventListener("input", refreshPreview);
   el.addEventListener("change", refreshPreview);

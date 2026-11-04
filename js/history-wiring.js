@@ -45,6 +45,8 @@ window.GumaHistoryWiring = (function () {
       if (cfg.key) window.GUMA_GENERATOR_KEY = cfg.key;
       if (cfg.noun) window.GUMA_GENERATOR_NOUN = cfg.noun;
       if (typeof cfg.hydrate === "function") window.GUMA_HYDRATE = cfg.hydrate;
+      // Same serialize/hydrate pair keeps the in-progress form across reloads.
+      if (window.GumaDraft) GumaDraft.attach(cfg);
     }
   }
 

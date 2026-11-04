@@ -113,7 +113,7 @@ window.GumaHistory = (function () {
     });
   }
 
-  // ── Internal: downscale to slot size (PNG) ────────────────────
+  // ── Internal: downscale to slot size (PNG, or JPEG on request) ─
   /**
    * @param {string|null} dataUrl
    * @param {number} targetW
@@ -123,8 +123,12 @@ window.GumaHistory = (function () {
    *   "contain" when the caller stores its own framing alongside and would
    *   otherwise crop the photo twice; the result keeps the whole photo and is
    *   only as large as it needs to be, never upscaled past its own pixels.
+   * @param {"png"|"jpeg"} [format] "png" (default) keeps transparency. "jpeg"
+   *   is several times smaller for a photograph, which matters when one entry
+   *   carries more than one photo; transparent areas come out white.
    */
-  function _downscaleAvatar(dataUrl, targetW, targetH, fit) {
+  function _downscaleAvatar(dataUrl, targetW, targetH, fit, format) {
+    const encode = (canvas) => (format === "jpeg" ? canvas.toDataURL("image/jpeg", 0.9) : canvas.toDataURL("image/png"));
     return new Promise((resolve) => {
       if (!dataUrl) {
         resolve(null);
@@ -145,8 +149,12 @@ window.GumaHistory = (function () {
             canvas.height = Math.max(1, Math.round(img.height * k));
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = "high";
+            if (format === "jpeg") {
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL("image/png"));
+            resolve(encode(canvas));
             return;
           }
 
@@ -154,6 +162,10 @@ window.GumaHistory = (function () {
           canvas.height = targetH;
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = "high";
+          if (format === "jpeg") {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, targetW, targetH);
+          }
 
           // cover-crop (centered) - same math as generateCard()
           let sx, sy, sw, sh;
@@ -169,7 +181,7 @@ window.GumaHistory = (function () {
             sy = (img.height - sh) / 2;
           }
           ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
-          resolve(canvas.toDataURL("image/png"));
+          resolve(encode(canvas));
         } catch (e) {
           resolve(dataUrl); // fall back to original on taint/error
         }

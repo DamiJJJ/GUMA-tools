@@ -105,7 +105,7 @@ window.GUMA_SEARCH_INDEX = [
     category: "Police Reports",
     icon: "assets/investigation.png",
     status: "available",
-    summary: "Two-page LSPD-style investigative report with combined crime, evidence and arrest sections.",
+    summary: "Two-page investigative report with combined crime, evidence and arrest sections.",
     aliases: ["investigation", "detective", "crime report", "evidence"],
   },
   {
@@ -117,6 +117,26 @@ window.GUMA_SEARCH_INDEX = [
     status: "available",
     summary: "Weekly evaluation report for probationary officers, rated by their Field Training Officer.",
     aliases: ["fto", "probation", "recruit", "rookie", "training", "ppo", "weekly evaluation"],
+  },
+  {
+    id: "pursuit",
+    title: "Vehicle Pursuit Report",
+    url: "vehicle_pursuit_report.html",
+    category: "Police Reports",
+    icon: "assets/pursuit.svg",
+    status: "available",
+    summary: "Vehicle pursuit report generator with unit classification reviews and findings receipts.",
+    aliases: ["pursuit", "chase", "vpr", "pit", "tdd", "spike strip", "air unit", "findings receipt"],
+  },
+  {
+    id: "uof",
+    title: "Use of Force Report",
+    url: "use_of_force_report.html",
+    category: "Police Reports",
+    icon: "assets/use_of_force.svg",
+    status: "available",
+    summary: "Three-page non-categorical use of force report with a front / back body diagram for TASER and beanbag hits.",
+    aliases: ["uof", "ncuof", "use of force", "force", "taser", "beanbag", "less lethal", "pepper spray", "oc spray", "body diagram"],
   },
 
   // ── Report Generators: Fire / Medical ───────────────────────────
@@ -133,15 +153,25 @@ window.GUMA_SEARCH_INDEX = [
   {
     id: "fire_inspection",
     title: "Fire Code Inspection Report",
-    url: null,
+    url: "fire_code_inspection_report.html",
     category: "Fire / Medical",
     icon: "assets/extinguisher.png",
-    status: "soon",
-    summary: "Future generator for Fire Code Inspection Report.",
-    aliases: ["fire code", "inspection", "fire marshal"],
+    status: "available",
+    summary: "Official fire code inspection report with a violation checklist, re-inspection date and inspector sign-off.",
+    aliases: ["fire code", "inspection", "fire marshal", "fire prevention", "violation notice", "code enforcement", "lscofd", "lsfd"],
   },
 
   // ── In-Game Generators ──────────────────────────────────────────
+  {
+    id: "wanted",
+    title: "Wanted Poster",
+    url: "wanted_poster.html",
+    category: "In-Game Generators",
+    icon: "assets/wanted.svg",
+    status: "available",
+    summary: "Wanted, BOLO and missing person posters in a modern bulletin or classic flyer layout, ready for in-game boards and Discord.",
+    aliases: ["wanted", "poszukiwany", "list gończy", "bolo", "person of interest", "missing person", "most wanted", "fugitive", "bulletin", "flyer"],
+  },
   {
     id: "chardesc",
     title: "Character Description",

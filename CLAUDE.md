@@ -1,4 +1,4 @@
-# CLAUDE.md — GUMA-Tools
+# CLAUDE.md - GUMA-Tools
 
 > Instructions for Claude (Cowork / Claude Code) when working in this project.
 > Read this file before touching anything in the repo.
@@ -6,11 +6,11 @@
 ## Project context
 
 GUMA-Tools is a static webapp for generating documents and cards for FiveM
-roleplay (LSPD/LSSD/BCSO/SAHP/LSCoFD/LSFD, etc.). Zero build tooling —
+roleplay (LSPD/LSSD/BCSO/SAHP/LSCoFD/LSFD, etc.). Zero build tooling -
 HTML + Tailwind (CDN) + Vanilla JS. Cards/documents are rendered on an
 HTML Canvas and exported to PNG or the clipboard. Hosting: GitHub Pages.
 
-## Hard constraints — do not break
+## Hard constraints - do not break
 
 - **Tailwind CSS only.** No static `.css` files, no `<style>` blocks in HTML.
   All custom styling goes through `@layer base/components/utilities` rules
@@ -31,25 +31,26 @@ HTML Canvas and exported to PNG or the clipboard. Hosting: GitHub Pages.
 - **Do not commit or push anything on your own.** Commits and pushes are done
   by the user (or when they explicitly ask for them).
 - **Make changes to repo files yourself** (Edit/Write), and when you finish
-  **briefly describe what you changed and where** — file by file, without
+  **briefly describe what you changed and where** - file by file, without
   pasting full diffs.
 - Files created outside the repo (exports, screenshots, generated preview
   assets) may be saved to the workspace / outputs.
 
 ### Code quality
 
-- **DRY.** If a piece of logic or markup is used more than once — extract it.
+- **DRY.** If a piece of logic or markup is used more than once - extract it.
   Shared JS → a separate file in `/js/`. Shared markup (header, footer,
   modals) → a Web Component in `js/components.js`. Shared styles → a `guma-*`
   class in `js/guma-styles.js` (`@layer components`).
 - **English comments only.** Inline comments and JSDoc in English. Section
-  separators in the existing style:
-  `// ── Section title ───────────────────────────────────────────`.
-- **Match existing conventions.** See `STYLEGUIDE.md` — naming, formatting,
+  separators in the existing style, padded to the width the file already uses
+  (about 65-70 columns in shared modules, about 80 in page / feature files):
+  `// ── Section title ──────────────────────────────────────────────────────────`.
+- **Match existing conventions.** See `STYLEGUIDE.md` - naming, formatting,
   Tailwind. If you introduce a convention not covered by the styleguide, ask
   first and update the styleguide.
 - **Ask, don't assume.** If a requirement is unclear, the input is
-  incomplete, or you see two reasonable paths — **stop and ask**
+  incomplete, or you see two reasonable paths - **stop and ask**
   (AskUserQuestion in Cowork, or a plain question in chat). Better to ask
   once than to rewrite.
 
@@ -82,7 +83,7 @@ HTML Canvas and exported to PNG or the clipboard. Hosting: GitHub Pages.
   whole page. Use realistic, consistent sample data (no "lorem ipsum", no
   empty fields).
 - **Sample data must be American / Los Santos (GTA), never Polish.** The app
-  is set in the LA/LAPD/Los Santos universe — use American person names,
+  is set in the LA/LAPD/Los Santos universe - use American person names,
   LA/Los Santos street & area names (Vespucci Blvd, Vinewood, Del Perro,
   Mission Row), US date/number formats, and the project's own agencies
   (LSPD/LSSD/BCSO/SAHP/LSFD/LSCoFD).
@@ -90,7 +91,7 @@ HTML Canvas and exported to PNG or the clipboard. Hosting: GitHub Pages.
 ## Slash commands
 
 Helpers live in `.claude/commands/` and are **native slash commands in Claude
-Code (terminal CLI)**. In Cowork desktop they are not scanned automatically —
+Code (terminal CLI)**. In Cowork desktop they are not scanned automatically -
 see below for how to run them here.
 
 | Command       | What it does                                                                              |
@@ -101,7 +102,7 @@ see below for how to run them here.
 | `/styleguide` | Regenerates or updates `STYLEGUIDE.md` from the current code.                              |
 | `/screenshot` | Renders a generator with demo data and updates its showcase PNG in `assets/screenshots/`. |
 
-### Cowork vs Claude Code — how to invoke
+### Cowork vs Claude Code - how to invoke
 
 **Claude Code (terminal):** commands work natively. In the project folder you
 run `claude`, type `/commit` (or `/readme`, etc.) and the procedure from the

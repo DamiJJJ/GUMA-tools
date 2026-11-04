@@ -9,9 +9,11 @@ Generated from the code. Regenerate with `/styleguide`.
 - Vanilla JS - no modules, no imports. Every script is a global
   `<script src="js/...">`.
 - HTML5 Canvas for card / document rendering, PNG export and clipboard copy.
-- Web Components (`customElements`) for shared header, footer, history drawer
-  and export preview modal (`js/components.js`).
+- Web Components (`customElements`) for shared header, footer, history drawer,
+  draft restore banner and export preview modal (`js/components.js`).
 - Supabase REST for visit + download counters (`js/counters.js`).
+- PWA: `manifest.json` + a service worker (`sw.js`) registered from
+  `js/components.js`, so every page is installable and works offline.
 - No build step. No package manager runtime. No CI build.
 
 ## File layout
@@ -29,21 +31,29 @@ Generated from the code. Regenerate with `/styleguide`.
 ├── traffic_collision_report.html
 ├── arrest_report.html
 ├── prehospital_care_report.html
+├── fire_code_inspection_report.html
 ├── investigative_report.html
 ├── probationary_evaluation.html
+├── vehicle_pursuit_report.html
+├── use_of_force_report.html
+├── wanted_poster.html
 ├── readme.md
 ├── STYLEGUIDE.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
-├── manifest.json
-├── assets/                     # logos, badges, favicons (192x192 PNG for factions)
+├── manifest.json               # PWA manifest
+├── sw.js                       # service worker (offline cache), must stay at root
+├── assets/                     # logos, badges, favicons (192x192 PNG for factions),
+│                               # apple-touch-icon.png (180x180, index/about)
 │   └── screenshots/            # showcase PNGs, one per generator page
 └── js/
     ├── theme-init.js           # anti-FOUC + theme-aware favicon swap, runs first
     ├── tailwind.js             # Tailwind CDN snapshot
     ├── tailwind-config.js      # design tokens + animation component classes
     ├── guma-styles.js          # @layer base/components/utilities rules
-    ├── components.js           # <guma-header>, <guma-footer>,
-    │                           # <guma-history-drawer>, <guma-preview-modal>
+    ├── components.js           # <guma-header>, <guma-footer>, <guma-search>,
+    │                           # <guma-history-drawer>, <guma-draft-banner>,
+    │                           # <guma-preview-modal>; registers sw.js
+    ├── search-index.js         # GUMA_SEARCH_INDEX - every tool, for the search palette
     ├── animations.js           # scroll reveal + tile stagger
     ├── counters.js             # Supabase visit/download counters + Hot/Popular flags
     ├── latest-video.js         # GumaLatestVideo - "Latest Video" tile on the index
@@ -52,11 +62,17 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── random-character.js     # shared "Randomize Character" form filler
     ├── history.js              # GumaHistory - localStorage saved cards/reports engine
     ├── history-wiring.js       # GumaHistoryWiring - shared save/serialize glue
+    ├── guma-draft.js           # GumaDraft - autosaved form draft + restore offer
     ├── guma-clipboard.js       # GumaClipboard - canvas -> clipboard, one error copy
     ├── guma-upload.js          # GumaUpload - dropzone: click, drag & drop, paste
     ├── guma-fit.js             # GumaFit - shrink-to-fit text + input caps
+    ├── guma-radio.js           # GumaRadio - radio groups that can be cleared again
     ├── photo-crop.js           # GumaPhotoCrop - drag/zoom photo inside the card frame
+    │                           # (GumaPhotoCrop.create() for more than one photo)
     ├── canvas-edit.js          # GumaCanvasEdit - WYSIWYG editing on the document
+    ├── body-diagram.js         # GumaBodyDiagram - front/back figure, marks + shaded zones
+    ├── canvas-zoom.js          # GumaCanvasZoom - zoomable preview for tall sheets
+    ├── mannequin-3d.js         # raw WebGL mannequin for the character description
     ├── ui-helpers.js           # buildFactionSwitcher() and small shared UI bits
     ├── tire-spin.js            # GumaTireSpin - rolling-tire SVG (about page)
     ├── easter-egg.js           # hidden burnout easter egg, opt-in via [data-guma-egg]
@@ -89,7 +105,9 @@ module must precede the page JS that calls it. The two established tails:
 <!-- Card generators (officer_generator.html) -->
 <script src="js/history.js"></script>
 <script src="js/history-wiring.js"></script>
+<script src="js/guma-draft.js"></script>
 <script src="js/counters.js"></script>
+<script src="js/search-index.js"></script>
 <script src="js/components.js"></script>
 <script src="js/factions.js"></script>
 <script src="js/ui-helpers.js"></script>
@@ -104,13 +122,26 @@ module must precede the page JS that calls it. The two established tails:
 <!-- Report generators (prehospital_care_report.html) -->
 <script src="js/history.js"></script>
 <script src="js/history-wiring.js"></script>
+<script src="js/guma-draft.js"></script>
 <script src="js/guma-fit.js"></script>
 <script src="js/canvas-edit.js"></script>
 <script src="js/prehospital-care-report.js"></script>
 <script src="js/counters.js"></script>
+<script src="js/search-index.js"></script>
 <script src="js/components.js"></script>
 <script src="js/animations.js"></script>
 ```
+
+- `guma-draft.js` sits right after `history-wiring.js`: it must be defined
+  before the page JS calls `GumaHistoryWiring.register()`, which attaches it.
+- Feature modules a report needs go after `guma-fit.js` and before the page JS
+  (`use_of_force_report.html`: `guma-radio.js`, `canvas-edit.js`,
+  `body-diagram.js`, then the page script).
+- `search-index.js` loads on every page, right before `components.js` (the
+  `<guma-search>` palette reads `GUMA_SEARCH_INDEX`).
+- Pages close with a small inline `<script>` bootstrap after `animations.js`
+  (`DOMContentLoaded` -> page init + `GumaCounters?.initDownloadCounter(...)`).
+  Keep it to wiring calls; logic belongs in the page JS.
 
 ## HTML conventions
 
@@ -127,6 +158,9 @@ module must precede the page JS that calls it. The two established tails:
 - No inline `style="..."` except where JS toggles it (e.g. `style="display:none"`
   placeholders).
 - No `<style>` blocks. All CSS goes through `js/guma-styles.js`.
+- `<head>` links `manifest.json` and an `apple-touch-icon`: `index` / `about`
+  use `assets/apple-touch-icon.png` (180x180); generator pages reuse their own
+  192x192 icon, same as their favicon.
 - **No emoji in UI.** Buttons and controls use inline SVG icons (lucide-style,
   16x16, `fill="none"`, `stroke="currentColor"`, stroke-width 2-2.5) so the icon
   inherits the button colour in both themes. Monochrome text glyphs (`✕`, `✓`)
@@ -135,7 +169,11 @@ module must precede the page JS that calls it. The two established tails:
   to make it eligible for a trend badge (`applyHotFlags()` decorates the top 2 by
   download count). Index tiles use the bare attribute (corner pill, moved to the
   front of their grid); nav links add `data-hot-flag="icon"` (small right-edge
-  icon, out of the text flow).
+  icon in the `guma-nav-flags` slot, out of the text flow).
+- **New flags**: keys listed in `GUMA_NEW_GENERATORS` (`js/components.js`, next
+  to `GUMA_VERSION`) get a "New" pill on their index tile and a star in their nav
+  links' flag slot (`applyNewFlags()`), and move to the front of their group.
+  It runs before `applyHotFlags()`, so the order is Hot, Popular, New, the rest.
 
 ## Tailwind & design tokens
 
@@ -184,8 +222,8 @@ Sections are separated by `/* ─── Title ─── */` comments, in this or
 Panels, Upload dropzone, Themed scrollbar, Canvas preview, Photo cropping, Section
 titles, Index tiles, Latest video widget, Form labels/inputs, Buttons, Form
 section header, Faction switcher, Segmented control, Bodycam stage, Report
-dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, WYSIWYG
-canvas editing, Easter egg.
+dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, Multi-page
+report (page strip + form tabs), WYSIWYG canvas editing, Easter egg.
 
 Reuse before adding:
 
@@ -196,13 +234,37 @@ Reuse before adding:
   mutually exclusive options (card layout picker, zoom control).
 - `guma-tile-flag` (+ `-corner` / `-icon` position modifiers, `-hot` /
   `-popular` colour modifiers) - Hot/Popular badges, injected by `applyHotFlags()`.
+- `guma-status` (+ `-new` / `-soon`) - pill under an index tile's description.
+  `guma-status-soon` is static markup on disabled "Coming soon" tiles;
+  `guma-status-new` (star + "New") is injected by `applyNewFlags()`. Released
+  tiles carry no pill otherwise; an invisible placeholder reserves its line so
+  all tiles keep the same height.
+- `guma-nav-flags` - right-edge slot on a nav link holding its
+  `guma-tile-flag-icon`s (Hot/Popular icon, New star). It sits in flow
+  (`ml-auto`) and `[data-hot-flag="icon"]` links never wrap, so a long label
+  widens the dropdown instead of running under the icons. Header dropdowns are
+  `w-max min-w-[...]` for the same reason - do not give them a fixed width.
+- `guma-cz-on` - set by `GumaCanvasZoom` on the preview box (from xl) to release
+  the shared canvas caps and let the box scroll both ways.
+- `guma-label-note` (quiet "(optional)" aside inside a label), `guma-field-hint`
+  (one-line help under a field), `guma-link-remove` (small red "✕ Remove photo"
+  action under a dropzone).
 - `guma-zoom-*` - the shared zoom segmented control, used by both the WYSIWYG
   toolbar and `<guma-preview-modal>`.
+- `guma-pages` + `guma-page-pill` (+ `.is-on`, `guma-page-pill-rm`) and
+  `guma-page-add` - the "pages in this report" strip above the preview of a
+  multi-page report with optional pages. A pill wraps a sr-only checkbox; `+` /
+  check glyphs show the state. `guma-page-add` also styles a `<select>` used as
+  an "add ..." menu.
+- `guma-tabs` + `guma-tab` (+ `.active`, `.is-off`), `guma-tab-note`,
+  `guma-sub-label` - one form tab per document page, for forms too long to
+  scroll (vehicle pursuit report).
 
 **Report form helpers (unprefixed - deliberate exception):** report pages share a
 set of non-`guma-` layout classes, also under `@layer components`, reused across
 `firearm_discharge`, `arrest_report`, `traffic_collision_report`,
-`prehospital_care_report` and `investigative_report`:
+`prehospital_care_report`, `investigative_report` and
+`fire_code_inspection_report`:
 
 - `.form-group` - label-over-input wrapper (`.form-group label` and
   `.form-group input/select` style the children, so a bare
@@ -234,13 +296,49 @@ of forking a per-page variant.
 | `guma-clipboard.js` | `GumaClipboard` | canvas -> PNG -> clipboard, plus the single insecure-context / unsupported error copy |
 | `guma-upload.js` | `GumaUpload` | `init()` on a dropzone: click, keyboard, drag & drop and paste routing |
 | `guma-fit.js` | `GumaFit` | `fitFont`, `fitBlock`, `wrapLines`, `colFonts`, `capFor`, `applyCaps`, `applyCapsBySelector` |
-| `photo-crop.js` | `GumaPhotoCrop` | `attach`, `setSource`, `paint`, `hasImage`, `getState`, `setState`, `reset` |
+| `guma-radio.js` | `GumaRadio` | `makeClearable(root)` - clicking a selected radio clears it (paper "pick one" boxes may stay blank); idempotent, re-run on new rows |
+| `photo-crop.js` | `GumaPhotoCrop` | `attach`, `setSource`, `paint`, `hasImage`, `getState`, `setState`, `reset`, `create` |
 | `canvas-edit.js` | `GumaCanvasEdit` | `attach`, `begin`, `field`, `action`, `end`, `schedule`, `commitEdit`, `cancelEdit`, `isEditing`, `setZoom`, `fitZoom` |
 | `history.js` | `GumaHistory` | localStorage store, thumbnails, quota recovery |
 | `history-wiring.js` | `GumaHistoryWiring` | `register`, `save`, `buildFaction`, `setVal`, `setChecked` |
+| `guma-draft.js` | `GumaDraft` | `attach` (called by `register`), `restore`, `discard` - autosaved form draft |
+| `canvas-zoom.js` | `GumaCanvasZoom` | `create()` -> `attach({ canvas, wrap, control })`, `refresh()` |
+| `search-index.js` | `GUMA_SEARCH_INDEX` | plain-JSON list of every tool, read by `<guma-search>` |
 | `counters.js` | `GumaCounters` | Supabase counters, `initDownloadCounter`, `applyHotFlags` |
 | `random-character.js` | `randomizeCharacter(generatorKey)` | shared form filler |
 | `tire-spin.js` | `GumaTireSpin` | tread-only rotation of `assets/tire.svg` |
+
+### More than one photo (`GumaPhotoCrop.create`)
+
+`window.GumaPhotoCrop` is one cropper, enough for a card with one photo. A page
+with several photo slots on one canvas (the wanted poster) makes one cropper per
+slot with `GumaPhotoCrop.create()` and attaches each to the same canvas and
+`.guma-pc-wrap` host; croppers sharing a canvas settle its cursor and
+`guma-pc-on` between them. On a redraw where a slot is not on the canvas, call
+`crop.paint(ctx, null)` so the stale slot stops catching drags and its tool bar
+hides.
+
+History photos are stored with `GumaHistory._downscaleAvatar(src, w, h,
+"contain")`. Pass `"jpeg"` as a fifth argument when an entry carries more than
+one photograph - PNG copies of two photos fill the localStorage quota after a
+handful of saves. Keep PNG for anything that needs transparency (logos).
+
+### Zoomable preview for tall sheets (`GumaCanvasZoom`)
+
+A sheet too tall to be both whole and legible in the sticky preview (the wanted
+poster) gets a zoom control. Make one instance per canvas, attach it, and call
+`refresh()` at the end of every draw when the sheet height follows content:
+
+```js
+const wpZoom = GumaCanvasZoom.create();
+wpZoom.attach({ canvas, wrap: host, control: document.getElementById("wpZoom") });
+// in wpRender(): wpZoom.refresh();
+```
+
+The control is an empty `<div class="guma-zoom guma-zoom-sm hidden xl:flex">`;
+the buttons are injected. Zoom only changes the canvas CSS width, never the
+backing store, so export and `GumaPhotoCrop` keep working. It is active from xl
+only; below that the page keeps the plain capped preview.
 
 ### Shrink-to-fit text (`GumaFit`)
 
@@ -299,6 +397,42 @@ passes the visible index into `download(pageIndex)` / `copy(pageIndex)`, so each
 sheet exports as its own readable PNG. History always stores the full stacked
 document.
 
+**Agency seal on a report (`fire_code_inspection_report`):** most reports have
+no faction switcher - the agency is an editable header line. A report whose paper
+original carries a department seal uses `buildFactionSwitcher()` instead
+(LSCoFD / LSFD / Custom, filtered by `FACTION_TYPE.FIRE`). The switcher sits
+above `<main>`, outside the form panel, because `.guma-ce-host` hides the form
+while the document is edited in place. Document wording that follows the agency
+(header lines, HQ address, local fire code name, hotline) lives in a per-report
+sub-object on the faction (`FACTIONS[key].inspection`, like `businessCard`).
+Custom draws no seal and its typed name becomes the editable header line, the
+same as the agency-line reports.
+
+**Optional pages (`vehicle_pursuit_report`):** the same stacked canvas, but the
+page set is chosen by the user. Fixed pages are toggled by `pg_<key>` checkboxes
+in a `guma-pages` strip that lives in the preview panel, not the form - the form
+is visually hidden while in-canvas editing is on, and the page set must stay
+editable there. Repeatable pages (Additional Unit, Findings Receipt) are added
+and removed from the same strip, each with its own form tab and its own id
+prefix (`ua<n>_`, `rc<n>_`). Because the form is generated from tables and grows
+with the pages, history serializes every id'd control under the form panel and
+the strip, plus the lists of repeatable page numbers, instead of a hand-kept
+field list.
+
+**Body diagram (`use_of_force_report`, `js/body-diagram.js`):** a document that
+needs marks on a person draws `GumaBodyDiagram.draw(ctx, box, state)` into a
+box and keeps the state, `{ marks: [{ t, v, x, y }], zones: { "<view>:<zone>":
+type } }`, as a plain object next to its form values in the saved payload (run
+it through `normalize()` on hydrate). Mark coordinates are relative to each
+figure, not to the box, so editors of any size agree. There are two editors
+and both write through one page-level `setState()`: `createWidget()` puts a
+canvas in the form panel (below xl), and `attachOverlay()` takes clicks on the
+document canvas while in-canvas editing is on. It also mounts a floating tool
+column (`guma-bd-float`) as DOM chrome. The page reports the box it painted
+through `getBox()` and must register **no** `GumaCanvasEdit` field or action
+inside that box, because the overlay owns clicks there. Attach the overlay
+after `GumaCanvasEdit.attach()` so its cursor wins over the figure.
+
 ### Multi-file features
 
 When one feature outgrows a single file, split it by responsibility and keep the
@@ -322,11 +456,18 @@ When one feature outgrows a single file, split it by responsibility and keep the
 - Function names are camelCase verbs (`switchFaction`, `applyCustomFaction`,
   `populateSelects`, `randomizePay`). Page-specific helpers may take a short
   page prefix (`fdSerializeState`, `bcamRender`).
-- Section dividers - pad with box-drawing characters to about 60 columns:
+- Section dividers - pad with box-drawing characters. Width follows the file:
+  about 65-70 columns in shared modules (`history.js`, `guma-draft.js`,
+  `components.js`), about 80 in page and feature files (reports,
+  `wanted-poster.js`, `canvas-zoom.js`, `bodycam-*`). Match the file you are in.
 
 ```js
 // ── Switch faction ────────────────────────────────────────────
 ```
+
+- Shared modules open with a header comment: the file path, a divider with
+  the module name, then a short paragraph on what it owns and why.
+- No em / en dashes anywhere (comments, copy, docs) - use a plain `-`.
 
 - **All comments in English**, inline and JSDoc alike. A few legacy PL comments
   survive in `guma-styles.js`, `tailwind-config.js` and `components.js`; migrate
@@ -390,11 +531,14 @@ copy it. Paired HTML pages stay `snake_case.html` regardless.
    arrays and the dropdown + mobile link lists (with `data-generator-key` and
    `data-hot-flag="icon"`), so the header highlights correctly and the page joins
    the Hot/Popular flags. Add the same `data-generator-key` to its `index.html`
-   tile.
+   tile, and add that key to `GUMA_NEW_GENERATORS` (reset the list when
+   `GUMA_VERSION` is bumped). Add an entry to `js/search-index.js` too (`id` =
+   the same key), or the page is missing from the search palette.
 7. Wire **Saved Cards / Reports** (see below): page-specific `serialize` /
    `hydrate` / `buildLabel` (+ `buildFaction`), one `GumaHistoryWiring.register`,
    `await GumaHistoryWiring.save(canvas)` in the download and copy paths, and the
-   three markup additions.
+   three markup additions. Load `js/guma-draft.js` after `history-wiring.js` and
+   the page gets form drafts for free.
 8. For a report, wire `GumaCanvasEdit.attach({...})` and `GumaFit.applyCaps`.
 9. **Seed the download counter row in Supabase** (see below). Skipping this
    leaves the counter permanently dead, silently.
@@ -445,7 +589,8 @@ both go quiet:
 | Supabase | a `downloads_<key>` row |
 
 Current keys: `officer`, `firefighter`, `business_card`, `personnel`, `firearm`,
-`traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `bodycam`, `chardesc`.
+`traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `pursuit`, `uof`,
+`bodycam`, `chardesc`, `wanted`, `fire_inspection`.
 
 **Verify:** open the page. "Generated 0 times" should appear under the export
 button (it stays hidden while the row is missing). Copy to clipboard once,
@@ -478,7 +623,7 @@ Three shared pieces (do not fork them):
 | Global                | Set by                  | Purpose                                        |
 | --------------------- | ----------------------- | ---------------------------------------------- |
 | `GUMA_GENERATOR_KEY`  | `register({ key })`     | storage namespace (`guma:history:<key>`)       |
-| `GUMA_GENERATOR_NOUN` | `register({ noun })`    | `"card"` (default) or `"report"` - drawer copy |
+| `GUMA_GENERATOR_NOUN` | `register({ noun })`    | `"card"` (default), `"report"`, `"description"` or `"poster"` - drawer copy |
 | `GUMA_HYDRATE`        | `register({ hydrate })` | function the drawer calls on load              |
 
 ### Wiring a new generator (recipe)
@@ -525,8 +670,8 @@ Markup (3 additions):
    far right), `border-2` gold accent - copy the block from any wired page. The
    drawer updates `#gumaHistoryCount` itself (shows `0` when empty).
 2. `<guma-history-drawer></guma-history-drawer>` just before `</body>`.
-3. `history.js` -> `history-wiring.js` first in the end-of-body script order,
-   then `components.js` and the page JS.
+3. `history.js` -> `history-wiring.js` -> `guma-draft.js` first in the
+   end-of-body script order, then `components.js` and the page JS.
 
 ### Rules
 
@@ -539,6 +684,37 @@ Markup (3 additions):
   prepends or appends).
 - No `alert` / `confirm` - "✕ Remove" deletes immediately; the only modal is the
   drawer's built-in "Clear all".
+
+### Form drafts (`GumaDraft`)
+
+The in-progress form survives reloads and closed tabs. `GumaDraft` reuses the
+same `serialize` / `hydrate` pair: `GumaHistoryWiring.register()` calls
+`GumaDraft.attach(cfg)` when `js/guma-draft.js` is loaded, so a page needs no
+extra code.
+
+- One draft per generator under `guma:draft:<key>`, written 600 ms after the
+  last edit and on `pagehide` / tab hide. It is removed again when the form is
+  back to its untouched baseline (captured after the page's own load-time
+  setup).
+- On the next visit the page opens blank and `<guma-draft-banner>` offers
+  Restore / Discard. Nothing is saved until the user answers; typing into the
+  blank form counts as Discard.
+- This is why serialize must be stable and hydrate must be safe on partial
+  payloads - the draft check runs both on every page load.
+- Exceptions: `character_description` registers history but deliberately does
+  not load `guma-draft.js`; `bodycam_overlay` has no history and no drafts.
+
+## PWA / service worker
+
+- `sw.js` lives at the repo root (its scope is the folder it is served from)
+  and is registered once, at the end of `js/components.js`, skipped on
+  `file://`.
+- Same-origin GETs only. Pages and scripts are network-first, so a deploy is
+  picked up on the next load; images and other assets are
+  stale-while-revalidate. Cross-origin calls (Supabase, Kick, randomuser.me)
+  bypass it.
+- Bump `CACHE` (`guma-v1`) only to force-drop everything older versions
+  cached. A new page needs no SW change - it is cached on first visit.
 
 ## Showcase screenshots
 
