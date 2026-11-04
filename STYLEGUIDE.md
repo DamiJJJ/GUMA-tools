@@ -35,6 +35,7 @@ Generated from the code. Regenerate with `/styleguide`.
 ├── investigative_report.html
 ├── probationary_evaluation.html
 ├── vehicle_pursuit_report.html
+├── use_of_force_report.html
 ├── wanted_poster.html
 ├── readme.md
 ├── STYLEGUIDE.md
@@ -69,6 +70,7 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── photo-crop.js           # GumaPhotoCrop - drag/zoom photo inside the card frame
     │                           # (GumaPhotoCrop.create() for more than one photo)
     ├── canvas-edit.js          # GumaCanvasEdit - WYSIWYG editing on the document
+    ├── body-diagram.js         # GumaBodyDiagram - front/back figure, marks + shaded zones
     ├── canvas-zoom.js          # GumaCanvasZoom - zoomable preview for tall sheets
     ├── mannequin-3d.js         # raw WebGL mannequin for the character description
     ├── ui-helpers.js           # buildFactionSwitcher() and small shared UI bits
@@ -132,6 +134,9 @@ module must precede the page JS that calls it. The two established tails:
 
 - `guma-draft.js` sits right after `history-wiring.js`: it must be defined
   before the page JS calls `GumaHistoryWiring.register()`, which attaches it.
+- Feature modules a report needs go after `guma-fit.js` and before the page JS
+  (`use_of_force_report.html`: `guma-radio.js`, `canvas-edit.js`,
+  `body-diagram.js`, then the page script).
 - `search-index.js` loads on every page, right before `components.js` (the
   `<guma-search>` palette reads `GUMA_SEARCH_INDEX`).
 - Pages close with a small inline `<script>` bootstrap after `animations.js`
@@ -414,6 +419,20 @@ with the pages, history serializes every id'd control under the form panel and
 the strip, plus the lists of repeatable page numbers, instead of a hand-kept
 field list.
 
+**Body diagram (`use_of_force_report`, `js/body-diagram.js`):** a document that
+needs marks on a person draws `GumaBodyDiagram.draw(ctx, box, state)` into a
+box and keeps the state, `{ marks: [{ t, v, x, y }], zones: { "<view>:<zone>":
+type } }`, as a plain object next to its form values in the saved payload (run
+it through `normalize()` on hydrate). Mark coordinates are relative to each
+figure, not to the box, so editors of any size agree. There are two editors
+and both write through one page-level `setState()`: `createWidget()` puts a
+canvas in the form panel (below xl), and `attachOverlay()` takes clicks on the
+document canvas while in-canvas editing is on. It also mounts a floating tool
+column (`guma-bd-float`) as DOM chrome. The page reports the box it painted
+through `getBox()` and must register **no** `GumaCanvasEdit` field or action
+inside that box, because the overlay owns clicks there. Attach the overlay
+after `GumaCanvasEdit.attach()` so its cursor wins over the figure.
+
 ### Multi-file features
 
 When one feature outgrows a single file, split it by responsibility and keep the
@@ -570,8 +589,8 @@ both go quiet:
 | Supabase | a `downloads_<key>` row |
 
 Current keys: `officer`, `firefighter`, `business_card`, `personnel`, `firearm`,
-`traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `pursuit`, `bodycam`,
-`chardesc`, `wanted`, `fire_inspection`.
+`traffic`, `arrest`, `pcr`, `investigative`, `evaluation`, `pursuit`, `uof`,
+`bodycam`, `chardesc`, `wanted`, `fire_inspection`.
 
 **Verify:** open the page. "Generated 0 times" should appear under the export
 button (it stays hidden while the row is missing). Copy to clipboard once,

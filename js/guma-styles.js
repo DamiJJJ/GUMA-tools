@@ -150,7 +150,7 @@
       }
 
       /* ─── Themed scrollbar ─── */
-      /* Raw hex instead of @apply — Tailwind cannot attach the dark: variant
+      /* Raw hex instead of @apply - Tailwind cannot attach the dark: variant
          to a ::-webkit-scrollbar-* selector. Values mirror the guma-l-border-2
          / guma-l-gold and guma-border-2 / guma-gold tokens. */
       .guma-scroll {
@@ -198,7 +198,7 @@
       }
       /* Auto width + height keeps the intrinsic aspect ratio and caps the
          canvas at its native pixel size, so the preview never upscales
-         into a blurry mess. A flat hairline edge, no drop shadow — every
+         into a blurry mess. A flat hairline edge, no drop shadow - every
          generator renders its document the same way.
 
          The max-h mirrors .guma-canvas-wrap's own cap. Without it the canvas
@@ -1031,6 +1031,72 @@
       .guma-ce-chip-pick:hover {
         border-color: rgba(45, 71, 135, 0.7);
         background: rgba(45, 71, 135, 0.14);
+      }
+
+      /* ─── Body diagram (js/body-diagram.js) ─── */
+      /* Form panel widget: the figure is document content, so it sits on
+         white paper with the navy accent in both app themes. */
+      .guma-bd-widget {
+        @apply mb-1 overflow-hidden rounded-xl border bg-white
+               border-guma-l-border-2 dark:border-guma-border-2;
+      }
+      .guma-bd-widget canvas {
+        @apply block h-auto w-full;
+        touch-action: none;
+      }
+      /* Five tools have to fit a phone-width panel. */
+      .guma-bd-seg {
+        @apply flex-wrap;
+      }
+      .guma-bd-seg .guma-seg-btn {
+        @apply min-w-[3.25rem] px-2 py-2 tracking-[0.08em];
+      }
+      /* Floating tool column over the document canvas (xl+, in-canvas
+         editing). DOM chrome, so it never lands in an export. */
+      .guma-bd-float {
+        position: absolute;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 3px;
+        border: 1px solid rgba(45, 71, 135, 0.45);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+        line-height: 1;
+      }
+      .guma-bd-float[hidden] {
+        display: none;
+      }
+      .guma-bd-tool {
+        min-width: 34px;
+        padding: 4px 5px;
+        border: 1px solid rgba(45, 71, 135, 0.45);
+        border-radius: 4px;
+        background: #fff;
+        color: #2d4787;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .guma-bd-tool:hover {
+        background: #e8eef9;
+      }
+      .guma-bd-tool.active {
+        background: #2d4787;
+        color: #fff;
+      }
+      .guma-bd-tool-clear {
+        margin-top: 3px;
+        border-color: rgba(220, 38, 38, 0.5);
+        color: #b91c1c;
+      }
+      .guma-bd-tool-clear:hover {
+        background: #b91c1c;
+        color: #fff;
       }
       /* The single floating editor, mounted inside the frame. */
       .guma-ce-editor {

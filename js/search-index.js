@@ -128,6 +128,16 @@ window.GUMA_SEARCH_INDEX = [
     summary: "Vehicle pursuit report generator with unit classification reviews and findings receipts.",
     aliases: ["pursuit", "chase", "vpr", "pit", "tdd", "spike strip", "air unit", "findings receipt"],
   },
+  {
+    id: "uof",
+    title: "Use of Force Report",
+    url: "use_of_force_report.html",
+    category: "Police Reports",
+    icon: "assets/use_of_force.svg",
+    status: "available",
+    summary: "Three-page non-categorical use of force report with a front / back body diagram for TASER and beanbag hits.",
+    aliases: ["uof", "ncuof", "use of force", "force", "taser", "beanbag", "less lethal", "pepper spray", "oc spray", "body diagram"],
+  },
 
   // ── Report Generators: Fire / Medical ───────────────────────────
   {

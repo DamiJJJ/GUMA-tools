@@ -3,7 +3,7 @@ const GUMA_VERSION = "1.10";
 // Generator keys (data-generator-key) released in the current GUMA_VERSION.
 // Their index tiles get a "New" pill and their nav links a star, and both
 // move to the front of their group - refresh this list with every release.
-const GUMA_NEW_GENERATORS = ["pursuit", "wanted", "fire_inspection"];
+const GUMA_NEW_GENERATORS = ["uof", "pursuit", "wanted", "fire_inspection"];
 
 // HEADER
 class GumaHeader extends HTMLElement {
@@ -20,6 +20,7 @@ class GumaHeader extends HTMLElement {
       "investigative_report.html",
       "probationary_evaluation.html",
       "vehicle_pursuit_report.html",
+      "use_of_force_report.html",
     ].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
     const isIngame = ["character_description.html", "wanted_poster.html"].includes(current);
@@ -156,6 +157,11 @@ class GumaHeader extends HTMLElement {
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "vehicle_pursuit_report.html" ? dropActive : dropInactive}">
                   <img src="assets/pursuit.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Vehicle Pursuit Report
+                </a>
+                <a href="use_of_force_report.html" data-generator-key="uof" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "use_of_force_report.html" ? dropActive : dropInactive}">
+                  <img src="assets/use_of_force.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  Use of Force Report
                 </a>
 
                 <p class="${dropGroupLabel} border-t border-guma-l-border dark:border-guma-border">Fire / Medical</p>
@@ -410,6 +416,12 @@ class GumaHeader extends HTMLElement {
                       ${current === "vehicle_pursuit_report.html" ? mobActive : mobInactive}">
               <img src="assets/pursuit.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
               Vehicle Pursuit Report
+            </a>
+            <a href="use_of_force_report.html" data-generator-key="uof" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "use_of_force_report.html" ? mobActive : mobInactive}">
+              <img src="assets/use_of_force.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
+              Use of Force Report
             </a>
 
             <p class="${mobGroupLabel}">Fire / Medical</p>
