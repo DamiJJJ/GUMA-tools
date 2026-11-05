@@ -1,7 +1,7 @@
 "use strict";
 
-// Evidence Locker (about.html): a two-door locker whose right door swings ajar
-// on hover, showing a sliver of the GUMA shield inside. Clicking it opens the
+// Evidence Locker (about.html): a two-door locker whose right door swings open
+// on hover, showing the GUMA shield inside. Clicking it opens the
 // locker: every easter egg as an exhibit - collected ones with their icon and
 // date, missing ones blurred out under a CLASSIFIED stamp, and empty "Soon"
 // slots for eggs that are still to come. The data and the collect() API live
@@ -22,15 +22,13 @@
   // ── Cabinet icon ────────────────────────────────────────────────────
   // Flat two-door locker on a plinth (viewBox 64x64): vents top and bottom,
   // the handle by each door's free edge. The right door is hinged on its
-  // right edge (.guma-locker-door) and swings ajar on hover; `is-open` poses
-  // it ajar for good. Colours are theme classes in js/guma-styles.js. The
-  // compartments are dark in both themes, so the shield behind the door is
-  // always the white variant. The shield is clipped to the strip the open
-  // door uncovers: left under the door, its white edge bled through the
-  // door's anti-aliased outline.
+  // right edge (.guma-locker-door) and swings out past the hinge on hover;
+  // `is-open` poses it open for good. Colours are theme classes in
+  // js/guma-styles.js. The compartments are dark in both themes, so the
+  // shield behind the door is always the white variant. Only the outer face
+  // carries vents and handle (.guma-locker-door-outer) - the open door shows
+  // its bare inner face.
   const DOOR_W = 21.5;
-  const OPEN_EDGE_X = 46.2; // free edge of the open door, a hair inside it
-  let cabinetSeq = 0;
   const DOOR_TOP = 4.5;
   const DOOR_H = 51;
 
@@ -40,26 +38,22 @@
         <g class="${cls}">
           <rect x="${x}" y="${DOOR_TOP}" width="${DOOR_W}" height="${DOOR_H}" rx="1" class="guma-locker-door-face"/>
           <rect x="${x + DOOR_W - 2.5}" y="${DOOR_TOP}" width="2.5" height="${DOOR_H}" class="guma-locker-door-edge"/>
-          <path d="${vents}" class="guma-locker-vent" fill="none" stroke-width="2" stroke-linecap="round"/>
-          <rect x="${x + 3}" y="25" width="2.6" height="10" rx="1.3" class="guma-locker-handle"/>
+          <g class="guma-locker-door-outer">
+            <path d="${vents}" class="guma-locker-vent" fill="none" stroke-width="2" stroke-linecap="round"/>
+            <rect x="${x + 3}" y="25" width="2.6" height="10" rx="1.3" class="guma-locker-handle"/>
+          </g>
         </g>`;
   }
 
   function cabinetSvg(extraClass) {
     const logo = typeof gumaLogoSymbolPaths === "function" ? gumaLogoSymbolPaths(true) : "";
-    const clipId = `gumaLockerPeek${++cabinetSeq}`; // the icon is drawn twice per page
     return `
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false" class="guma-locker-cabinet ${extraClass || ""}">
-        <defs>
-          <clipPath id="${clipId}"><rect x="33" y="${DOOR_TOP}" width="${OPEN_EDGE_X - 33}" height="${DOOR_H}"/></clipPath>
-        </defs>
         <rect x="9" y="56" width="46" height="7" rx="1.5" class="guma-locker-plinth"/>
         <rect x="6" y="1" width="52" height="58" rx="3" class="guma-locker-body"/>
         <rect x="9.5" y="${DOOR_TOP}" width="${DOOR_W}" height="${DOOR_H}" rx="1" class="guma-locker-inside"/>
         <rect x="33" y="${DOOR_TOP}" width="${DOOR_W}" height="${DOOR_H}" rx="1" class="guma-locker-inside"/>
-        <g clip-path="url(#${clipId})">
-          <g transform="translate(42 28) scale(0.08) translate(-128 -129)">${logo}</g>
-        </g>
+        <g transform="translate(43.75 30) scale(0.08) translate(-128 -129)">${logo}</g>
         ${doorSvg(9.5)}
         ${doorSvg(33, "guma-locker-door")}
       </svg>`;

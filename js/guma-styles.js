@@ -1463,8 +1463,10 @@
       html.dark .guma-locker-handle {
         fill: #cfd8ea;
       }
-      /* The right door is hinged on its right edge; scaleX + skewY fakes the
-         swing in 2D (SVG parts get no 3D perspective). */
+      /* The right door is hinged on its right edge and swings outward: a
+         negative scaleX folds it past the hinge, out beside the cabinet,
+         the 2D look of a door opened past 90deg (SVG parts get no 3D
+         perspective). */
       .guma-locker-door {
         transform-box: fill-box;
         transform-origin: right center;
@@ -1473,22 +1475,35 @@
       .guma-locker-trigger:hover .guma-locker-door,
       .guma-locker-trigger:focus-visible .guma-locker-door,
       .guma-locker-cabinet.is-open .guma-locker-door {
-        transform: scaleX(0.36) skewY(6deg);
+        transform: scaleX(-0.4);
       }
-      /* Swung out, the door turns away from the light - a darker face also
-         keeps its edge from reading as part of the shield behind it. */
-      .guma-locker-door .guma-locker-door-face {
-        transition: fill 0.3s ease;
+      /* Vents and handle sit on the outer face only, so they drop out the
+         moment the door turns edge-on (0.09s into the swing, 0.03s on the
+         way back) and the bare inner face shows. */
+      .guma-locker-door .guma-locker-door-outer {
+        transition: opacity 0s 0.03s;
       }
+      .guma-locker-trigger:hover .guma-locker-door .guma-locker-door-outer,
+      .guma-locker-trigger:focus-visible .guma-locker-door .guma-locker-door-outer,
+      .guma-locker-cabinet.is-open .guma-locker-door .guma-locker-door-outer {
+        opacity: 0;
+        transition-delay: 0.09s;
+      }
+      /* Swung out, the door turns away from the light - a darker inner face
+         also sets it apart from the cabinet body it overlaps. The fill
+         steps at the same edge-on moment as the outer face; the closed
+         door has no fill transition at all, so on a theme switch it
+         recolours in the same frame as the left door and the body. */
       .guma-locker-trigger:hover .guma-locker-door .guma-locker-door-face,
       .guma-locker-trigger:focus-visible .guma-locker-door .guma-locker-door-face,
       .guma-locker-cabinet.is-open .guma-locker-door .guma-locker-door-face {
-        fill: #8f9cb4;
+        fill: #6e7a94;
+        transition: fill 0s 0.09s;
       }
       html.dark .guma-locker-trigger:hover .guma-locker-door .guma-locker-door-face,
       html.dark .guma-locker-trigger:focus-visible .guma-locker-door .guma-locker-door-face,
       html.dark .guma-locker-cabinet.is-open .guma-locker-door .guma-locker-door-face {
-        fill: #33436c;
+        fill: #26355d;
       }
 
       /* Dialog: display comes from the hidden/flex pair toggled in JS, like
@@ -1697,11 +1712,12 @@
         @apply shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-black tracking-wider
                border-guma-l-gold/40 text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-gold;
       }
-      /* Reduced motion: the door snaps ajar instead of swinging, nothing
+      /* Reduced motion: the door snaps open instead of swinging, nothing
          slides or slams; plain state changes remain. */
       @media (prefers-reduced-motion: reduce) {
         .guma-locker-door,
         .guma-locker-door .guma-locker-door-face,
+        .guma-locker-door .guma-locker-door-outer,
         .guma-locker-progress-bar,
         .guma-toast {
           transition: none !important;
