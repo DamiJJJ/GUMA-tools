@@ -89,60 +89,58 @@ tailwind.config = {
           from: { opacity: "0", transform: "translateY(-6px) scaleY(0.96)" },
           to: { opacity: "1", transform: "translateY(0) scaleY(1)" },
         },
-        "guma-rubber-ball": {
-          // 1) hard sideways stretch (the squash)
-          "0%": { transform: "translateY(0) scaleX(1) scaleY(1)" },
-          "11%": { transform: "translateY(0) scaleX(1.42) scaleY(0.62)" },
-          "18%": { transform: "translateY(0) scaleX(1.2) scaleY(0.8)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
-          // 2) bounce 1 (highest)
-          "30%": { transform: "translateY(-14px) scaleX(0.95) scaleY(1.05)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
-          "40%": { transform: "translateY(0) scaleX(1.2) scaleY(0.8)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
-          // 3) bounce 2
-          "50%": { transform: "translateY(-10px) scaleX(0.96) scaleY(1.04)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
-          "59%": { transform: "translateY(0) scaleX(1.14) scaleY(0.86)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
-          // 4) bounce 3
-          "67%": { transform: "translateY(-7px) scaleX(0.98) scaleY(1.03)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
-          "75%": { transform: "translateY(0) scaleX(1.09) scaleY(0.91)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
-          // 5) bounce 4
-          "82%": { transform: "translateY(-4px) scaleX(0.99) scaleY(1.02)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
-          "88%": { transform: "translateY(0) scaleX(1.05) scaleY(0.95)", animationTimingFunction: "cubic-bezier(0.2, 0.7, 0.35, 1)" },
-          // 6) bounce 5 (lowest)
-          "93%": { transform: "translateY(-2px) scaleX(1) scaleY(1.01)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.85, 0.4)" },
-          "97%": { transform: "translateY(0) scaleX(1.03) scaleY(0.97)" },
-          // 7) at rest
-          "100%": { transform: "translateY(0) scaleX(1) scaleY(1)" },
+        // ── Header logo easter egg (click): rubber band ──
+        // The wordmark is pulled to the right like a rubber band (pivot on its
+        // left edge), snaps back past rest and wobbles out.
+        "guma-logo-band": {
+          "0%": { transform: "scale(1, 1)", animationTimingFunction: "cubic-bezier(0.3, 0, 0.3, 1)" },
+          "24%": { transform: "scale(1.6, 0.78)", animationTimingFunction: "cubic-bezier(0.7, 0, 0.9, 0.5)" },
+          "33%": { transform: "scale(0.7, 1.24)", animationTimingFunction: "cubic-bezier(0.2, 0.6, 0.4, 1)" },
+          "45%": { transform: "scale(1.2, 0.88)", animationTimingFunction: "ease-in-out" },
+          "57%": { transform: "scale(0.9, 1.08)", animationTimingFunction: "ease-in-out" },
+          "69%": { transform: "scale(1.07, 0.96)", animationTimingFunction: "ease-in-out" },
+          "81%": { transform: "scale(0.98, 1.02)", animationTimingFunction: "ease-in-out" },
+          "100%": { transform: "scale(1, 1)" },
+        },
+        // The shield leans after the band while it is pulled, then takes the
+        // snap-back as a jelly squash.
+        "guma-logo-recoil": {
+          "0%": { transform: "translateX(0) rotate(0deg) scale(1, 1)", animationTimingFunction: "cubic-bezier(0.3, 0, 0.3, 1)" },
+          "24%": { transform: "translateX(10px) rotate(5deg) scale(1, 1)", animationTimingFunction: "cubic-bezier(0.7, 0, 0.9, 0.5)" },
+          "33%": { transform: "translateX(-12px) rotate(-4deg) scale(0.82, 1.14)", animationTimingFunction: "cubic-bezier(0.2, 0.6, 0.4, 1)" },
+          "45%": { transform: "translateX(4px) rotate(2deg) scale(1.12, 0.9)", animationTimingFunction: "ease-in-out" },
+          "57%": { transform: "translateX(-2px) rotate(-1deg) scale(0.95, 1.05)", animationTimingFunction: "ease-in-out" },
+          "71%": { transform: "translateX(0) rotate(0.5deg) scale(1.03, 0.98)", animationTimingFunction: "ease-in-out" },
+          "100%": { transform: "translateX(0) rotate(0deg) scale(1, 1)" },
+        },
+
+        // ── About logo easter egg (click): badge stamp ──
+        // The shield presses down like a rubber stamp and springs back.
+        "guma-logo-stamp": {
+          "0%": { transform: "scale(1) rotate(0deg)", animationTimingFunction: "cubic-bezier(0.5, 0, 0.75, 0)" },
+          "18%": { transform: "scale(0.84) rotate(-6deg)", animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" },
+          "42%": { transform: "scale(1.1) rotate(3deg)" },
+          "62%": { transform: "scale(0.97) rotate(-1.5deg)" },
+          "80%": { transform: "scale(1.02) rotate(0.5deg)" },
+          "100%": { transform: "scale(1) rotate(0deg)" },
+        },
+        // The star winds up, spins a full turn with a pop and settles.
+        "guma-logo-star-spin": {
+          "0%": { transform: "rotate(0deg) scale(1)", animationTimingFunction: "cubic-bezier(0.5, 0, 0.75, 0)" },
+          "20%": { transform: "rotate(-24deg) scale(0.8)", animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" },
+          "72%": { transform: "rotate(375deg) scale(1.35)", animationTimingFunction: "cubic-bezier(0.45, 0, 0.55, 1)" },
+          "100%": { transform: "rotate(360deg) scale(1)" },
+        },
+        // The gold rule retracts and redraws from the left.
+        "guma-logo-rule-sweep": {
+          "0%": { transform: "scaleX(1)", animationTimingFunction: "cubic-bezier(0.5, 0, 0.75, 0)" },
+          "30%": { transform: "scaleX(0)", animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" },
+          "100%": { transform: "scaleX(1)" },
         },
 
         // ── Easter egg "burnout" (about.html) ──
-        // Tire drives in from the left, burns rubber in place, then launches
-        // off to the right.
-        "guma-egg-drive": {
-          "0%": { transform: "translateX(-135vw) scaleX(1)", animationTimingFunction: "cubic-bezier(0.16, 0.9, 0.3, 1)" },
-          "16%": { transform: "translateX(0) scaleX(1)" },
-          "74%": { transform: "translateX(0) scaleX(1)", animationTimingFunction: "cubic-bezier(0.75, 0, 0.9, 0.25)" },
-          "84%": { transform: "translateX(38vw) scaleX(1.18)", animationTimingFunction: "linear" },
-          "100%": { transform: "translateX(155vw) scaleX(1.05)" },
-        },
-        // Fast jitter + squash that reads as a spinning wheel fighting for grip.
-        "guma-egg-shake": {
-          "0%": { transform: "translate(0, 0) rotate(0deg) scale(1, 1)" },
-          "25%": { transform: "translate(-4px, 2px) rotate(-1.6deg) scale(1.05, 0.95)" },
-          "50%": { transform: "translate(3px, -2px) rotate(1.3deg) scale(0.97, 1.03)" },
-          "75%": { transform: "translate(-3px, 1px) rotate(-0.8deg) scale(1.03, 0.97)" },
-          "100%": { transform: "translate(0, 0) rotate(0deg) scale(1, 1)" },
-        },
-        "guma-egg-smoke": {
-          "0%": { opacity: "0", transform: "translate3d(0, 0, 0) scale(0.35)" },
-          "18%": { opacity: "0.7" },
-          "100%": { opacity: "0", transform: "translate3d(-150px, -110px, 0) scale(2.6)" },
-        },
-        "guma-egg-skid": {
-          "0%": { opacity: "0", transform: "scaleX(0)" },
-          "4%": { opacity: "0.9" },
-          "16%": { transform: "scaleX(1)" },
-          "74%": { opacity: "0.9", transform: "scaleX(1)" },
-          "100%": { opacity: "0", transform: "scaleX(1.2)" },
-        },
+        // The scene itself is driven from js/easter-egg.js; only the caption
+        // entrance and the trigger nudge are CSS.
         "guma-egg-pop": {
           "0%": { opacity: "0", transform: "translateY(26px) scale(0.7) rotate(-4deg)" },
           "55%": { opacity: "1", transform: "translateY(0) scale(1.08) rotate(1.5deg)" },
@@ -167,11 +165,11 @@ tailwind.config = {
         "guma-mobile-open": "guma-mobile-open 0.3s cubic-bezier(0.22, 1, 0.36, 1) both",
         "guma-slide-up-out": "guma-slide-up-out 0.22s ease-in both",
         "guma-dropdown-open": "guma-dropdown-open 0.2s cubic-bezier(0.22, 1, 0.36, 1) both",
-        "guma-rubber-ball": "guma-rubber-ball 2.1s linear both",
-        "guma-egg-drive": "guma-egg-drive 4.2s linear both",
-        "guma-egg-shake": "guma-egg-shake 0.11s linear infinite",
-        "guma-egg-smoke": "guma-egg-smoke 1.6s ease-out infinite",
-        "guma-egg-skid": "guma-egg-skid 4.2s linear both",
+        "guma-logo-band": "guma-logo-band 1.25s linear both",
+        "guma-logo-recoil": "guma-logo-recoil 1.25s linear both",
+        "guma-logo-stamp": "guma-logo-stamp 0.9s linear both",
+        "guma-logo-star-spin": "guma-logo-star-spin 1.1s linear both",
+        "guma-logo-rule-sweep": "guma-logo-rule-sweep 0.9s linear both",
         "guma-egg-pop": "guma-egg-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both",
         "guma-egg-poke": "guma-egg-poke 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
       },
@@ -236,9 +234,30 @@ tailwind.config = {
         @apply animate-guma-dropdown-open;
         transform-origin: top left;
       }
-      .guma-anim-rubber {
-        @apply animate-guma-rubber-ball;
-        transform-origin: bottom center;
+      /* Brand logo (inline SVG from gumaLogoSvg(): header + <guma-logo>).
+         SVG children transform around their own user-space origin, so every
+         animated part sits in a group pre-translated to its pivot. Only
+         vector parts move, so the logo stays sharp - never transform the
+         whole link or <svg>, which would rasterise it. */
+      /* Hover (star turn) is driven from JS, see gumaWireLogoHover(). */
+      .guma-logo-rule {
+        transform-box: fill-box;
+        transform-origin: left center;
+      }
+      .guma-logo.is-snapping .guma-logo-word {
+        @apply animate-guma-logo-band;
+      }
+      .guma-logo.is-snapping .guma-logo-symbol {
+        @apply animate-guma-logo-recoil;
+      }
+      .guma-logo.is-stamping .guma-logo-symbol {
+        @apply animate-guma-logo-stamp;
+      }
+      .guma-logo.is-stamping .guma-logo-star-spin {
+        @apply animate-guma-logo-star-spin;
+      }
+      .guma-logo.is-stamping .guma-logo-rule {
+        @apply animate-guma-logo-rule-sweep;
       }
       .guma-card {
         transition:
@@ -287,6 +306,10 @@ tailwind.config = {
         }
         .guma-badge-wrap {
           transition: none !important;
+        }
+        .guma-logo.is-stamping *,
+        .guma-logo.is-snapping * {
+          animation: none !important;
         }
       }
     }

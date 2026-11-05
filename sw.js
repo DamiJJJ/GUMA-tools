@@ -12,7 +12,7 @@
 
 // ── Config ───────────────────────────────────────────────────
 // Bump only to force-drop everything cached by older versions.
-const CACHE = "guma-v1";
+const CACHE = "guma-v2";
 const PRECACHE = ["./", "index.html", "manifest.json"];
 
 // ── Lifecycle ─────────────────────────────────────────────────
