@@ -44,6 +44,7 @@ Generated from the code. Regenerate with `/styleguide`.
 ├── sw.js                       # service worker (offline cache), must stay at root
 ├── assets/                     # logos, badges, favicons (192x192 PNG for factions),
 │                               # apple-touch-icon.png (180x180, index/about)
+│   ├── brand/                  # brand kit masters (SVG, PNG, icons) + usage rules
 │   └── screenshots/            # showcase PNGs, one per generator page
 └── js/
     ├── theme-init.js           # anti-FOUC + theme-aware favicon swap, runs first
@@ -52,7 +53,8 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── guma-styles.js          # @layer base/components/utilities rules
     ├── components.js           # <guma-header>, <guma-footer>, <guma-search>,
     │                           # <guma-history-drawer>, <guma-draft-banner>,
-    │                           # <guma-preview-modal>; registers sw.js
+    │                           # <guma-preview-modal>, <guma-logo>;
+    │                           # registers sw.js
     ├── search-index.js         # GUMA_SEARCH_INDEX - every tool, for the search palette
     ├── animations.js           # scroll reveal + tile stagger
     ├── counters.js             # Supabase visit/download counters + Hot/Popular flags
@@ -203,7 +205,9 @@ Other tokens:
 - Keyframes + `animation` entries: `guma-fade-up`, `guma-fade-up-dim`,
   `guma-fade-in`, `guma-slide-in-left` / `-right`, `guma-header-drop`,
   `guma-mobile-open`, `guma-slide-up-out`, `guma-dropdown-open`,
-  `guma-rubber-ball`, and the `guma-egg-*` set (easter egg).
+  `guma-logo-band` + `guma-logo-recoil` (header logo click), `guma-logo-stamp`,
+  `guma-logo-star-spin`, `guma-logo-rule-sweep` (`<guma-logo>` click on About),
+  and the `guma-egg-*` set (easter egg).
 
 **A new colour or shadow goes into `js/tailwind-config.js`.** Never hard-code a
 hex value in markup or an inline style.
@@ -211,7 +215,8 @@ hex value in markup or an inline style.
 `js/tailwind-config.js` also injects a second `<style type="text/tailwindcss">`
 block holding the *animation* component classes (`guma-anim-header-drop`,
 `guma-page-title`, `guma-panel-form`, `guma-panel-preview`, `guma-reveal`,
-`guma-tile-stagger`, `guma-card`, `guma-card-disabled`, `guma-anim-rubber`).
+`guma-tile-stagger`, `guma-card`, `guma-card-disabled`, `guma-logo` +
+`is-snapping` / `is-stamping`).
 Structural and visual component classes live in `js/guma-styles.js`. Keep the
 split: motion in the config file, everything else in the styles file.
 
@@ -306,7 +311,7 @@ of forking a per-page variant.
 | `search-index.js` | `GUMA_SEARCH_INDEX` | plain-JSON list of every tool, read by `<guma-search>` |
 | `counters.js` | `GumaCounters` | Supabase counters, `initDownloadCounter`, `applyHotFlags` |
 | `random-character.js` | `randomizeCharacter(generatorKey)` | shared form filler |
-| `tire-spin.js` | `GumaTireSpin` | tread-only rotation of `assets/tire.svg` |
+| `tire-spin.js` | `GumaTireSpin` | side-view branded tire drawn in code, posed per frame by `draw(angle, rps)` |
 
 ### More than one photo (`GumaPhotoCrop.create`)
 
@@ -507,8 +512,9 @@ copy it. Paired HTML pages stay `snake_case.html` regardless.
 - Dark is the default. `theme-init.js` reads `localStorage["guma-theme"]` and
   toggles `html.dark` synchronously before first paint.
 - The toggle lives in the header (`<guma-header>`, `components.js`).
-- Pages using the logo favicon (`index`, `about`) get it swapped to the
-  light/dark variant by `gumaApplyThemeFavicon()`, re-run on every toggle;
+- Pages using the brand favicon (`index`, `about`: `favicon.ico` fallback +
+  `favicon.svg`) get the SVG swapped to `favicon_dark.svg` in dark mode by
+  `gumaApplyThemeFavicon()`, re-run on every toggle;
   generator pages keep their own static favicons.
 - Per-page accent: add `theme-navy` (default), `theme-navy-soft` or `theme-red`
   to `<body>`. These only affect the dark-mode background gradient.

@@ -1,9 +1,104 @@
-const GUMA_VERSION = "1.10";
+const GUMA_VERSION = "1.11";
 
 // Generator keys (data-generator-key) released in the current GUMA_VERSION.
 // Their index tiles get a "New" pill and their nav links a star, and both
 // move to the front of their group - refresh this list with every release.
-const GUMA_NEW_GENERATORS = ["uof", "pursuit", "wanted", "fire_inspection"];
+const GUMA_NEW_GENERATORS = [];
+
+// ── Brand logo ────────────────────────────────────────────────────
+// The horizontal lockup (assets/brand/svg/guma-horizontal.svg) inlined, so one
+// copy serves both themes and its parts can animate. The star hole in the G
+// is drawn as a shield-coloured star instead, so it can turn together with the
+// gold star. SVG children transform around their user-space origin, so each
+// animated part sits in a group pre-translated to its pivot: shield centre
+// (128,129), star centre (158.2,147.1), left edge of the wordmark (264,129).
+function gumaLogoSvg(svgClass) {
+  return `
+  <svg viewBox="32 12 507 234" width="507" height="234" class="${svgClass}" role="img" aria-label="GUMA Tools">
+    <g transform="translate(128 129)"><g class="guma-logo-symbol"><g transform="translate(-128 -129)">
+      <path class="fill-guma-bg dark:fill-white" d="M 128 12 L 176 25 L 224 96 L 224 140 Q 224 204 128 246 Q 32 204 32 140 L 32 38 Z"/>
+      <path class="fill-guma-gold" d="M178.7 36.2 L213.4 87.4 L174.5 71.8 Z"/>
+      <path class="fill-white dark:fill-guma-bg" d="M90.9 63.7 L167.4 63.7 L188.3 84.6 L188.3 91.5 L104.8 91.5 L95.5 100.8 L95.5 147.2 L104.8 156.5 L128 156.5 L128 114.7 L188.3 114.7 L188.3 161.1 L165.1 184.3 L90.9 184.3 L67.7 161.1 L67.7 86.9 Z"/>
+      <g transform="translate(158.2 147.1)"><g class="guma-logo-star"><g class="guma-logo-star-spin"><g transform="translate(-158.2 -147.1)">
+        <path class="fill-guma-bg dark:fill-white" d="M158.2 127.5 L162.6 141.1 L176.9 141.1 L165.3 149.5 L169.8 163.2 L158.2 154.7 L146.6 163.2 L151 149.5 L139.4 141.1 L153.7 141.1 Z"/>
+        <path class="fill-guma-gold" d="M158.2 132.6 L161.4 142.7 L172 142.7 L163.5 148.9 L166.7 159 L158.2 152.8 L149.6 159 L152.9 148.9 L144.3 142.7 L154.9 142.7 Z"/>
+      </g></g></g></g>
+    </g></g></g>
+    <g transform="translate(264 129)"><g class="guma-logo-word"><g transform="translate(-264 -129)">
+    <g transform="translate(264 26.4) scale(0.37143)">
+      <g class="fill-guma-bg dark:fill-white">
+        <path d="M 22 0 L 128 0 L 150 22 L 150 96 L 92 96 L 92 52 L 58 52 L 58 258 L 92 258 L 92 184 L 72 184 L 72 134 L 150 134 L 150 288 L 128 310 L 22 310 L 0 288 L 0 22 Z"/>
+        <path d="M 172 0 L 229 0 L 229 258 L 261 258 L 261 0 L 318 0 L 318 288 L 296 310 L 194 310 L 172 288 Z"/>
+        <path d="M 340 0 L 422 0 L 446 172 L 470 0 L 552 0 L 552 310 L 497 310 L 497 140 L 472 310 L 420 310 L 395 140 L 395 310 L 340 310 Z"/>
+        <path fill-rule="evenodd" d="M 574 310 L 612 0 L 702 0 L 740 310 L 678 310 L 673 250 L 641 250 L 636 310 Z M 652 78 L 662 78 L 669 200 L 645 200 Z"/>
+      </g>
+      <rect class="guma-logo-rule fill-guma-gold" x="0" y="340" width="740" height="18" rx="9"/>
+      <path class="fill-guma-l-gold dark:fill-guma-gold" fill-rule="evenodd" transform="translate(0 392)" d="M0 0 L62 0 L62 22 L42 22 L42 112 L20 112 L20 22 L0 22 Z M179.5 0 L221.5 0 L231.5 10 L231.5 102 L221.5 112 L179.5 112 L169.5 102 L169.5 10 Z M191.5 22 L209.5 22 L209.5 90 L191.5 90 Z M349 0 L391 0 L401 10 L401 102 L391 112 L349 112 L339 102 L339 10 Z M361 22 L379 22 L379 90 L361 90 Z M508.5 0 L530.5 0 L530.5 90 L570.5 90 L570.5 112 L518.5 112 L508.5 102 Z M688 0 L730 0 L740 10 L740 40 L718 40 L718 22 L700 22 L700 45 L730 45 L740 55 L740 102 L730 112 L688 112 L678 102 L678 72 L700 72 L700 90 L718 90 L718 67 L688 67 L678 57 L678 10 Z"/>
+    </g>
+    </g></g></g>
+  </svg>`;
+}
+
+/**
+ * Hover: the star turns one point (72deg = same shape) with a springy
+ * overshoot. Driven from JS through the SVG transform attribute rather than
+ * a CSS transition: Chrome moves CSS-transformed SVG parts onto a GPU layer,
+ * which blurs a small logo that sits on a fractional pixel position.
+ * @param {HTMLElement} el element carrying the .guma-logo class
+ */
+function gumaWireLogoHover(el) {
+  const star = el.querySelector(".guma-logo-star");
+  if (!star) return;
+  const DURATION = 450;
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // easeOutBack - same feel as cubic-bezier(0.34, 1.56, 0.64, 1).
+  const ease = (t) => 1 + 2.70158 * Math.pow(t - 1, 3) + 1.70158 * Math.pow(t - 1, 2);
+  let angle = 0;
+  let raf = 0;
+
+  const turnTo = (target) => {
+    cancelAnimationFrame(raf);
+    if (reduced) {
+      angle = target;
+      star.setAttribute("transform", `rotate(${angle})`);
+      return;
+    }
+    const from = angle;
+    let start = 0;
+    const step = (now) => {
+      if (!start) start = now;
+      const t = Math.min(1, (now - start) / DURATION);
+      angle = from + (target - from) * ease(t);
+      star.setAttribute("transform", `rotate(${angle.toFixed(2)})`);
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  };
+
+  el.addEventListener("pointerenter", () => turnTo(72));
+  el.addEventListener("pointerleave", () => turnTo(0));
+  el.addEventListener("focus", () => turnTo(72));
+  el.addEventListener("blur", () => turnTo(0));
+}
+
+/**
+ * Click easter egg on a logo: replays the CSS animation set keyed by
+ * `state` (a class on the logo) on every click, restarting it mid-flight.
+ * @param {HTMLElement} el element carrying the .guma-logo class
+ * @param {string} state class that starts the animation, e.g. "is-stamping"
+ * @param {string} lastAnimation keyframes name that finishes last
+ */
+function gumaWireLogoEgg(el, state, lastAnimation) {
+  el.addEventListener("click", (e) => {
+    e.preventDefault(); // the header logo is a link - don't navigate
+    el.classList.remove(state);
+    void el.offsetWidth; // force a reflow so the animation restarts
+    el.classList.add(state);
+  });
+  el.addEventListener("animationend", (e) => {
+    if (e.animationName === lastAnimation) el.classList.remove(state);
+  });
+}
 
 // HEADER
 class GumaHeader extends HTMLElement {
@@ -54,9 +149,8 @@ class GumaHeader extends HTMLElement {
                centre of the bar no matter how wide the right-hand controls get. -->
           <div class="flex flex-1 items-center">
             <a href="index.html" id="gumaLogo"
-               class="flex-shrink-0 flex items-center rounded-xl px-3 py-1.5 transition hover:-translate-y-px cursor-pointer select-none">
-              <img src="assets/logo.png" alt="GUMA Tools" class="h-8 w-auto block dark:hidden" />
-              <img src="assets/logo_dark.png" alt="GUMA Tools" class="h-8 w-auto hidden dark:block" />
+               class="guma-logo flex-shrink-0 flex items-center rounded-xl px-3 py-1.5 cursor-pointer select-none">
+              ${gumaLogoSvg("h-8 w-auto block overflow-visible")}
             </a>
           </div>
 
@@ -554,19 +648,11 @@ class GumaHeader extends HTMLElement {
     setInterval(checkLiveStatus, 60_000);
     // ──────────────────────────────────────────────────────────────
 
-    // ── Logo: click → rubber-ball bounce ───────────────────────────
+    // ── Logo: click → rubber band (wordmark stretches, snaps back) ─
     const logo = this.querySelector("#gumaLogo");
     if (logo) {
-      logo.addEventListener("click", (e) => {
-        e.preventDefault(); // don't reload / navigate to index.html
-        logo.classList.remove("guma-anim-rubber");
-        void logo.offsetWidth; // force a reflow so the animation restarts
-        logo.classList.add("guma-anim-rubber");
-      });
-
-      logo.addEventListener("animationend", () => {
-        logo.classList.remove("guma-anim-rubber");
-      });
+      gumaWireLogoHover(logo);
+      gumaWireLogoEgg(logo, "is-snapping", "guma-logo-band");
     }
     // ───────────────────────────────────────────────────────────────
 
@@ -666,6 +752,21 @@ class GumaHeader extends HTMLElement {
   }
 }
 customElements.define("guma-header", GumaHeader);
+
+// LOGO
+// Standalone brand logo for page heroes. Hovering turns the star; the boolean `stamp` attribute adds the click easter egg
+// (shield press, star spin, gold rule redraw). Size it through `svg-class`,
+// e.g. <guma-logo svg-class="h-14 w-auto" stamp>.
+class GumaLogo extends HTMLElement {
+  connectedCallback() {
+    if (this.dataset.ready) return;
+    this.dataset.ready = "1";
+    this.innerHTML = gumaLogoSvg(`${this.getAttribute("svg-class") || "h-14 w-auto"} block overflow-visible`);
+    gumaWireLogoHover(this);
+    if (this.hasAttribute("stamp")) gumaWireLogoEgg(this, "is-stamping", "guma-logo-star-spin");
+  }
+}
+customElements.define("guma-logo", GumaLogo);
 
 // FOOTER
 class GumaFooter extends HTMLElement {
