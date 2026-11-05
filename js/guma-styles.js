@@ -1341,6 +1341,73 @@
         }
       }
 
+      /* ─── Easter egg: lightbar ─── */
+      /* A click-through layer over the viewport (js/lightbar-egg.js). Each
+         side edge holds three lamps - blue on top, red in the middle, white
+         at the bottom. A lamp is a full-screen layer painting one soft
+         ellipse anchored on its edge; the ellipses overlap, so lamps lit
+         together melt into one gradient. JS switches each lamp's opacity
+         (the flash patterns); .is-on fades the whole stage in. Nothing
+         reaches the top or bottom edge away from the sides. */
+      .guma-lightbar {
+        @apply pointer-events-none fixed inset-0 z-[90] opacity-0;
+        transition: opacity 0.4s ease;
+      }
+      .guma-lightbar.is-on {
+        @apply opacity-100;
+      }
+      /* --lamp: colour as "r, g, b"; --x / --y: ellipse centre. */
+      .guma-lightbar-lamp {
+        @apply absolute inset-0 opacity-0;
+        will-change: opacity;
+        background: radial-gradient(
+          20vmin 34vh at var(--x) var(--y),
+          rgba(var(--lamp), 0.95),
+          rgba(var(--lamp), 0.55) 30%,
+          rgba(var(--lamp), 0.18) 62%,
+          transparent
+        );
+      }
+      /* Additive on the dark page, so overlapping lamps brighten like light. */
+      html.dark .guma-lightbar-lamp {
+        mix-blend-mode: screen;
+      }
+      .guma-lightbar-lamp.is-left {
+        --x: 0%;
+      }
+      .guma-lightbar-lamp.is-right {
+        --x: 100%;
+      }
+      .guma-lightbar-blue {
+        --y: 14%;
+        --lamp: 40, 95, 255;
+      }
+      .guma-lightbar-red {
+        --y: 50%;
+        --lamp: 255, 30, 45;
+      }
+      /* Plain white vanishes on the light theme's pale page, so there the
+         white lamp is a cold sky-blue glow around a white core. */
+      .guma-lightbar-white {
+        --y: 86%;
+        --lamp: 150, 200, 255;
+        background: radial-gradient(
+          20vmin 34vh at var(--x) var(--y),
+          #fff,
+          rgba(var(--lamp), 0.9) 12%,
+          rgba(var(--lamp), 0.45) 35%,
+          rgba(var(--lamp), 0.12) 62%,
+          transparent
+        );
+      }
+      /* The dark theme's navy page swallows a deep blue - go lighter. */
+      html.dark .guma-lightbar-blue {
+        --lamp: 90, 150, 255;
+      }
+      html.dark .guma-lightbar-white {
+        --lamp: 255, 255, 255;
+      }
+
       /* ─── Evidence Locker (about.html) + evidence toast ─── */
       /* Trigger: the bare cabinet next to the disclaimer, a touch faded
          until it is hovered. */
@@ -1517,6 +1584,10 @@
       .guma-locker-icon > img {
         @apply block h-full w-full object-contain;
       }
+      /* Outline of the KOD 3 lightbar (also in the toast). */
+      .guma-kod3-icon {
+        @apply text-guma-l-text dark:text-guma-text;
+      }
       .guma-locker-slot.is-classified .guma-locker-icon {
         filter: blur(6px) grayscale(1);
         opacity: 0.5;
@@ -1531,6 +1602,14 @@
       .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="spin"] {
         @apply animate-spin;
         animation-duration: 0.6s;
+      }
+      /* KOD 3: the two lenses pulse out of step. */
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="flash"] :is(.guma-kod3-blue, .guma-kod3-red) {
+        @apply animate-pulse;
+        animation-duration: 0.6s;
+      }
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="flash"] .guma-kod3-red {
+        animation-delay: 0.3s;
       }
       .guma-locker-name {
         @apply text-sm font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text sm:text-base;
@@ -1633,6 +1712,7 @@
         .guma-locker-overlay,
         .guma-locker-panel,
         .guma-locker-icon,
+        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red),
         .guma-locker-stamp-closed {
           animation: none !important;
         }

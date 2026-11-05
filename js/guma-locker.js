@@ -47,6 +47,49 @@ window.GumaLocker = (function () {
     return _el(`<img src="assets/tire.svg" alt="" />`);
   }
 
+  // A patrol car lightbar (assets/police.svg, inlined so the outline can
+  // follow the theme via currentColor). Each lens throws a soft glow in the
+  // colours of the lightbar egg's lamps (js/guma-styles.js), spilling
+  // past the viewBox (overflow="visible") like light would. Lenses and
+  // glows carry the hover hooks for the locker (.guma-kod3-blue / -red).
+  // Gradient ids are numbered: the toast and the locker each hold a copy.
+  let _kod3Seq = 0;
+  function lightbarIcon() {
+    const id = `gumaKod3${++_kod3Seq}`;
+    const glow = (name, rgb) => `
+      <radialGradient id="${id}${name}">
+        <stop offset="0%" stop-color="rgb(${rgb})" stop-opacity="1"/>
+        <stop offset="35%" stop-color="rgb(${rgb})" stop-opacity="0.6"/>
+        <stop offset="70%" stop-color="rgb(${rgb})" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="rgb(${rgb})" stop-opacity="0"/>
+      </radialGradient>`;
+    return _el(`
+      <svg viewBox="0 0 512 512" class="guma-kod3-icon" overflow="visible" aria-hidden="true" focusable="false">
+        <defs>${glow("Blue", "60, 125, 255")}${glow("Red", "255, 30, 45")}</defs>
+        <ellipse class="guma-kod3-blue" cx="139" cy="270" rx="215" ry="200" fill="url(#${id}Blue)"/>
+        <ellipse class="guma-kod3-red" cx="375" cy="270" rx="215" ry="200" fill="url(#${id}Red)"/>
+        <path fill="#7A6D79" d="M494.5 372.642h-477c-5.523 0-10-4.477-10-10 0-14.704 11.92-26.623 26.623-26.623h443.754c14.704 0 26.623 11.92 26.623 26.623 0 5.523-4.477 10-10 10z"/>
+        <path fill="#685E68" d="M477.877 336.019h-40c14.704 0 26.623 11.919 26.623 26.623 0 5.523-4.477 10-10 10h40c5.523 0 10-4.477 10-10 0-14.704-11.92-26.623-26.623-26.623z"/>
+        <g class="guma-kod3-blue">
+          <path fill="#26A6FE" d="M244 336.019H34.5v-60.877c0-27.614 22.386-50 50-50H244z"/>
+          <rect x="194" y="225.142" width="50" height="110.877" fill="#0593FC"/>
+        </g>
+        <g class="guma-kod3-red">
+          <path fill="#FD8087" d="M480.25 336.019h-209.5V225.142h159.5c27.614 0 50 22.386 50 50z"/>
+          <path fill="#FE646F" d="M430.25 225.142h-40c27.614 0 50 22.386 50 50v60.877h40v-60.877c0-27.615-22.386-50-50-50z"/>
+        </g>
+        <path fill="#F3F0F3" d="M278.231 336.019h-44.462V223.765c0-5.523 4.477-10 10-10h24.462c5.523 0 10 4.477 10 10z"/>
+        <g fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M455.877 372.642H494.5c5.523 0 10-4.477 10-10 0-14.704-11.92-26.623-26.623-26.623H34.123C19.419 336.019 7.5 347.938 7.5 362.642c0 5.523 4.477 10 10 10h408.52"/>
+          <path d="M144.5 225.142h89.269"/>
+          <path d="M34.5 336.019v-60.877c0-27.614 22.386-50 50-50H117"/>
+          <path d="M278.231 225.142H430.25c27.614 0 50 22.386 50 50v60.877"/>
+          <path d="M278.231 336.019h-44.462V223.765c0-5.523 4.477-10 10-10h24.462c5.523 0 10 4.477 10 10z"/>
+          <path d="M256 139.358v22.045M156.965 165.895l11.023 19.091M355.035 165.895l-11.023 19.091"/>
+        </g>
+      </svg>`);
+  }
+
   // ── Evidence registry ─────────────────────────────────────────
   // Order = exhibit letter. `fx` names the hover replay in the locker
   // (.guma-locker-icon[data-fx]). Police terms (title, "Exhibit",
@@ -54,17 +97,24 @@ window.GumaLocker = (function () {
   const EVIDENCE = [
     {
       id: "logo-band",
-      title: "Rubber Band",
-      note: "Logo w headerze naciągnięte jak guma. Na szczęście wróciło na miejsce.",
+      title: "Guma LEA",
+      note: "Logo w nagłówku naciągnięte jak guma. Na szczęście wróciło na miejsce.",
       fx: "band",
       icon: logoIcon,
     },
     {
       id: "burnout",
-      title: "Burnout",
-      note: "Ślady opon, kłęby dymu i jedno bardzo gorące koło na stronie O projekcie.",
+      title: "Palimy gumę!",
+      note: "Ślady opon, kłęby dymu i jedno bardzo gorące koło na stronie „O projekcie”.",
       fx: "spin",
       icon: tireIcon,
+    },
+    {
+      id: "lightbar",
+      title: "KOD 3",
+      note: "Dziesięć przełączeń motywu w pięć sekund. Reaguj w kodzie 3.",
+      fx: "flash",
+      icon: lightbarIcon,
     },
   ];
 
