@@ -154,6 +154,16 @@ tailwind.config = {
           "60%": { transform: "translateY(1px) scale(0.98) rotate(1.5deg)" },
           "100%": { transform: "translateY(0) scale(1) rotate(0deg)" },
         },
+
+        // ── Evidence Locker (about.html) ──
+        // CASE CLOSED is slammed down like a rubber stamp. The tilt is part
+        // of every frame, because the animation owns the whole transform.
+        "guma-stamp-slam": {
+          "0%": { opacity: "0", transform: "rotate(-6deg) scale(2.2)" },
+          "60%": { opacity: "1", transform: "rotate(-6deg) scale(0.92)" },
+          "80%": { transform: "rotate(-6deg) scale(1.04)" },
+          "100%": { opacity: "1", transform: "rotate(-6deg) scale(1)" },
+        },
       },
       animation: {
         "guma-header-drop": "guma-header-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
@@ -172,6 +182,7 @@ tailwind.config = {
         "guma-logo-rule-sweep": "guma-logo-rule-sweep 0.9s linear both",
         "guma-egg-pop": "guma-egg-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both",
         "guma-egg-poke": "guma-egg-poke 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
+        "guma-stamp-slam": "guma-stamp-slam 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
     },
   },

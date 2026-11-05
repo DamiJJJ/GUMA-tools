@@ -16,13 +16,7 @@ function gumaLogoSvg(svgClass) {
   return `
   <svg viewBox="32 12 507 234" width="507" height="234" class="${svgClass}" role="img" aria-label="GUMA Tools">
     <g transform="translate(128 129)"><g class="guma-logo-symbol"><g transform="translate(-128 -129)">
-      <path class="fill-guma-bg dark:fill-white" d="M 128 12 L 176 25 L 224 96 L 224 140 Q 224 204 128 246 Q 32 204 32 140 L 32 38 Z"/>
-      <path class="fill-guma-gold" d="M178.7 36.2 L213.4 87.4 L174.5 71.8 Z"/>
-      <path class="fill-white dark:fill-guma-bg" d="M90.9 63.7 L167.4 63.7 L188.3 84.6 L188.3 91.5 L104.8 91.5 L95.5 100.8 L95.5 147.2 L104.8 156.5 L128 156.5 L128 114.7 L188.3 114.7 L188.3 161.1 L165.1 184.3 L90.9 184.3 L67.7 161.1 L67.7 86.9 Z"/>
-      <g transform="translate(158.2 147.1)"><g class="guma-logo-star"><g class="guma-logo-star-spin"><g transform="translate(-158.2 -147.1)">
-        <path class="fill-guma-bg dark:fill-white" d="M158.2 127.5 L162.6 141.1 L176.9 141.1 L165.3 149.5 L169.8 163.2 L158.2 154.7 L146.6 163.2 L151 149.5 L139.4 141.1 L153.7 141.1 Z"/>
-        <path class="fill-guma-gold" d="M158.2 132.6 L161.4 142.7 L172 142.7 L163.5 148.9 L166.7 159 L158.2 152.8 L149.6 159 L152.9 148.9 L144.3 142.7 L154.9 142.7 Z"/>
-      </g></g></g></g>
+      ${gumaLogoSymbolPaths()}
     </g></g></g>
     <g transform="translate(264 129)"><g class="guma-logo-word"><g transform="translate(-264 -129)">
     <g transform="translate(264 26.4) scale(0.37143)">
@@ -37,6 +31,25 @@ function gumaLogoSvg(svgClass) {
     </g>
     </g></g></g>
   </svg>`;
+}
+
+// The shield symbol on its own, in the lockup's user space (x 32-224,
+// y 12-246, centre 128,129). Shared by gumaLogoSvg() and the Evidence Locker
+// (js/guma-locker.js, js/evidence-locker.js). The star groups carry the hover
+// / stamp hooks; outside a .guma-logo they stay inert.
+// onDark: always the white-shield variant, for art on a dark ground in both
+// themes (the inside of the locker cabinet).
+function gumaLogoSymbolPaths(onDark) {
+  const shield = onDark ? "fill-white" : "fill-guma-bg dark:fill-white";
+  const cutout = onDark ? "fill-guma-bg" : "fill-white dark:fill-guma-bg";
+  return `
+      <path class="${shield}" d="M 128 12 L 176 25 L 224 96 L 224 140 Q 224 204 128 246 Q 32 204 32 140 L 32 38 Z"/>
+      <path class="fill-guma-gold" d="M178.7 36.2 L213.4 87.4 L174.5 71.8 Z"/>
+      <path class="${cutout}" d="M90.9 63.7 L167.4 63.7 L188.3 84.6 L188.3 91.5 L104.8 91.5 L95.5 100.8 L95.5 147.2 L104.8 156.5 L128 156.5 L128 114.7 L188.3 114.7 L188.3 161.1 L165.1 184.3 L90.9 184.3 L67.7 161.1 L67.7 86.9 Z"/>
+      <g transform="translate(158.2 147.1)"><g class="guma-logo-star"><g class="guma-logo-star-spin"><g transform="translate(-158.2 -147.1)">
+        <path class="${shield}" d="M158.2 127.5 L162.6 141.1 L176.9 141.1 L165.3 149.5 L169.8 163.2 L158.2 154.7 L146.6 163.2 L151 149.5 L139.4 141.1 L153.7 141.1 Z"/>
+        <path class="fill-guma-gold" d="M158.2 132.6 L161.4 142.7 L172 142.7 L163.5 148.9 L166.7 159 L158.2 152.8 L149.6 159 L152.9 148.9 L144.3 142.7 L154.9 142.7 Z"/>
+      </g></g></g></g>`;
 }
 
 /**
@@ -87,13 +100,15 @@ function gumaWireLogoHover(el) {
  * @param {HTMLElement} el element carrying the .guma-logo class
  * @param {string} state class that starts the animation, e.g. "is-stamping"
  * @param {string} lastAnimation keyframes name that finishes last
+ * @param {string} [evidenceId] Evidence Locker id this egg collects
  */
-function gumaWireLogoEgg(el, state, lastAnimation) {
+function gumaWireLogoEgg(el, state, lastAnimation, evidenceId) {
   el.addEventListener("click", (e) => {
     e.preventDefault(); // the header logo is a link - don't navigate
     el.classList.remove(state);
     void el.offsetWidth; // force a reflow so the animation restarts
     el.classList.add(state);
+    if (evidenceId) window.GumaLocker?.collect(evidenceId);
   });
   el.addEventListener("animationend", (e) => {
     if (e.animationName === lastAnimation) el.classList.remove(state);
@@ -652,7 +667,7 @@ class GumaHeader extends HTMLElement {
     const logo = this.querySelector("#gumaLogo");
     if (logo) {
       gumaWireLogoHover(logo);
-      gumaWireLogoEgg(logo, "is-snapping", "guma-logo-band");
+      gumaWireLogoEgg(logo, "is-snapping", "guma-logo-band", "logo-band");
     }
     // ───────────────────────────────────────────────────────────────
 

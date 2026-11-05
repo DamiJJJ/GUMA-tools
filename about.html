@@ -118,20 +118,26 @@
           </section>
         </div>
 
-        <!-- Disclaimer -->
-        <p class="text-center text-xs leading-6 text-guma-l-muted dark:text-guma-muted">
-          Wszystkie agencje, nazwiska, numery odznak i dokumenty są fikcyjne i służą wyłącznie do rozgrywki roleplay. Projekt nie jest powiązany z żadną realną
-          agencją porządku publicznego.
-        </p>
+        <!-- Evidence Locker + disclaimer (js/evidence-locker.js draws the cabinet) -->
+        <div class="flex items-center gap-4">
+          <button type="button" data-guma-locker class="guma-locker-trigger" aria-label="Evidence Locker" title="Evidence Locker"></button>
+          <p class="text-xs leading-6 text-guma-l-muted dark:text-guma-muted">
+            Wszystkie agencje, nazwiska, numery odznak i dokumenty są fikcyjne i służą wyłącznie do rozgrywki roleplay. Projekt nie jest powiązany z żadną realną
+            agencją porządku publicznego.
+          </p>
+        </div>
       </div>
     </main>
 
     <guma-footer></guma-footer>
+    <script src="js/guma-profile.js"></script>
+    <script src="js/guma-locker.js"></script>
     <script src="js/counters.js"></script>
     <script src="js/search-index.js"></script>
     <script src="js/components.js"></script>
     <script src="js/animations.js"></script>
     <script src="js/tire-spin.js"></script>
     <script src="js/easter-egg.js"></script>
+    <script src="js/evidence-locker.js"></script>
   </body>
 </html>

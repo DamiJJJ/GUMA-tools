@@ -1341,6 +1341,303 @@
         }
       }
 
+      /* ─── Evidence Locker (about.html) + evidence toast ─── */
+      /* Trigger: the bare cabinet next to the disclaimer, a touch faded
+         until it is hovered. */
+      .guma-locker-trigger {
+        @apply inline-flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1 opacity-80 transition
+               hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2
+               focus-visible:ring-guma-l-gold dark:focus-visible:ring-guma-gold;
+      }
+      .guma-locker-cabinet {
+        @apply block h-11 w-11 overflow-visible;
+      }
+      /* Painted steel, two shades per theme. The compartments stay dark in
+         both themes, so the white shield behind the door reads either way. */
+      .guma-locker-body {
+        fill: #8592ab;
+      }
+      .guma-locker-plinth {
+        fill: #66728c;
+      }
+      .guma-locker-inside {
+        fill: #1b2238;
+      }
+      .guma-locker-door-face {
+        fill: #bac5d7;
+      }
+      .guma-locker-door-edge {
+        fill: #a2aec4;
+      }
+      .guma-locker-vent {
+        stroke: #66728c;
+      }
+      .guma-locker-handle {
+        fill: #f4f7fc;
+      }
+      html.dark .guma-locker-body {
+        fill: #34456d;
+      }
+      html.dark .guma-locker-plinth {
+        fill: #25335a;
+      }
+      html.dark .guma-locker-inside {
+        fill: #060a1c;
+      }
+      html.dark .guma-locker-door-face {
+        fill: #4c5f8d;
+      }
+      html.dark .guma-locker-door-edge {
+        fill: #405281;
+      }
+      html.dark .guma-locker-vent {
+        stroke: #27355d;
+      }
+      html.dark .guma-locker-handle {
+        fill: #cfd8ea;
+      }
+      /* The right door is hinged on its right edge; scaleX + skewY fakes the
+         swing in 2D (SVG parts get no 3D perspective). */
+      .guma-locker-door {
+        transform-box: fill-box;
+        transform-origin: right center;
+        transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .guma-locker-trigger:hover .guma-locker-door,
+      .guma-locker-trigger:focus-visible .guma-locker-door,
+      .guma-locker-cabinet.is-open .guma-locker-door {
+        transform: scaleX(0.36) skewY(6deg);
+      }
+      /* Swung out, the door turns away from the light - a darker face also
+         keeps its edge from reading as part of the shield behind it. */
+      .guma-locker-door .guma-locker-door-face {
+        transition: fill 0.3s ease;
+      }
+      .guma-locker-trigger:hover .guma-locker-door .guma-locker-door-face,
+      .guma-locker-trigger:focus-visible .guma-locker-door .guma-locker-door-face,
+      .guma-locker-cabinet.is-open .guma-locker-door .guma-locker-door-face {
+        fill: #8f9cb4;
+      }
+      html.dark .guma-locker-trigger:hover .guma-locker-door .guma-locker-door-face,
+      html.dark .guma-locker-trigger:focus-visible .guma-locker-door .guma-locker-door-face,
+      html.dark .guma-locker-cabinet.is-open .guma-locker-door .guma-locker-door-face {
+        fill: #33436c;
+      }
+
+      /* Dialog: display comes from the hidden/flex pair toggled in JS, like
+         the command palette. Above the palette, below the burnout stage.
+         Wide on purpose - the shelf has room for the eggs still to come. */
+      .guma-locker-root {
+        @apply fixed inset-0 z-[85] items-center justify-center p-3 sm:p-5;
+      }
+      .guma-locker-overlay {
+        @apply absolute inset-0 bg-black/60 animate-guma-fade-in;
+      }
+      .guma-locker-panel {
+        @apply relative flex max-h-[94vh] w-full max-w-6xl flex-col gap-5 overflow-y-auto rounded-2xl border p-5 sm:p-7
+               animate-guma-fade-up
+               border-guma-l-border bg-guma-l-panel shadow-panel-light
+               dark:border-guma-border dark:bg-guma-panel dark:shadow-panel;
+      }
+      /* Wraps on phones, where the CASE CLOSED stamp drops to its own line. */
+      .guma-locker-head {
+        @apply flex flex-wrap items-center gap-x-4 gap-y-3;
+      }
+      .guma-locker-head-icon {
+        @apply shrink-0;
+      }
+      .guma-locker-head-icon .guma-locker-cabinet {
+        @apply h-12 w-12 sm:h-16 sm:w-16;
+      }
+      .guma-locker-head-text {
+        @apply min-w-0 flex-1;
+      }
+      .guma-locker-kicker {
+        @apply text-[10px] font-bold uppercase tracking-[0.14em] text-guma-l-muted dark:text-guma-muted sm:text-[11px] sm:tracking-[0.18em];
+      }
+      .guma-locker-title {
+        @apply text-lg font-black uppercase tracking-[0.1em] text-guma-l-text dark:text-guma-text sm:text-2xl sm:tracking-[0.14em];
+      }
+      .guma-locker-close {
+        @apply inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition
+               border-guma-l-border text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
+               dark:border-guma-border dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold;
+      }
+      .guma-locker-summary {
+        @apply flex flex-col gap-2;
+      }
+      .guma-locker-summary-row {
+        @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1;
+      }
+      .guma-locker-count {
+        @apply text-xs font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold sm:text-sm;
+      }
+      .guma-locker-soon-count {
+        @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-locker-progress {
+        @apply h-2 w-full overflow-hidden rounded-full bg-guma-l-panel-2 dark:bg-guma-panel-2;
+      }
+      .guma-locker-progress-bar {
+        @apply block h-full rounded-full bg-guma-l-gold dark:bg-guma-gold;
+        transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .guma-locker-grid {
+        @apply grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4;
+      }
+      /* Each exhibit is an evidence tag: a punched hole at the top, the
+         exhibit letter, the item and the date it was logged. */
+      .guma-locker-slot {
+        @apply relative flex flex-col items-center gap-1.5 rounded-xl border px-3 pb-4 pt-7 text-center sm:px-4
+               border-guma-l-gold/30 bg-guma-l-panel-2 dark:border-guma-gold/30 dark:bg-guma-panel-2;
+      }
+      .guma-locker-slot::before {
+        content: "";
+        @apply absolute left-1/2 top-2.5 h-2.5 w-2.5 -translate-x-1/2 rounded-full border
+               border-guma-l-border-2 bg-guma-l-panel dark:border-guma-border-2 dark:bg-guma-panel;
+      }
+      .guma-locker-slot.is-classified {
+        @apply border-dashed border-guma-l-border-2 dark:border-guma-muted/30;
+      }
+      /* An egg that does not exist yet: an empty, padlocked tag. */
+      .guma-locker-slot.is-soon {
+        @apply border-dashed border-guma-l-border bg-transparent opacity-75
+               dark:border-guma-muted/20 dark:bg-transparent;
+      }
+      .guma-locker-exhibit {
+        @apply text-[10px] font-bold uppercase tracking-[0.22em] text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-locker-art {
+        @apply relative my-1 flex h-20 w-20 items-center justify-center lg:h-24 lg:w-24;
+      }
+      .guma-locker-icon {
+        @apply h-full w-full;
+      }
+      .guma-locker-icon > svg,
+      .guma-locker-icon > img {
+        @apply block h-full w-full object-contain;
+      }
+      .guma-locker-slot.is-classified .guma-locker-icon {
+        filter: blur(6px) grayscale(1);
+        opacity: 0.5;
+      }
+      .guma-locker-slot.is-soon .guma-locker-icon {
+        @apply p-[26%] text-guma-l-muted/60 dark:text-guma-muted/50;
+      }
+      /* Hovering a collected exhibit replays a pocket version of its egg. */
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="band"] {
+        @apply animate-guma-logo-band;
+      }
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="spin"] {
+        @apply animate-spin;
+        animation-duration: 0.6s;
+      }
+      .guma-locker-name {
+        @apply text-sm font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text sm:text-base;
+      }
+      .guma-locker-slot.is-classified .guma-locker-name,
+      .guma-locker-slot.is-soon .guma-locker-name {
+        @apply text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-locker-note {
+        @apply text-xs leading-5 text-guma-l-muted dark:text-guma-muted;
+      }
+      .guma-locker-date {
+        @apply mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold;
+      }
+      .guma-locker-foot {
+        @apply text-center text-xs leading-5 text-guma-l-muted dark:text-guma-muted;
+      }
+      /* Rubber stamps: CLASSIFIED over a blurred exhibit, CASE CLOSED on the
+         case file header once every exhibit is in (over the grid it hid the
+         titles; under it, it fell below the fold). */
+      .guma-locker-stamp {
+        @apply pointer-events-none select-none whitespace-nowrap rounded-md font-black uppercase;
+      }
+      .guma-locker-stamp-classified {
+        @apply absolute left-1/2 top-1/2 border-2 px-2 py-0.5 text-[11px] tracking-[0.2em]
+               border-guma-danger-h text-guma-danger-h;
+        transform: translate(-50%, -50%) rotate(-12deg);
+        background: rgba(204, 0, 0, 0.06);
+      }
+      html.dark .guma-locker-stamp-classified {
+        border-color: #ff6b6b;
+        color: #ff6b6b;
+        background: rgba(255, 107, 107, 0.08);
+      }
+      .guma-locker-stamp-closed {
+        @apply order-last mx-auto border-4 px-4 py-1 text-lg tracking-[0.22em] animate-guma-stamp-slam
+               sm:order-none sm:mx-0 sm:mr-3 sm:px-5 sm:py-1.5 sm:text-2xl
+               border-guma-l-gold text-guma-l-gold dark:border-guma-gold dark:text-guma-gold;
+        transform: rotate(-6deg);
+        outline: 2px solid currentColor;
+        outline-offset: 3px;
+        animation-delay: 0.25s;
+      }
+
+      /* Evidence toast (js/guma-locker.js), on any page. Mounted once and
+         kept in the DOM as the live region; "hidden" means faded out and
+         click-through. Sits above the burnout stage and the dialog. */
+      .guma-toast {
+        @apply pointer-events-none fixed inset-x-4 bottom-4 z-[95] flex justify-center opacity-0
+               sm:inset-x-auto sm:bottom-6 sm:right-6;
+        transform: translateY(16px);
+        transition:
+          opacity 0.3s ease,
+          transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .guma-toast.is-visible {
+        @apply pointer-events-auto opacity-100;
+        transform: translateY(0);
+      }
+      .guma-toast-link {
+        @apply flex w-full max-w-sm items-center gap-3 rounded-2xl border px-4 py-3 no-underline sm:w-auto
+               border-guma-l-gold/40 bg-guma-l-panel text-guma-l-text shadow-panel-light
+               dark:border-guma-gold/40 dark:bg-guma-panel dark:text-guma-text dark:shadow-panel;
+      }
+      .guma-toast.is-closed .guma-toast-link {
+        @apply border-guma-l-gold dark:border-guma-gold;
+      }
+      .guma-toast-icon {
+        @apply h-10 w-10 shrink-0;
+      }
+      .guma-toast-icon > svg,
+      .guma-toast-icon > img {
+        @apply block h-full w-full object-contain;
+      }
+      .guma-toast-body {
+        @apply flex min-w-0 flex-1 flex-col;
+      }
+      .guma-toast-kicker {
+        @apply text-[10px] font-bold uppercase tracking-[0.18em] text-guma-l-gold dark:text-guma-gold;
+      }
+      .guma-toast-title {
+        @apply truncate text-sm font-bold;
+      }
+      .guma-toast-count {
+        @apply shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-black tracking-wider
+               border-guma-l-gold/40 text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-gold;
+      }
+      /* Reduced motion: the door snaps ajar instead of swinging, nothing
+         slides or slams; plain state changes remain. */
+      @media (prefers-reduced-motion: reduce) {
+        .guma-locker-door,
+        .guma-locker-door .guma-locker-door-face,
+        .guma-locker-progress-bar,
+        .guma-toast {
+          transition: none !important;
+        }
+        .guma-toast {
+          transform: none !important;
+        }
+        .guma-locker-overlay,
+        .guma-locker-panel,
+        .guma-locker-icon,
+        .guma-locker-stamp-closed {
+          animation: none !important;
+        }
+      }
+
       /* ─── Command palette (Ctrl+K search) ─── */
       /* Header trigger. Icon-only until 2xl, where the label and the shortcut
          hint fit without crowding the nav. */

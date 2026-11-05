@@ -76,8 +76,11 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── canvas-zoom.js          # GumaCanvasZoom - zoomable preview for tall sheets
     ├── mannequin-3d.js         # raw WebGL mannequin for the character description
     ├── ui-helpers.js           # buildFactionSwitcher() and small shared UI bits
+    ├── guma-profile.js         # GumaProfile - shared user profile in localStorage
+    ├── guma-locker.js          # GumaLocker - easter-egg registry, collect(), toast
     ├── tire-spin.js            # GumaTireSpin - rolling-tire SVG (about page)
     ├── easter-egg.js           # hidden burnout easter egg, opt-in via [data-guma-egg]
+    ├── evidence-locker.js      # Evidence Locker cabinet + dialog (about page)
     ├── bodycam-*.js            # bodycam overlay: cameras/layers/render/stage/page
     └── <page>.js               # one JS file per generator/report
 ```
@@ -120,6 +123,9 @@ module must precede the page JS that calls it. The two established tails:
 <script src="js/animations.js"></script>
 ```
 
+(Every page, cards and reports alike, also loads `js/guma-profile.js` +
+`js/guma-locker.js` right before `js/counters.js` - see the note below.)
+
 ```html
 <!-- Report generators (prehospital_care_report.html) -->
 <script src="js/history.js"></script>
@@ -141,6 +147,9 @@ module must precede the page JS that calls it. The two established tails:
   `body-diagram.js`, then the page script).
 - `search-index.js` loads on every page, right before `components.js` (the
   `<guma-search>` palette reads `GUMA_SEARCH_INDEX`).
+- `guma-profile.js` then `guma-locker.js` load on every page, right before
+  `counters.js`: the header logo egg collects evidence on any page, and the
+  locker reads the profile.
 - Pages close with a small inline `<script>` bootstrap after `animations.js`
   (`DOMContentLoaded` -> page init + `GumaCounters?.initDownloadCounter(...)`).
   Keep it to wiring calls; logic belongs in the page JS.
@@ -207,7 +216,8 @@ Other tokens:
   `guma-mobile-open`, `guma-slide-up-out`, `guma-dropdown-open`,
   `guma-logo-band` + `guma-logo-recoil` (header logo click), `guma-logo-stamp`,
   `guma-logo-star-spin`, `guma-logo-rule-sweep` (`<guma-logo>` click on About),
-  and the `guma-egg-*` set (easter egg).
+  the `guma-egg-*` set (easter egg) and `guma-stamp-slam` (Evidence Locker
+  CASE CLOSED stamp).
 
 **A new colour or shadow goes into `js/tailwind-config.js`.** Never hard-code a
 hex value in markup or an inline style.
@@ -228,7 +238,8 @@ Panels, Upload dropzone, Themed scrollbar, Canvas preview, Photo cropping, Secti
 titles, Index tiles, Latest video widget, Form labels/inputs, Buttons, Form
 section header, Faction switcher, Segmented control, Bodycam stage, Report
 dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, Multi-page
-report (page strip + form tabs), WYSIWYG canvas editing, Easter egg.
+report (page strip + form tabs), WYSIWYG canvas editing, Easter egg, Evidence
+Locker + evidence toast, Command palette.
 
 Reuse before adding:
 
@@ -312,6 +323,8 @@ of forking a per-page variant.
 | `counters.js` | `GumaCounters` | Supabase counters, `initDownloadCounter`, `applyHotFlags` |
 | `random-character.js` | `randomizeCharacter(generatorKey)` | shared form filler |
 | `tire-spin.js` | `GumaTireSpin` | side-view branded tire drawn in code, posed per frame by `draw(angle, rps)` |
+| `guma-profile.js` | `GumaProfile` | shared user profile (`guma:profile`): `get`, `update(mutator)`, `subscribe` (also fires on changes from other tabs) |
+| `guma-locker.js` | `GumaLocker` | easter-egg registry: `collect`, `has`, `list`, `slots`, `progress`, `isComplete`, `closedAt`, `subscribe`, `reset` + the "evidence collected" toast |
 
 ### More than one photo (`GumaPhotoCrop.create`)
 
@@ -709,6 +722,35 @@ extra code.
   payloads - the draft check runs both on every page load.
 - Exceptions: `character_description` registers history but deliberately does
   not load `guma-draft.js`; `bodycam_overlay` has no history and no drafts.
+
+## Easter eggs & Evidence Locker
+
+Every easter egg is a piece of evidence. Found ones are stored in the shared
+profile (`js/guma-profile.js`, localStorage key `guma:profile`) and shown in the
+Evidence Locker - the two-door cabinet left of the disclaimer on `about.html`
+(`js/evidence-locker.js`). The profile is one object for everything the app
+remembers about the user, so new per-user state (e.g. a rank counter) gets a
+field there plus a default in its `_migrate()`, not a new localStorage key.
+
+Adding a new egg:
+
+1. Add an entry to `EVIDENCE` in `js/guma-locker.js`: `id` (kebab-case), `title`,
+   `note` (shown once found), `fx` (hover replay in the locker, styled via
+   `.guma-locker-icon[data-fx="..."]`) and `icon()` returning a fresh element.
+   The order sets the exhibit letter (A, B, ...). The locker shows
+   `LOCKER_SLOTS` tags; the ones without an egg are drawn as "Soon", so a new
+   entry simply takes over the first of them (raise `LOCKER_SLOTS` once they
+   run out).
+2. Call `window.GumaLocker?.collect("<id>")` from the egg's own code when it
+   fires. It is idempotent - only the first call stores the find and shows the
+   toast - so call it on every trigger. Call it after any full-screen scene
+   ends (see `dismiss()` in `js/easter-egg.js`), so the toast is not hidden
+   under it.
+
+Progress counts real eggs only (Soon slots never block CASE CLOSED); the total
+grows with the registry. `lockerClosedAt` is set the first time every
+exhibit is in and is never cleared, so a future reward can rely on it.
+`GumaLocker.reset()` empties the locker from the console for testing.
 
 ## PWA / service worker
 

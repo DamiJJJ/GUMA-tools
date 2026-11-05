@@ -4,7 +4,8 @@
 // dims the page and plays a burnout with a synthesised screech: a tire rolls
 // in, spins in place on a hot patch of rubber under a plume of smoke, then
 // catches grip and launches off, leaving a rubber stripe behind. Opt-in per
-// page via [data-guma-egg] on the trigger element.
+// page via [data-guma-egg] on the trigger element. Collects the "burnout"
+// evidence for the Evidence Locker (js/guma-locker.js).
 
 (function () {
   // ── Config ──────────────────────────────────────────────────────────
@@ -366,7 +367,12 @@
     }
 
     scene.overlay.classList.add("is-leaving");
-    setTimeout(() => scene.overlay.remove(), FADE_MS);
+    setTimeout(() => {
+      scene.overlay.remove();
+      // Logged once the stage is gone, so the "evidence collected" toast
+      // does not land on top of the scene.
+      window.GumaLocker?.collect("burnout");
+    }, FADE_MS);
   }
 
   function onKeyDown(e) {
