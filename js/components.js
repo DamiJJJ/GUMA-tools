@@ -196,17 +196,17 @@ class GumaHeader extends HTMLElement {
                           dark:border-guma-border dark:bg-guma-panel dark:shadow-panel">
                 <a href="officer_generator.html" data-generator-key="officer" data-hot-flag="icon"
                    class="${dropLinkBase} ${current === "officer_generator.html" ? dropActive : dropInactive}">
-                  <img src="assets/policeman.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  <img src="assets/policeman.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Officer Card Generator
                 </a>
                 <a href="firefighter_generator.html" data-generator-key="firefighter" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "firefighter_generator.html" ? dropActive : dropInactive}">
-                  <img src="assets/firefighter.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  <img src="assets/firefighter.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Firefighter Card Generator
                 </a>
                 <a href="business_card_generator.html" data-generator-key="business_card" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "business_card_generator.html" ? dropActive : dropInactive}">
-                  <img src="assets/card_256.png" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  <img src="assets/business_card.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Business Card Generator
                 </a>
                 <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"
@@ -464,19 +464,19 @@ class GumaHeader extends HTMLElement {
             <a href="officer_generator.html" data-generator-key="officer" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "officer_generator.html" ? mobActive : mobInactive}">
-              <img src="assets/policeman.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              <img src="assets/policeman.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
               Officer Card Generator
             </a>
             <a href="firefighter_generator.html" data-generator-key="firefighter" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "firefighter_generator.html" ? mobActive : mobInactive}">
-              <img src="assets/firefighter.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              <img src="assets/firefighter.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
               Firefighter Card Generator
             </a>
             <a href="business_card_generator.html" data-generator-key="business_card" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
                       ${current === "business_card_generator.html" ? mobActive : mobInactive}">
-              <img src="assets/card_256.png" class="h-5 w-5 object-contain opacity-70" alt="" />
+              <img src="assets/business_card.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
               Business Card Generator
             </a>
             <a href="personnel_file_generator.html" data-generator-key="personnel" data-hot-flag="icon"

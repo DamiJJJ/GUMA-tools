@@ -114,7 +114,7 @@ function bcInit() {
   keys.forEach((key) => {
     const f = bcGetBaseFaction(key);
     if (!f) return;
-    const iconSrc = f.icon || "assets/card_256.png";
+    const iconSrc = f.icon || "assets/business_card.svg";
     const label = f.short || key.toUpperCase();
 
     const btn = document.createElement("button");
