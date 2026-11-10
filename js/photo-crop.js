@@ -65,6 +65,7 @@
     let st = defaults();
 
     let drag = null;
+    let hover = false; // pointer over this slot (or its tool bar); toolsOnHover only
     let guides = false;
     let guideTimer = 0;
     let syncRaf = 0;
@@ -236,6 +237,7 @@
     function onPointerDown(e) {
       if (!img || !box || !inBox(toCanvasPoint(e))) return;
       drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      hover = true;
       try {
         cfg.canvas.setPointerCapture(e.pointerId);
       } catch {}
@@ -248,7 +250,9 @@
       if (!drag) {
         // Settled across every cropper on the canvas, so one that the pointer
         // is NOT over cannot clear the grab cursor another one just set.
-        syncCursor(cfg.canvas, toCanvasPoint(e));
+        const pt = toCanvasPoint(e);
+        syncCursor(cfg.canvas, pt);
+        setHover(!!img && inBox(pt));
         return;
       }
       // CSS pixels per image pixel: the canvas is displayed scaled down, and
@@ -268,6 +272,24 @@
       // A mouse that reports faster than the display would otherwise repaint
       // the whole card several times for one frame.
       scheduleRedraw();
+    }
+
+    /** Track the pointer for toolsOnHover; the tool bar follows it. */
+    function setHover(on) {
+      if (!cfg || !cfg.toolsOnHover || on === hover) return;
+      hover = on;
+      scheduleSync();
+    }
+
+    /**
+     * Leaving the canvas onto this slot's own tool bar (DOM over the canvas)
+     * is not a leave. A touch has no hover, so the last tapped slot keeps its
+     * tool bar until another one is touched.
+     */
+    function onPointerLeave(e) {
+      if (drag || e.pointerType === "touch") return;
+      if (toolsEl && e.relatedTarget && toolsEl.contains(e.relatedTarget)) return;
+      setHover(false);
     }
 
     function scheduleRedraw() {
@@ -361,6 +383,9 @@
 
       cfg.host.appendChild(guidesEl);
       cfg.host.appendChild(toolsEl);
+      toolsEl.addEventListener("pointerleave", (e) => {
+        if (e.relatedTarget !== cfg.canvas) setHover(false);
+      });
     }
 
     function showGuides(on) {
@@ -407,7 +432,10 @@
       guidesEl.style.width = box.w * s + "px";
       guidesEl.style.height = box.h * s + "px";
 
-      toolsEl.style.display = "flex";
+      // A page with many small slots (the BOLO board) shows one tool bar at a
+      // time, over the slot under the pointer, instead of a row of them.
+      const showTools = !cfg.toolsOnHover || hover || !!drag;
+      toolsEl.style.display = showTools ? "flex" : "none";
       toolsEl.style.left = ox + (box.x + box.w / 2) * s + "px";
       toolsEl.style.top = oy + (box.y + box.h) * s - 10 + "px";
       zoomEl.textContent = Math.round(st.zoom * 100) + "%";
@@ -478,8 +506,10 @@
 
     // ── Wiring ───────────────────────────────────────────────────────────
     /**
-     * @param {{canvas: HTMLCanvasElement, host: HTMLElement, redraw: Function}} opts
+     * @param {{canvas: HTMLCanvasElement, host: HTMLElement, redraw: Function,
+     *          toolsOnHover?: boolean}} opts
      *   host is the positioned box the canvas lives in; all chrome mounts there.
+     *   toolsOnHover shows the tool bar only while the pointer is over the slot.
      */
     function attach(opts) {
       // A page that lost the chrome host still gets a working card, just
@@ -493,6 +523,7 @@
       cfg.canvas.addEventListener("pointermove", onPointerMove);
       cfg.canvas.addEventListener("pointerup", onPointerUp);
       cfg.canvas.addEventListener("pointercancel", onPointerUp);
+      cfg.canvas.addEventListener("pointerleave", onPointerLeave);
       cfg.canvas.addEventListener("wheel", onWheel, { passive: false });
 
       // Zoom of the preview, window resizes and scrollbars appearing all move

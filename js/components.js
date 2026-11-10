@@ -3,7 +3,7 @@ const GUMA_VERSION = "1.11";
 // Generator keys (data-generator-key) released in the current GUMA_VERSION.
 // Their index tiles get a "New" pill and their nav links a star, and both
 // move to the front of their group - refresh this list with every release.
-const GUMA_NEW_GENERATORS = [];
+const GUMA_NEW_GENERATORS = ["bolo"];
 
 // ── Brand logo ────────────────────────────────────────────────────
 // The horizontal lockup (assets/brand/svg/guma-horizontal.svg) inlined, so one
@@ -133,7 +133,7 @@ class GumaHeader extends HTMLElement {
       "use_of_force_report.html",
     ].includes(current);
     const isImage = ["bodycam_overlay.html"].includes(current);
-    const isIngame = ["character_description.html", "wanted_poster.html"].includes(current);
+    const isIngame = ["character_description.html", "wanted_poster.html", "bolo_status_board.html"].includes(current);
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
@@ -308,6 +308,11 @@ class GumaHeader extends HTMLElement {
                    class="${dropLinkBase} ${current === "wanted_poster.html" ? dropActive : dropInactive}">
                   <img src="assets/wanted.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
                   Wanted Poster
+                </a>
+                <a href="bolo_status_board.html" data-generator-key="bolo" data-hot-flag="icon"
+                   class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "bolo_status_board.html" ? dropActive : dropInactive}">
+                  <img src="assets/bolo.svg" class="h-5 w-5 object-contain opacity-80" alt="" />
+                  BOLO Status Board
                 </a>
                 <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
                    class="${dropLinkBase} border-t border-guma-l-border dark:border-guma-border ${current === "character_description.html" ? dropActive : dropInactive}">
@@ -555,6 +560,12 @@ class GumaHeader extends HTMLElement {
                       ${current === "wanted_poster.html" ? mobActive : mobInactive}">
               <img src="assets/wanted.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
               Wanted Poster
+            </a>
+            <a href="bolo_status_board.html" data-generator-key="bolo" data-hot-flag="icon"
+               class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition
+                      ${current === "bolo_status_board.html" ? mobActive : mobInactive}">
+              <img src="assets/bolo.svg" class="h-5 w-5 object-contain opacity-70" alt="" />
+              BOLO Status Board
             </a>
             <a href="character_description.html" data-generator-key="chardesc" data-hot-flag="icon"
                class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm transition

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Roll call board: stand legs, frame, red headline, three mugshot cards, one crossed out -->
+  <path d="M150 440 120 504M362 440l30 64M256 440v64" stroke="#4d4d4d" stroke-width="18" stroke-linecap="round"/>
+  <rect x="16" y="40" width="480" height="404" rx="22" fill="#4d4d4d"/>
+  <rect x="38" y="62" width="436" height="360" rx="10" fill="#f1f1f1"/>
+  <rect x="120" y="92" width="272" height="22" rx="11" fill="#e3121b"/>
+  <g>
+    <rect x="66" y="150" width="108" height="140" rx="6" fill="#99a4ac"/>
+    <circle cx="120" cy="208" r="26" fill="#f3a766"/>
+    <path d="M76 290c4-34 22-48 44-48s40 14 44 48z" fill="#00ab94"/>
+    <rect x="66" y="306" width="96" height="12" rx="6" fill="#4d4d4d"/>
+    <rect x="66" y="330" width="76" height="12" rx="6" fill="#99a4ac"/>
+    <rect x="66" y="354" width="88" height="12" rx="6" fill="#99a4ac"/>
+  </g>
+  <g>
+    <rect x="202" y="150" width="108" height="140" rx="6" fill="#99a4ac"/>
+    <circle cx="256" cy="208" r="26" fill="#f3a766"/>
+    <path d="M212 290c4-34 22-48 44-48s40 14 44 48z" fill="#4d4d4d"/>
+    <rect x="202" y="306" width="96" height="12" rx="6" fill="#4d4d4d"/>
+    <rect x="202" y="330" width="76" height="12" rx="6" fill="#99a4ac"/>
+    <rect x="202" y="354" width="88" height="12" rx="6" fill="#99a4ac"/>
+    <path d="M206 154 306 286" stroke="#e3121b" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <g>
+    <rect x="338" y="150" width="108" height="140" rx="6" fill="#99a4ac"/>
+    <circle cx="392" cy="208" r="26" fill="#f3a766"/>
+    <path d="M348 290c4-34 22-48 44-48s40 14 44 48z" fill="#00ab94"/>
+    <rect x="338" y="306" width="96" height="12" rx="6" fill="#4d4d4d"/>
+    <rect x="338" y="330" width="76" height="12" rx="6" fill="#99a4ac"/>
+    <rect x="338" y="354" width="88" height="12" rx="6" fill="#99a4ac"/>
+  </g>
+  <rect x="150" y="390" width="212" height="12" rx="6" fill="#4d4d4d"/>
+</svg>

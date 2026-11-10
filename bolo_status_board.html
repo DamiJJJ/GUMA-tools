@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Dami" />
+    <title>BOLO Status Board Generator - GUMA Tools</title>
+
+    <link rel="icon" href="assets/bolo.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/bolo.svg" />
+    <link rel="manifest" href="manifest.json" />
+
+    <script src="js/theme-init.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/tailwind-config.js"></script>
+    <script src="js/guma-styles.js"></script>
+    <script src="js/guma-clipboard.js"></script>
+  </head>
+
+  <body class="theme-navy-soft flex min-h-full flex-col">
+    <guma-header></guma-header>
+
+    <!-- ── Page title ── -->
+    <div class="guma-page pt-8 pb-4">
+      <h1 class="text-center text-2xl font-black uppercase tracking-[0.2em] text-guma-l-gold dark:text-guma-gold md:text-3xl guma-page-title">
+        BOLO Status Board
+      </h1>
+    </div>
+
+    <!-- ── Faction Switcher ── -->
+    <div class="guma-page pb-4 guma-faction-switcher-wrap">
+      <div id="factionSwitcher" class="flex flex-wrap justify-center gap-3"></div>
+    </div>
+
+    <main class="guma-page flex flex-1 flex-col gap-6 pb-10 xl:flex-row xl:items-start">
+      <!-- ════ FORM PANEL ════ -->
+      <div id="bbForm" class="guma-panel w-full p-6 xl:w-[480px] xl:flex-none guma-panel-form">
+        <!-- Custom agency: name + optional logo -->
+        <div
+          id="customFactionPanel"
+          style="display: none"
+          class="mb-5 rounded-xl border border-guma-l-border-2 bg-guma-l-dark dark:border-guma-border-2 dark:bg-guma-dark p-4"
+        >
+          <p class="guma-form-section mb-3">Custom Agency</p>
+          <div class="mb-3">
+            <label class="guma-label" for="bbCustomAgency">Agency Name</label>
+            <input class="guma-input" type="text" id="bbCustomAgency" placeholder="Los Santos Police Department" />
+          </div>
+          <label class="guma-label">Agency Logo <span class="guma-label-note">(optional)</span></label>
+          <div id="bbLogoDrop" class="guma-drop" role="button" tabindex="0" aria-label="Upload agency logo">
+            <input type="file" id="bbLogoInput" accept="image/*" class="hidden" />
+            <span id="bbLogoText">Click to upload logo</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
+            <img id="bbLogoPreview" class="mt-2 hidden max-h-[96px] max-w-[160px] object-contain" alt="logo preview" />
+          </div>
+          <button type="button" id="bbLogoClear" class="guma-link-remove hidden" onclick="bbClearImage('logo')">✕ Remove logo</button>
+        </div>
+
+        <!-- ── Board ── -->
+        <p class="guma-form-section mb-4">Board</p>
+
+        <div class="mb-3 grid grid-cols-[1fr_auto] gap-3">
+          <div>
+            <label class="guma-label" for="bbHeadline">Headline</label>
+            <input class="guma-input" type="text" id="bbHeadline" placeholder="Be on the lookout status for" />
+          </div>
+          <div>
+            <label class="guma-label" for="bbDate">Date</label>
+            <input class="guma-input" type="date" id="bbDate" />
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <label class="guma-label">Division Patch <span class="guma-label-note">(optional, right of the agency name)</span></label>
+          <div id="bbPatchDrop" class="guma-drop" role="button" tabindex="0" aria-label="Upload division patch">
+            <input type="file" id="bbPatchInput" accept="image/*" class="hidden" />
+            <span id="bbPatchText">Click to upload patch</span>
+            <span class="guma-drop-hint">or drop a file here / paste with Ctrl+V</span>
+            <img id="bbPatchPreview" class="mt-2 hidden max-h-[96px] max-w-[160px] object-contain" alt="patch preview" />
+          </div>
+          <button type="button" id="bbPatchClear" class="guma-link-remove hidden" onclick="bbClearImage('patch')">✕ Remove patch</button>
+        </div>
+
+        <!-- ── Subjects ── -->
+        <div class="mb-4 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+          <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">Subjects</p>
+          <div class="flex items-center gap-2" role="group" aria-label="Number of subjects">
+            <button type="button" id="bbCountDec" class="guma-btn-outline !w-9 !px-0 !py-1.5 !text-sm" aria-label="Remove a subject" onclick="bbStepCount(-1)">−</button>
+            <span id="bbCount" class="w-7 text-center text-sm font-bold text-guma-l-text dark:text-guma-text" aria-live="polite">3</span>
+            <button type="button" id="bbCountInc" class="guma-btn-outline !w-9 !px-0 !py-1.5 !text-sm" aria-label="Add a subject" onclick="bbStepCount(1)">+</button>
+          </div>
+        </div>
+        <p class="guma-field-hint -mt-2 mb-3">Up to 14 subjects, 7 per row. Drag a mugshot on the board to frame it, scroll to zoom.</p>
+
+        <div id="bbSubjectRows" class="mb-5 space-y-3"></div>
+
+        <!-- ── Quote ── -->
+        <div class="mb-4 flex items-center justify-between gap-3 border-b border-guma-l-border dark:border-guma-border pb-2">
+          <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold">
+            Quote <span class="guma-label-note normal-case tracking-normal">(leave empty to hide)</span>
+          </p>
+          <button type="button" class="guma-btn-outline !w-auto !py-1.5 !px-3 !text-xs shrink-0" onclick="bbRandomQuote()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22" />
+              <path d="m18 2 4 4-4 4" />
+              <path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2" />
+              <path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8" />
+              <path d="m18 14 4 4-4 4" />
+            </svg>
+            Random
+          </button>
+        </div>
+
+        <div class="mb-3">
+          <label class="guma-label" for="bbQuote">Quote</label>
+          <textarea class="guma-input min-h-[72px] resize-y" id="bbQuote" maxlength="160">The only thing necessary for the triumph of evil is for good people to do nothing</textarea>
+        </div>
+        <div>
+          <label class="guma-label" for="bbQuoteAuthor">Author</label>
+          <input class="guma-input" type="text" id="bbQuoteAuthor" value="John Stuart Mill" />
+        </div>
+      </div>
+
+      <!-- ════ PREVIEW PANEL ════ -->
+      <div class="guma-panel flex flex-1 flex-col items-center gap-3 px-6 py-4 guma-panel-preview">
+        <div class="mb-0 flex w-full flex-wrap items-center gap-3 border-b pb-2 border-guma-l-border dark:border-guma-border">
+          <p class="guma-form-section mb-0 border-b-0 pb-0">Preview</p>
+          <div class="ml-auto flex items-center gap-3">
+            <!-- Zoom buttons are injected by canvas-zoom.js -->
+            <div id="bbZoom" class="guma-zoom guma-zoom-sm hidden xl:flex"></div>
+            <button
+              id="gumaHistoryBtn"
+              type="button"
+              aria-label="Open saved boards"
+              onclick="document.querySelector('guma-history-drawer')?.open()"
+              class="inline-flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition border-guma-l-gold/40 text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold dark:border-guma-gold/40 dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 3v5h5" />
+                <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+                <path d="M12 7v5l4 2" />
+              </svg>
+              Saved
+              <span
+                id="gumaHistoryCount"
+                class="hidden ml-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-guma-l-gold/20 text-guma-l-gold dark:bg-guma-gold/20 dark:text-guma-gold"
+              ></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- guma-pc-wrap: positioned box every subject's photo cropper mounts
+             its chrome into. From xl canvas-zoom.js opens the board fitted
+             whole and zooms from there. -->
+        <div class="guma-canvas-wrap guma-scroll guma-pc-wrap xl:max-h-[calc(100vh_-_17.5rem)]">
+          <canvas id="boardCanvas" width="1920" height="1080" class="guma-canvas-preview guma-canvas-preview-doc"></canvas>
+        </div>
+
+        <!-- Single export entry point -->
+        <div class="flex w-full max-w-[700px] justify-center">
+          <button type="button" class="guma-btn-primary w-full max-w-[346px]" onclick="document.querySelector('guma-preview-modal')?.open()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Preview &amp; Download
+          </button>
+        </div>
+
+        <div data-guma-counter hidden class="flex items-center justify-center gap-1.5 text-[11px] text-guma-muted/60 mt-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+            <line x1="6" y1="15" x2="10" y2="15" />
+            <line x1="6" y1="18" x2="14" y2="18" />
+          </svg>
+          Generated <span id="downloadCount">0</span> times
+        </div>
+      </div>
+    </main>
+
+    <guma-footer></guma-footer>
+    <guma-history-drawer></guma-history-drawer>
+    <guma-preview-modal></guma-preview-modal>
+
+    <script src="js/history.js"></script>
+    <script src="js/history-wiring.js"></script>
+    <script src="js/guma-draft.js"></script>
+    <script src="js/guma-profile.js"></script>
+    <script src="js/guma-locker.js"></script>
+    <script src="js/lightbar-egg.js"></script>
+    <script src="js/counters.js"></script>
+    <script src="js/search-index.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/factions.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    <script src="js/guma-upload.js"></script>
+    <script src="js/guma-fit.js"></script>
+    <script src="js/photo-crop.js"></script>
+    <script src="js/canvas-zoom.js"></script>
+    <script src="js/roll-call-quotes.js"></script>
+    <script src="js/bolo-status-board.js"></script>
+    <script src="js/animations.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        window.GUMA_GENERATOR_KEY = "bolo";
+        initBoloBoard({ defaultFaction: "lspd" });
+        window.GumaCounters?.initDownloadCounter("bolo", "downloadCount", "downloadBtn");
+      });
+    </script>
+  </body>
+</html>

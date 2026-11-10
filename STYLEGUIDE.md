@@ -37,6 +37,7 @@ Generated from the code. Regenerate with `/styleguide`.
 ├── vehicle_pursuit_report.html
 ├── use_of_force_report.html
 ├── wanted_poster.html
+├── bolo_status_board.html
 ├── readme.md
 ├── STYLEGUIDE.md
 ├── tailwind.config.js          # reference only (CDN reads js/tailwind-config.js)
@@ -61,6 +62,7 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── latest-video.js         # GumaLatestVideo - "Latest Video" tile on the index
     ├── factions.js             # FACTIONS dict (LSPD/LSSD/BCSO/SAHP/...)
     ├── streets.js              # GTA V street-name pools (LS_STREETS, BLAINE_STREETS)
+    ├── roll-call-quotes.js     # ROLL_CALL_QUOTES - closing quotes / sayings (BOLO board)
     ├── random-character.js     # shared "Randomize Character" form filler
     ├── history.js              # GumaHistory - localStorage saved cards/reports engine
     ├── history-wiring.js       # GumaHistoryWiring - shared save/serialize glue
@@ -338,6 +340,12 @@ slot with `GumaPhotoCrop.create()` and attaches each to the same canvas and
 `crop.paint(ctx, null)` so the stale slot stops catching drags and its tool bar
 hides.
 
+With many small slots side by side (the BOLO status board, up to 14 mugshots)
+pass `toolsOnHover: true` to `attach()`: each slot shows its tool bar only
+while the pointer is over it, instead of a row of overlapping bars. That page
+keeps a fixed pool of croppers and hands a free one to each new subject, so
+removing a subject never moves photos between cards.
+
 History photos are stored with `GumaHistory._downscaleAvatar(src, w, h,
 "contain")`. Pass `"jpeg"` as a fifth argument when an entry carries more than
 one photograph - PNG copies of two photos fill the localStorage quota after a
@@ -496,7 +504,8 @@ When one feature outgrows a single file, split it by responsibility and keep the
   handlers can reach them. Match the surrounding pattern - do not introduce a
   module system for one file.
 - **Shared data files**: static lookup pools live in their own `/js/` file as
-  top-level `UPPER_SNAKE` consts (`FACTIONS`, `LS_STREETS`, `BLAINE_STREETS`).
+  top-level `UPPER_SNAKE` consts (`FACTIONS`, `LS_STREETS`, `BLAINE_STREETS`,
+  `ROLL_CALL_QUOTES`).
   Consumers guard with `typeof X !== "undefined"` when the data may be absent.
 - **Shared feature utilities**: wrapped in an IIFE exposing a single `window.*`
   entry point; they feature-detect the page via `document.getElementById(...)`

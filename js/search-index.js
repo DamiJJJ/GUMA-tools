@@ -173,6 +173,16 @@ window.GUMA_SEARCH_INDEX = [
     aliases: ["wanted", "poszukiwany", "list gończy", "bolo", "person of interest", "missing person", "most wanted", "fugitive", "bulletin", "flyer"],
   },
   {
+    id: "bolo",
+    title: "BOLO Status Board",
+    url: "bolo_status_board.html",
+    category: "In-Game Generators",
+    icon: "assets/bolo.svg",
+    status: "available",
+    summary: "Roll call BOLO board with up to 14 subjects: mugshots, SSN, DOB, reason, red tags and a strike-through for subjects in custody.",
+    aliases: ["bolo", "be on the lookout", "roll call", "briefing", "odprawa", "lookout board", "suspects", "mugshot board"],
+  },
+  {
     id: "chardesc",
     title: "Character Description",
     url: "character_description.html",
