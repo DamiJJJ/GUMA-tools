@@ -1,0 +1,56 @@
+GUMA Tools
+Copyright (c) 2026 Dami. All rights reserved.
+
+This software, including its source code, markup, styles, graphics, icons,
+logos and other original assets (together, the "Software"), is proprietary
+and is NOT open source.
+
+The Software is made publicly available only so that it can be used through
+its official website. Viewing the source code in a browser or on GitHub does
+not grant any license to it.
+
+You MAY:
+  - use the official GUMA Tools website to create documents and cards,
+  - use, share and publish the images (PNG exports) you create with it,
+    for example in FiveM roleplay, on Discord or on social media.
+
+You MAY NOT, without prior written permission from the copyright holder:
+  - copy, reproduce or mirror the Software, in whole or in part,
+  - modify, adapt, translate or create derivative works based on it,
+  - distribute, publish, sublicense, sell or rent the Software or any part
+    of it,
+  - host the Software or a modified version of it on any other domain,
+    server or service,
+  - remove or alter any copyright notice, branding or attribution.
+
+Forking this repository on GitHub, as permitted by the GitHub Terms of
+Service, does not grant any of the rights listed above.
+
+To request permission, contact Dami via the Discord server linked on the
+official website.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+-------------------------------------------------------------------------------
+Third-party components
+-------------------------------------------------------------------------------
+
+The following components are not owned by the copyright holder and remain
+under their own licenses:
+
+  - Tailwind CSS (js/tailwind.js)
+    Copyright (c) Tailwind Labs, Inc.
+    MIT License - https://github.com/tailwindlabs/tailwindcss/blob/main/LICENSE
+
+  - 3D mannequin model "Male base" (assets/mannequin.mesh, assets/mannequin.png)
+    by Arthur Migranoff, https://poly.pizza/m/eWGDnQ0jzmH
+    Creative Commons Attribution 3.0 - https://creativecommons.org/licenses/by/3.0/
+
+Grand Theft Auto, Los Santos and related names are trademarks of Take-Two
+Interactive Software, Inc. and Rockstar Games. GUMA Tools is a fan-made tool
+for FiveM roleplay and is not affiliated with or endorsed by them. All
+agencies, names and badge numbers used in the Software are fictional.

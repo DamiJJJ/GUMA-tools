@@ -86,3 +86,8 @@ assets/brand/
 - The `GUMA` letters are the hand-built chamfered paths from the earlier brand draft; `TOOLS`, the G, the
   shield and the star were drawn for this kit. No font is needed and no font licence applies.
 - No trademark search has been done.
+
+## Ownership
+
+The GUMA Tools name and logo are the property of Dami and may not be used without permission.
+See [LICENSE](../../LICENSE).

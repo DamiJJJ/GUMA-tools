@@ -137,6 +137,14 @@ No build step - open `index.html` in a browser or serve the folder from any stat
 
 3D mannequin: _"Male base"_ by Arthur Migranoff, [poly.pizza](https://poly.pizza/m/eWGDnQ0jzmH), [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
 
+## License
+
+**Copyright (c) 2026 Dami. All rights reserved.**
+
+GUMA Tools is proprietary software, **not open source**. The code is public only so the site can run on GitHub Pages - that does not give you permission to copy, modify, re-host or redistribute it. You are free to use the [website](https://damijjj.github.io/GUMA-tools/) and share the images you create with it.
+
+Want to use part of the project? Ask on [Discord](https://discord.gg/gzQC2kUFbQ). Full terms and third-party licenses: [LICENSE](LICENSE).
+
 ---
 
 <p align="center"><sub>Built for FiveM roleplay. All agencies, names and badge numbers are fictional.</sub></p>
