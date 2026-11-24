@@ -137,7 +137,8 @@ class GumaHeader extends HTMLElement {
     const isHome = current === "index.html" || current === "";
     const isAbout = current === "about.html";
 
-    const navLinkBase = "px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-[0.12em] transition";
+    // Tighter padding / tracking between lg and xl so the full bar fits a 1024px tablet
+    const navLinkBase = "px-2 xl:px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-[0.06em] xl:tracking-[0.12em] whitespace-nowrap transition";
     const navActive = "text-guma-l-gold bg-guma-l-gold/10 dark:text-guma-gold dark:bg-guma-gold/10";
     const navInactive = "text-guma-l-muted hover:text-guma-l-text hover:bg-black/5 dark:text-guma-muted dark:hover:text-guma-text dark:hover:bg-white/5";
 
@@ -170,7 +171,7 @@ class GumaHeader extends HTMLElement {
           </div>
 
           <!-- Desktop nav -->
-          <nav class="hidden md:flex items-center gap-0.5">
+          <nav class="hidden lg:flex items-center gap-0.5">
 
             <a href="index.html"
                class="${navLinkBase} ${isHome ? navActive : navInactive}">
@@ -182,7 +183,8 @@ class GumaHeader extends HTMLElement {
               <button id="gumaCardsBtn"
                 class="flex items-center gap-1.5 ${navLinkBase} ${isCard ? navActive : navInactive}"
                 aria-haspopup="true" aria-expanded="false">
-                Card Generators
+                <!-- Short label between lg and xl so the bar fits a 1024px tablet -->
+                <span class="xl:hidden">Cards</span><span class="hidden xl:inline">Card Generators</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2.5"
                      stroke-linecap="round" stroke-linejoin="round"
@@ -222,7 +224,7 @@ class GumaHeader extends HTMLElement {
               <button id="gumaReportsBtn"
                 class="flex items-center gap-1.5 ${navLinkBase} ${isReport ? navActive : navInactive}"
                 aria-haspopup="true" aria-expanded="false">
-                Report Generators
+                <span class="xl:hidden">Reports</span><span class="hidden xl:inline">Report Generators</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2.5"
                      stroke-linecap="round" stroke-linejoin="round"
@@ -361,13 +363,14 @@ class GumaHeader extends HTMLElement {
             <!-- Live badge (Kick) -->
             <a id="gumaLiveBadge"
                href="https://kick.com/damulec" target="_blank" rel="noopener noreferrer"
+               aria-label="Live on Kick"
                class="hidden items-center gap-2 flex-shrink-0 rounded-xl px-3 py-2 text-sm font-bold tracking-wide no-underline transition-all duration-200 hover:-translate-y-px"
                style="background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.45); color: #b91c1c;">
               <span class="relative flex h-2.5 w-2.5">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
               </span>
-              LIVE ON
+              <span class="lg:hidden 2xl:inline">LIVE ON</span>
             </a>
 
             <!-- Search (command palette) -->
@@ -382,13 +385,16 @@ class GumaHeader extends HTMLElement {
 
             <!-- Support button -->
             <a href="https://tipply.pl/@dami" target="_blank" rel="noopener noreferrer"
+               aria-label="Support project"
                class="hidden sm:inline-flex items-center gap-2 flex-shrink-0 rounded-xl px-4 py-2 text-sm font-black tracking-wide no-underline transition-all duration-200 hover:-translate-y-px hover:brightness-110"
                style="background: linear-gradient(135deg, #ffe066 0%, #f0c040 50%, #c8960c 100%); color: #1a1000; box-shadow: 0 0 18px rgba(240,192,64,0.35), 0 2px 8px rgba(0,0,0,0.3);">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                    fill="currentColor" stroke="none">
                 <path d="M12 21.593c-.525-.47-10.58-9.06-10.58-13.777 0-3.624 2.955-6.566 6.58-6.566 1.73 0 3.39.676 4.62 1.899L12 3.093l-.62.056C12.621 1.897 14.276 1.25 16 1.25c3.625 0 6.58 2.942 6.58 6.566 0 4.717-10.055 13.307-10.58 13.777z"/>
               </svg>
-              Support project
+              <!-- Icon-only between lg and 2xl, where the desktop nav takes the room
+                   (same for the LIVE badge label above) -->
+              <span class="lg:hidden 2xl:inline">Support project</span>
             </a>
 
             <!-- Theme toggle -->
@@ -428,7 +434,7 @@ class GumaHeader extends HTMLElement {
 
             <!-- Hamburger (mobile only) -->
             <button id="gumaHamburger"
-              class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border transition
+              class="lg:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border transition
                      border-guma-l-border text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
                      dark:border-guma-border dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold"
               aria-label="Toggle menu" aria-expanded="false">
@@ -452,7 +458,7 @@ class GumaHeader extends HTMLElement {
         </div>
 
         <!-- ── Mobile menu ── -->
-        <div id="gumaMobileMenu" class="hidden md:hidden border-t guma-mobile-menu
+        <div id="gumaMobileMenu" class="hidden lg:hidden border-t guma-mobile-menu
                                         border-guma-l-border bg-guma-l-bg/95
                                         dark:border-white/10 dark:bg-[#04045e]/95">
           <nav class="mx-auto max-w-8xl flex flex-col px-4 py-3 gap-0.5">
