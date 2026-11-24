@@ -1647,7 +1647,8 @@
       /* Outline of the KOD 3 lightbar (also in the toast). */
       .guma-kod3-icon,
       .guma-ia-icon,
-      .guma-reward-icon {
+      .guma-reward-icon,
+      .guma-bcam-egg-icon {
         @apply text-guma-l-text dark:text-guma-text;
       }
       /* The stamp across the wanted poster icon keeps its tilt when idle,
@@ -1706,6 +1707,10 @@
       /* Public Enemy / Nobody: the stamp is slammed onto the poster again. */
       .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="slam"] .guma-reward-stamp {
         @apply animate-guma-stamp-slam;
+      }
+      /* Bodycam outage: the camera flickers, goes dark, then comes back. */
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="outage"] .guma-bcam-egg-live {
+        @apply animate-guma-bcam-egg-dark;
       }
       .guma-locker-name {
         @apply text-sm font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text sm:text-base;
@@ -1810,7 +1815,7 @@
         .guma-locker-panel,
         .guma-locker-grid,
         .guma-locker-icon,
-        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red, .guma-ia-tool, .guma-ia-ink, .guma-reward-stamp),
+        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red, .guma-ia-tool, .guma-ia-ink, .guma-reward-stamp, .guma-bcam-egg-live),
         .guma-locker-stamp-closed {
           animation: none !important;
         }

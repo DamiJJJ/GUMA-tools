@@ -163,6 +163,9 @@ module must precede the page JS that calls it. The two established tails:
   `arrest-report.js`, whose first draw already asks it (likewise
   `reward-egg.js` right before `wanted-poster.js`). It collects through
   `window.GumaLocker?.collect()`, so loading before `guma-locker.js` is safe.
+  An egg that lives inside a canvas pipeline may stay in that module
+  instead: the bodycam outage (five taps on the battery) is part of
+  `bodycam-render.js`, with `bodycam-stage.js` only forwarding the taps.
 - Pages close with a small inline `<script>` bootstrap after `animations.js`
   (`DOMContentLoaded` -> page init + `GumaCounters?.initDownloadCounter(...)`).
   Keep it to wiring calls; logic belongs in the page JS.
@@ -230,8 +233,9 @@ Other tokens:
   `guma-logo-band` + `guma-logo-recoil` (header logo click), `guma-logo-stamp`,
   `guma-logo-star-spin`, `guma-logo-rule-sweep` (`<guma-logo>` click on About),
   the `guma-egg-*` set (easter egg), `guma-stamp-slam` (Evidence Locker
-  CASE CLOSED stamp, Public Enemy / Nobody exhibit hover), `guma-donut-bite` (donut exhibit hover) and
-  `guma-ia-press` + `guma-ia-ink` (Internal Affairs exhibit hover).
+  CASE CLOSED stamp, Public Enemy / Nobody exhibit hover), `guma-donut-bite` (donut exhibit hover),
+  `guma-ia-press` + `guma-ia-ink` (Internal Affairs exhibit hover) and
+  `guma-bcam-egg-dark` (bodycam outage exhibit hover).
 
 **A new colour or shadow goes into `js/tailwind-config.js`.** Never hard-code a
 hex value in markup or an inline style.

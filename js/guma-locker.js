@@ -149,6 +149,25 @@ window.GumaLocker = (function () {
   const publicEnemyIcon = () => wantedPosterIcon("$10,000,000", "PUBLIC ENEMY", "No. 1");
   const nobodyIcon = () => wantedPosterIcon("$0", "NOBODY IS LOOKING", "FOR HIM");
 
+  // A body-worn camera, recording, from the bodycam outage egg
+  // (js/bodycam-render.js). The outline follows the theme via
+  // currentColor; the live parts (REC dot, lens glass) carry the hover
+  // hook (.guma-bcam-egg-live) - switched off, the lens is dead black.
+  function bodycamIcon() {
+    return _el(`
+      <svg viewBox="0 0 100 100" class="guma-bcam-egg-icon" aria-hidden="true" focusable="false">
+        <rect x="39" y="8" width="22" height="12" rx="2" fill="#3a3f47" stroke="currentColor" stroke-width="2.5"/>
+        <rect x="21" y="17" width="58" height="72" rx="10" fill="#2b2f36" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="50" cy="55" r="18" fill="#14171c" stroke="#4a505a" stroke-width="2"/>
+        <circle cx="50" cy="55" r="11" fill="#0b0d10"/>
+        <g class="guma-bcam-egg-live">
+          <circle cx="50" cy="55" r="11" fill="#1f4f7a"/>
+          <circle cx="46" cy="51" r="3.5" fill="#9cc8f0" opacity="0.8"/>
+          <circle cx="32" cy="28" r="4" fill="#ff2b2b"/>
+        </g>
+      </svg>`);
+  }
+
   // ── Evidence registry ─────────────────────────────────────────
   // Order = exhibit letter. `fx` names the hover replay in the locker
   // (.guma-locker-icon[data-fx]). Police terms (title, "Exhibit",
@@ -202,6 +221,13 @@ window.GumaLocker = (function () {
       note: "Nawet straż rybacka go nie szuka.",
       fx: "slam",
       icon: nobodyIcon,
+    },
+    {
+      id: "bodycam-off",
+      title: "Usterka techniczna",
+      note: "Pięć kliknięć w baterię i kamera akurat padła. Czysty przypadek.",
+      fx: "outage",
+      icon: bodycamIcon,
     },
   ];
 

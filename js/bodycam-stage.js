@@ -101,7 +101,8 @@
 
   // ── Pointer: drag a layer around the frame ───────────────────────────
   function onPointerDown(e) {
-    if (!window.BodycamRender.hasImage()) return;
+    // Nothing to grab while the camera is "down" (the outage easter egg).
+    if (!window.BodycamRender.hasImage() || window.BodycamRender.isOff()) return;
 
     const point = toCanvasPoint(e);
     const slop = HIT_SLOP / displayScale();
@@ -169,6 +170,20 @@
       scaleHandle.releasePointerCapture(e.pointerId);
     } catch {}
     scaleDrag = null;
+  }
+
+  // ── Easter egg: tapping the battery ──────────────────────────────────
+  // Listened for on the frame in the capture phase, so taps count whatever
+  // sits over the battery (the selection chrome of a moved layer). The
+  // fifth quick tap kills the camera (bodycam-render.js) and swallows the
+  // event; the taps before it reach the canvas as usual.
+  function onFrameTap(e) {
+    if (!window.BodycamRender.hasImage()) return;
+    const point = toCanvasPoint(e);
+    if (!window.BodycamRender.tapBattery(point.x, point.y, HIT_SLOP / displayScale())) return;
+    e.stopPropagation();
+    e.preventDefault();
+    select(null);
   }
 
   // ── Wheel + keyboard ─────────────────────────────────────────────────
@@ -273,6 +288,7 @@
     canvas.addEventListener("pointerup", onPointerUp);
     canvas.addEventListener("pointercancel", onPointerUp);
     canvas.addEventListener("wheel", onWheel, { passive: false });
+    canvas.parentElement.addEventListener("pointerdown", onFrameTap, true);
 
     scaleHandle.addEventListener("pointerdown", onHandleDown);
     scaleHandle.addEventListener("pointermove", onHandleMove);

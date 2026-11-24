@@ -8,6 +8,13 @@
 //
 // Typing in the form only repaints view; touching an effect slider is the
 // only thing that rebuilds fx.
+//
+// Easter egg: five quick taps on the battery and the camera "accidentally"
+// dies - the battery drains to 0% in a second, the screen collapses like an
+// old CRT, FOOTAGE UNAVAILABLE DUE TO TECHNICAL DIFFICULTIES sits on black,
+// then the picture comes back through a burst of static. It only ever
+// plays on view: exports taken meanwhile get the clean frame. Collected as
+// "bodycam-off" in the Evidence Locker (js/guma-locker.js).
 
 (function () {
   const L = window.BodycamLayers;
@@ -28,6 +35,22 @@
   // Text rows reserve a little more than the em size so descenders stay
   // inside the box the selection outline is drawn around.
   const LINE_RATIO = 1.18;
+
+  // Outage easter egg: taps on the battery, each no further apart than the
+  // gap, and the length of each phase in ms. The power-off collapse and the
+  // static are skipped for reduced motion.
+  const OUTAGE_TAPS = 5;
+  const OUTAGE_TAP_GAP_MS = 800;
+  const OUTAGE_DRAIN_MS = 1000;
+  const OUTAGE_HOLD_MS = 250;
+  const OUTAGE_DIE_MS = 400;
+  const OUTAGE_DARK_MS = 2600;
+  const OUTAGE_WAKE_MS = 700;
+  const OUTAGE_MAIN = "FOOTAGE UNAVAILABLE";
+  const OUTAGE_SUB = "DUE TO TECHNICAL DIFFICULTIES";
+  // Static resolution; scaled up without smoothing into chunky TV snow.
+  const SNOW_W = 192;
+  const SNOW_H = 108;
 
   const state = {
     img: null,
@@ -71,6 +94,22 @@
 
   let noisePattern = null;
   let onChange = null;
+
+  // Battery level the HUD pass draws - state.battery, unless the outage is
+  // draining it.
+  let hudBattery = 0;
+  // Box of the battery icon from the last HUD pass, or null.
+  let batteryBox = null;
+  // Outage easter egg: the running sequence, the tap streak, and two
+  // offscreen frames - one the outage animates, one for clean exports.
+  let outage = null;
+  let taps = 0;
+  let lastTap = 0;
+  const still = document.createElement("canvas");
+  const clean = document.createElement("canvas");
+  const snowCanvas = document.createElement("canvas");
+  snowCanvas.width = SNOW_W;
+  snowCanvas.height = SNOW_H;
 
   // ── Assets ─────────────────────────────────────────────────────────────
   /**
@@ -364,6 +403,7 @@
     const layer = L.get("rec");
     if (!layer.visible) {
       L.clearBounds("rec");
+      batteryBox = null;
       return;
     }
 
@@ -408,7 +448,8 @@
     }
 
     x += wide;
-    drawBattery(ctx, x, p.y + (h - battH) / 2, battW, battH, state.battery, u);
+    batteryBox = { x, y: p.y + (h - battH) / 2, w: battW, h: battH };
+    drawBattery(ctx, batteryBox.x, batteryBox.y, battW, battH, hudBattery, u);
   }
 
   const DRAWERS = {
@@ -418,19 +459,220 @@
     rec: drawRec,
   };
 
-  // ── Render passes ──────────────────────────────────────────────────────
-  /** fx + HUD onto the visible canvas. Cheap enough to run on every keystroke. */
-  function renderHud() {
-    if (!state.img || !vctx) return;
-    const f = frame();
+  // ── Easter egg: the camera dies ────────────────────────────────────────
+  function reducedMotion() {
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  }
 
-    vctx.setTransform(1, 0, 0, 1, 0, 0);
-    vctx.clearRect(0, 0, state.W, state.H);
-    vctx.drawImage(fx, 0, 0);
+  /** The current outage phase with its progress (0..1), or null once over. */
+  function outagePhase() {
+    let t = performance.now() - outage.start;
+    for (const [name, ms] of outage.phases) {
+      if (t < ms) return { name, t, p: t / ms };
+      t -= ms;
+    }
+    return null;
+  }
+
+  /** A full frame (fx + HUD) on an offscreen canvas, sized to the shot. */
+  function snapshot(target, level) {
+    if (target.width !== state.W || target.height !== state.H) {
+      target.width = state.W;
+      target.height = state.H;
+    }
+    paint(target.getContext("2d"), level);
+    return target;
+  }
+
+  /** Fresh TV snow, scaled up by the caller. */
+  function snow() {
+    const sctx2 = snowCanvas.getContext("2d");
+    const data = sctx2.createImageData(SNOW_W, SNOW_H);
+    for (let i = 0; i < data.data.length; i += 4) {
+      const v = Math.random() * 255;
+      data.data[i] = v;
+      data.data[i + 1] = v;
+      data.data[i + 2] = v;
+      data.data[i + 3] = 255;
+    }
+    sctx2.putImageData(data, 0, 0);
+    return snowCanvas;
+  }
+
+  /** Mono font at `size`, shrunk until `text` fits `maxW`. */
+  function fitMono(ctx, text, maxW, size, weight) {
+    ctx.font = monoFont(size, weight);
+    const w = ctx.measureText(text).width;
+    if (w > maxW) ctx.font = monoFont(Math.floor((size * maxW) / w), weight);
+  }
+
+  function blank(ctx) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, state.W, state.H);
+  }
+
+  /** Old-CRT power-off: the frame squashes into a white line, then a dot. */
+  function drawPowerOff(ctx, p) {
+    const { W, H, unit } = frame();
+    const line = Math.max(2, Math.round(4 * unit));
+    blank(ctx);
+    ctx.save();
+    if (p < 0.55) {
+      const k = p / 0.55;
+      const h = Math.max(line, H * (1 - k) ** 3);
+      const y = (H - h) / 2;
+      ctx.drawImage(snapshot(still, 0), 0, y, W, h);
+      ctx.globalAlpha = k;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, y, W, h);
+    } else {
+      const k = (p - 0.55) / 0.45;
+      const w = Math.max(line, W * (1 - k) ** 2);
+      ctx.globalAlpha = 1 - k * 0.7;
+      ctx.shadowColor = "#fff";
+      ctx.shadowBlur = 24 * unit;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect((W - w) / 2, (H - line) / 2, w, line);
+    }
+    ctx.restore();
+  }
+
+  /** Black screen, a dead battery blinking over the official excuse. */
+  function drawNoSignal(ctx, t) {
+    const { W, H, unit } = frame();
+    blank(ctx);
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, t / 300);
+
+    const bw = Math.round(BATTERY_W * 1.6 * unit);
+    const bh = Math.round(BATTERY_H * 1.6 * unit);
+    if (Math.floor(t / 500) % 2 === 0) drawBattery(ctx, (W - bw) / 2, H / 2 - 150 * unit, bw, bh, 0, unit);
+
+    const maxW = W * 0.86;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#fff";
+    fitMono(ctx, OUTAGE_MAIN, maxW, Math.round(72 * unit), 700);
+    ctx.fillText(OUTAGE_MAIN, W / 2, H / 2 - 20 * unit);
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    fitMono(ctx, OUTAGE_SUB, maxW, Math.round(36 * unit), 500);
+    ctx.fillText(OUTAGE_SUB, W / 2, H / 2 + 50 * unit);
+    ctx.restore();
+  }
+
+  /** The camera comes back: full static that clears off the picture. */
+  function drawWakeUp(ctx, p) {
+    const { W, H } = frame();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(snapshot(still, state.battery), 0, 0);
+    ctx.save();
+    ctx.globalAlpha = p < 0.4 ? 1 : 1 - (p - 0.4) / 0.6;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(snow(), 0, 0, W, H);
+    ctx.restore();
+  }
+
+  function outageTick() {
+    if (!outage) return;
+    if (outagePhase()) {
+      renderHud();
+      requestAnimationFrame(outageTick);
+      return;
+    }
+    outage = null;
+    renderHud();
+    onChange?.();
+    // Collected once the picture is back, so the toast lands on a live frame.
+    window.GumaLocker?.collect("bodycam-off");
+  }
+
+  function startOutage() {
+    const reduce = reducedMotion();
+    outage = {
+      start: performance.now(),
+      phases: [
+        ["drain", OUTAGE_DRAIN_MS],
+        ["hold", OUTAGE_HOLD_MS],
+        ["die", reduce ? 0 : OUTAGE_DIE_MS],
+        ["dark", OUTAGE_DARK_MS],
+        ["wake", reduce ? 0 : OUTAGE_WAKE_MS],
+      ],
+    };
+    requestAnimationFrame(outageTick);
+  }
+
+  /**
+   * A tap at a canvas-space point. Counts quick taps on the battery and
+   * kills the camera on the fifth.
+   * @param {number} x canvas-space x
+   * @param {number} y canvas-space y
+   * @param {number} [slop] extra hit margin in canvas pixels
+   * @returns {boolean} true when this tap started the outage
+   */
+  function tapBattery(x, y, slop = 0) {
+    if (outage || !batteryBox) return false;
+    const b = batteryBox;
+    if (x < b.x - slop || x > b.x + b.w + slop || y < b.y - slop || y > b.y + b.h + slop) return false;
+
+    const now = performance.now();
+    if (now - lastTap > OUTAGE_TAP_GAP_MS) taps = 0;
+    lastTap = now;
+    if (++taps < OUTAGE_TAPS) return false;
+
+    taps = 0;
+    startOutage();
+    return true;
+  }
+
+  /** True while the outage plays; the stage ignores the pointer meanwhile. */
+  function isOff() {
+    return !!outage;
+  }
+
+  // ── Render passes ──────────────────────────────────────────────────────
+  /** fx + the HUD onto ctx, with the battery reading `level`. */
+  function paint(ctx, level) {
+    const f = frame();
+    hudBattery = level;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, state.W, state.H);
+    ctx.drawImage(fx, 0, 0);
 
     // Order matters: the timestamp parks itself against the camera logo, so
     // the logo has to have claimed its box first.
-    L.DRAW_ORDER.forEach((id) => DRAWERS[id]?.(vctx, f));
+    L.DRAW_ORDER.forEach((id) => DRAWERS[id]?.(ctx, f));
+  }
+
+  /**
+   * fx + HUD onto the visible canvas. Cheap enough to run on every keystroke.
+   * While the outage plays, its current frame instead - so edits made
+   * meanwhile never flash the live picture through the blackout.
+   */
+  function renderHud() {
+    if (!state.img || !vctx) return;
+    const phase = outage && outagePhase();
+    switch (phase?.name) {
+      case "drain":
+        // Eased in: it slips, then plummets.
+        paint(vctx, Math.round(state.battery * (1 - phase.p ** 2)));
+        break;
+      case "hold":
+        paint(vctx, 0);
+        break;
+      case "die":
+        drawPowerOff(vctx, phase.p);
+        break;
+      case "dark":
+        drawNoSignal(vctx, phase.t);
+        break;
+      case "wake":
+        drawWakeUp(vctx, phase.p);
+        break;
+      default:
+        paint(vctx, state.battery);
+    }
   }
 
   /** Full rebuild, including the expensive pixel effects. */
@@ -468,9 +710,9 @@
     return !!state.img;
   }
 
-  /** The finished frame, ready to export. */
+  /** The finished frame, ready to export - never the outage. */
   function canvas() {
-    return view;
+    return outage ? snapshot(clean, state.battery) : view;
   }
 
   window.BodycamRender = {
@@ -482,5 +724,7 @@
     canvas,
     renderAll,
     renderHud,
+    tapBattery,
+    isOff,
   };
 })();
