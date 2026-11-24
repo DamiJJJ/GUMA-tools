@@ -84,6 +84,7 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── easter-egg.js           # hidden burnout easter egg, opt-in via [data-guma-egg]
     ├── lightbar-egg.js         # hidden lightbar easter egg (theme toggle spam, every page)
     ├── donut-egg.js            # hidden donut rain easter egg ("donut" in the search palette)
+    ├── internal-affairs-egg.js # GumaIaEgg - IA stamp when the arrestee is the arresting officer
     ├── evidence-locker.js      # Evidence Locker cabinet + dialog (about page)
     ├── bodycam-*.js            # bodycam overlay: cameras/layers/render/stage/page
     └── <page>.js               # one JS file per generator/report
@@ -156,6 +157,10 @@ module must precede the page JS that calls it. The two established tails:
   load on every page, right before `counters.js`: the header logo, theme
   toggle and search palette eggs collect evidence on any page, and the locker
   reads the profile.
+- A page-specific egg is a feature module like any other: on
+  `arrest_report.html`, `internal-affairs-egg.js` sits right before
+  `arrest-report.js`, whose first draw already asks it. It collects through
+  `window.GumaLocker?.collect()`, so loading before `guma-locker.js` is safe.
 - Pages close with a small inline `<script>` bootstrap after `animations.js`
   (`DOMContentLoaded` -> page init + `GumaCounters?.initDownloadCounter(...)`).
   Keep it to wiring calls; logic belongs in the page JS.
@@ -223,7 +228,8 @@ Other tokens:
   `guma-logo-band` + `guma-logo-recoil` (header logo click), `guma-logo-stamp`,
   `guma-logo-star-spin`, `guma-logo-rule-sweep` (`<guma-logo>` click on About),
   the `guma-egg-*` set (easter egg), `guma-stamp-slam` (Evidence Locker
-  CASE CLOSED stamp) and `guma-donut-bite` (donut exhibit hover).
+  CASE CLOSED stamp), `guma-donut-bite` (donut exhibit hover) and
+  `guma-ia-press` + `guma-ia-ink` (Internal Affairs exhibit hover).
 
 **A new colour or shadow goes into `js/tailwind-config.js`.** Never hard-code a
 hex value in markup or an inline style.
@@ -246,7 +252,7 @@ section header, Faction switcher, Segmented control, Bodycam stage, Report
 dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, Multi-page
 report (page strip + form tabs), WYSIWYG canvas editing, Easter egg (burnout),
 Easter egg (lightbar), Easter egg (donut rain), Evidence Locker + evidence
-toast, Command palette.
+toast (incl. the exhibit hover replays), Command palette.
 
 Reuse before adding:
 
@@ -751,15 +757,25 @@ Adding a new egg:
 1. Add an entry to `EVIDENCE` in `js/guma-locker.js`: `id` (kebab-case), `title`,
    `note` (shown once found), `fx` (hover replay in the locker, styled via
    `.guma-locker-icon[data-fx="..."]`) and `icon()` returning a fresh element.
-   The order sets the exhibit letter (A, B, ...). The locker shows
-   `LOCKER_SLOTS` tags; the ones without an egg are drawn as "Soon", so a new
-   entry simply takes over the first of them (raise `LOCKER_SLOTS` once they
-   run out).
+   The order sets the exhibit letter (A, B, ...). Keep the title to one line
+   and the note to two at the 4-column width (about 65 characters): the
+   tallest card sets the row height for every page. Nothing else to do - the
+   locker pages through the exhibits on its own (below).
 2. Call `window.GumaLocker?.collect("<id>")` from the egg's own code when it
    fires. It is idempotent - only the first call stores the find and shows the
    toast - so call it on every trigger. Call it after any full-screen scene
    ends (see `dismiss()` in `js/easter-egg.js`), so the toast is not hidden
    under it.
+
+The dialog never scrolls; it pages instead (`layout()` in
+`js/evidence-locker.js`). On open and on resize it measures the tallest card
+with every exhibit on the shelf, then a page holds as many rows as fit the
+panel's `max-h-[94vh]` (2 at most, 1 at least) times the grid's current
+columns (2/3/4). When even one row does not fit (short phones) the panel goes
+`is-compact` (smaller icons). The last page is padded with "Soon" slots
+(`GumaLocker.slots(pageSize)`), so the "+N coming soon" count follows the
+screen. Pages turn with the arrows next to it, the arrow keys or a swipe, and
+the dialog always opens on page 1.
 
 Progress counts real eggs only (Soon slots never block CASE CLOSED); the total
 grows with the registry. `lockerClosedAt` is set the first time every

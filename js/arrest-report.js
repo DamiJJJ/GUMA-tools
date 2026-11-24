@@ -424,6 +424,9 @@ function drawForm() {
     y,
     24,
   );
+  // The Internal Affairs stamp (easter egg) is centred on this line, across
+  // the arrestee block it is about.
+  const stampY = y;
 
   // ── Location of occurrence ────────────────────────────────────────────────
   y = row(
@@ -452,6 +455,14 @@ function drawForm() {
 
   // ── Arresting officers ────────────────────────────────────────────────────
   y = drawOfficers(ctx, officers, y);
+
+  // ── Easter egg: the officer arrested themselves ───────────────────────────
+  // Drawn last, over the print, and with no hitbox: the fields under the
+  // stamp stay editable.
+  const ia = window.GumaIaEgg;
+  if (ia?.check(arRawVal("arrestee_name"), officers.map((o) => o.name))) {
+    ia.drawStamp(ctx, DOC_W / 2 + 40, stampY);
+  }
 
   window.GumaCanvasEdit?.end();
 }
