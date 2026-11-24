@@ -35,7 +35,7 @@ const BODYCAM_BRAND_ORDER = ["coil", "axon", "custom", "none"];
 // ── Agency logo sources ──────────────────────────────────────────────────
 // Reuses the shared faction registry so the picker never drifts from the
 // rest of the app; "custom" and "none" are appended by the page.
-const BODYCAM_FACTION_ORDER = ["lspd", "lssd", "bcso", "sahp", "lscofd", "lsfd"];
+const BODYCAM_FACTION_ORDER = ["lspd", "lssd", "bcso", "sahp", "sadcr", "lscofd", "lsfd"];
 
 /** Serial a camera stamps beside its device label: "X" + 10 digits. */
 function bodycamRandomSerial() {

@@ -34,7 +34,7 @@ window.GUMA_SEARCH_INDEX = [
     icon: "assets/policeman.svg",
     status: "available",
     summary: "Generate your own officer card with personal details, faction data and generated preview.",
-    aliases: ["police card", "id card", "badge", "lspd", "lssd", "bcso", "sahp"],
+    aliases: ["police card", "id card", "badge", "lspd", "lssd", "bcso", "sahp", "sadcr", "corrections"],
   },
   {
     id: "firefighter",

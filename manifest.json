@@ -1,7 +1,7 @@
 {
   "name": "GUMA Tools",
   "short_name": "GUMA Tools",
-  "description": "Document, report and card generators for FiveM roleplay - LSPD, LSSD, BCSO, SAHP, LSFD, LSCoFD and more.",
+  "description": "Document, report and card generators for FiveM roleplay - LSPD, LSSD, BCSO, SAHP, SADCR, LSFD, LSCoFD and more.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

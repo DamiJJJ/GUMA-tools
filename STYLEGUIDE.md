@@ -60,7 +60,7 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── animations.js           # scroll reveal + tile stagger
     ├── counters.js             # Supabase visit/download counters + Hot/Popular flags
     ├── latest-video.js         # GumaLatestVideo - "Latest Video" tile on the index
-    ├── factions.js             # FACTIONS dict (LSPD/LSSD/BCSO/SAHP/...)
+    ├── factions.js             # FACTIONS dict (LSPD/LSSD/BCSO/SAHP/SADCR/...)
     ├── streets.js              # GTA V street-name pools (LS_STREETS, BLAINE_STREETS)
     ├── roll-call-quotes.js     # ROLL_CALL_QUOTES - closing quotes / sayings (BOLO board)
     ├── random-character.js     # shared "Randomize Character" form filler

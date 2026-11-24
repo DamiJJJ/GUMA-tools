@@ -9,7 +9,7 @@
 
 <p align="center">
   <b>Document & card generators for FiveM roleplay.</b><br />
-  Fill in a form, get a realistic PNG - for LSPD, LSSD, BCSO, SAHP, LSFD and LSCoFD.
+  Fill in a form, get a realistic PNG - for LSPD, LSSD, BCSO, SAHP, SADCR, LSFD and LSCoFD.
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@
     <td align="center" width="25%">
       <a href="https://damijjj.github.io/GUMA-tools/officer_generator.html"><img src="assets/readme/officer_generator.jpg" alt="Officer Card" /></a><br />
       <b><a href="https://damijjj.github.io/GUMA-tools/officer_generator.html">Officer Card</a></b><br />
-      <sub>LSPD / LSSD / BCSO / SAHP</sub>
+      <sub>LSPD / LSSD / BCSO / SAHP / SADCR</sub>
     </td>
     <td align="center" width="25%">
       <a href="https://damijjj.github.io/GUMA-tools/firefighter_generator.html"><img src="assets/readme/firefighter_generator.jpg" alt="Firefighter Card" /></a><br />
