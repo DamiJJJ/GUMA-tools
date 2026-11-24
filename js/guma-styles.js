@@ -1408,6 +1408,19 @@
         --lamp: 255, 255, 255;
       }
 
+      /* ─── Easter egg: donut rain ─── */
+      /* A click-through layer over the viewport (js/donut-egg.js), above the
+         command palette so the shower shows while it is open. Every donut is
+         a clone of a hidden template img; JS sizes it and moves it with the
+         Web Animations API, then removes it once it has fallen out. */
+      .guma-donut-rain {
+        @apply pointer-events-none fixed inset-0 z-[90] overflow-hidden;
+      }
+      .guma-donut {
+        @apply absolute left-0 top-0 select-none drop-shadow-lg;
+        will-change: transform, opacity;
+      }
+
       /* ─── Evidence Locker (about.html) + evidence toast ─── */
       /* Trigger: the bare cabinet next to the disclaimer, a touch faded
          until it is hovered. */
@@ -1618,6 +1631,22 @@
         @apply animate-spin;
         animation-duration: 0.6s;
       }
+      /* Donut: eaten from the right while hovered, and left bitten until
+         the pointer leaves. The mask is the whole icon minus four bites
+         (--guma-bite: a round bite with tooth marks on its rim); each bite
+         layer starts at size 0 and animate-guma-donut-bite
+         (js/tailwind-config.js) flips it on. Bites 1-3 overlap along the
+         right rim (0, -28 and 26 degrees), bite 4 goes deeper, so the cut
+         stays one curve with no loose crumbs. Bite size: 42%. */
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="bite"] {
+        --guma-bite: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44'/%3E%3Ccircle cx='93.0' cy='50.0' r='7'/%3E%3Ccircle cx='87.2' cy='71.5' r='7'/%3E%3Ccircle cx='71.5' cy='87.2' r='7'/%3E%3Ccircle cx='50.0' cy='93.0' r='7'/%3E%3Ccircle cx='28.5' cy='87.2' r='7'/%3E%3Ccircle cx='12.8' cy='71.5' r='7'/%3E%3Ccircle cx='7.0' cy='50.0' r='7'/%3E%3Ccircle cx='12.8' cy='28.5' r='7'/%3E%3Ccircle cx='28.5' cy='12.8' r='7'/%3E%3Ccircle cx='50.0' cy='7.0' r='7'/%3E%3Ccircle cx='71.5' cy='12.8' r='7'/%3E%3Ccircle cx='87.2' cy='28.5' r='7'/%3E%3C/svg%3E");
+        @apply animate-guma-donut-bite;
+        mask-image: linear-gradient(#000, #000), var(--guma-bite), var(--guma-bite), var(--guma-bite), var(--guma-bite);
+        mask-position: 0 0, 136.2% 50%, 123.1% 11.1%, 122.8% 85.5%, 108.6% 50%;
+        mask-size: 100% 100%, 0 0, 0 0, 0 0, 0 0;
+        mask-repeat: no-repeat;
+        mask-composite: subtract, add, add, add, add;
+      }
       /* KOD 3: the two lenses pulse out of step. */
       .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="flash"] :is(.guma-kod3-blue, .guma-kod3-red) {
         @apply animate-pulse;
@@ -1785,6 +1814,9 @@
       }
       .guma-search-item.is-active {
         @apply bg-guma-l-panel-2 dark:bg-guma-panel-2;
+      }
+      .guma-search-item-egg {
+        @apply cursor-pointer;
       }
       .guma-search-item-soon {
         @apply cursor-not-allowed select-none text-guma-l-muted/60 dark:text-guma-muted/50;

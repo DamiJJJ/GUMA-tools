@@ -164,6 +164,26 @@ tailwind.config = {
           "80%": { transform: "rotate(-6deg) scale(1.04)" },
           "100%": { opacity: "1", transform: "rotate(-6deg) scale(1)" },
         },
+        // Donut exhibit hover: four bites from one side. Each bite flips its
+        // mask layer on within 1% (a bite does not grow) while the donut
+        // squashes for a chomp. Layer order matches the data-fx="bite" rule
+        // in js/guma-styles.js: the whole icon, then bites 1-4.
+        "guma-donut-bite": {
+          "0%": { "mask-size": "100% 100%, 0% 0%, 0% 0%, 0% 0%, 0% 0%", transform: "scale(1) rotate(0deg)" },
+          "7%": { "mask-size": "100% 100%, 0% 0%, 0% 0%, 0% 0%, 0% 0%", transform: "scale(1) rotate(0deg)" },
+          "8%": { "mask-size": "100% 100%, 42% 42%, 0% 0%, 0% 0%, 0% 0%", transform: "scale(0.9) rotate(-5deg)" },
+          "16%": { "mask-size": "100% 100%, 42% 42%, 0% 0%, 0% 0%, 0% 0%", transform: "scale(1) rotate(0deg)" },
+          "31%": { "mask-size": "100% 100%, 42% 42%, 0% 0%, 0% 0%, 0% 0%", transform: "scale(1) rotate(0deg)" },
+          "32%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 0% 0%, 0% 0%", transform: "scale(0.9) rotate(-5deg)" },
+          "40%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 0% 0%, 0% 0%", transform: "scale(1) rotate(0deg)" },
+          "55%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 0% 0%, 0% 0%", transform: "scale(1) rotate(0deg)" },
+          "56%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 42% 42%, 0% 0%", transform: "scale(0.9) rotate(-5deg)" },
+          "64%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 42% 42%, 0% 0%", transform: "scale(1) rotate(0deg)" },
+          "79%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 42% 42%, 0% 0%", transform: "scale(1) rotate(0deg)" },
+          "80%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 42% 42%, 42% 42%", transform: "scale(0.9) rotate(-5deg)" },
+          "88%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 42% 42%, 42% 42%", transform: "scale(1) rotate(0deg)" },
+          "100%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 42% 42%, 42% 42%", transform: "scale(1) rotate(0deg)" },
+        },
       },
       animation: {
         "guma-header-drop": "guma-header-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
@@ -183,6 +203,7 @@ tailwind.config = {
         "guma-egg-pop": "guma-egg-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both",
         "guma-egg-poke": "guma-egg-poke 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
         "guma-stamp-slam": "guma-stamp-slam 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "guma-donut-bite": "guma-donut-bite 2.4s ease-out both",
       },
     },
   },

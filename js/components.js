@@ -1583,6 +1583,11 @@ class GumaSearchPalette extends HTMLElement {
     this.querySelector("[data-sp-close]").addEventListener("click", () => this.close());
 
     this._input.addEventListener("input", () => this._render());
+
+    // Rows without a link (the donut egg, js/donut-egg.js) act on select.
+    this._list.addEventListener("click", (e) => {
+      if (e.target.closest("[data-sp-egg]")) this._selectEgg();
+    });
     this._input.addEventListener("keydown", (e) => this._onFieldKey(e));
 
     // Pointer and keyboard share one highlight, so hovering a row makes it the
@@ -1652,7 +1657,7 @@ class GumaSearchPalette extends HTMLElement {
       case "Enter": {
         e.preventDefault();
         const row = this._list.querySelector(`[data-sp-index="${this._active}"]`);
-        if (row && row.tagName === "A") row.click();
+        if (row && (row.tagName === "A" || row.hasAttribute("data-sp-egg"))) row.click();
         break;
       }
       case "Escape":
@@ -1660,6 +1665,12 @@ class GumaSearchPalette extends HTMLElement {
         this.close();
         break;
     }
+  }
+
+  // Picking the egg row closes the palette and drops another shower.
+  _selectEgg() {
+    this.close();
+    window.GumaDonutEgg?.rain();
   }
 
   _move(step) {
@@ -1674,7 +1685,9 @@ class GumaSearchPalette extends HTMLElement {
     const query = this._input.value.trim();
     const api = window.GumaSearch;
 
-    this._results = api ? api.search(query, query ? SP_MAX_RESULTS : 50) : [];
+    // A trigger word answers with the egg's row alone (js/donut-egg.js).
+    const egg = window.GumaDonutEgg ? window.GumaDonutEgg.onQuery(query) : null;
+    this._results = egg ? [egg] : api ? api.search(query, query ? SP_MAX_RESULTS : 50) : [];
     this._active = 0;
 
     if (!this._results.length) {
@@ -1690,9 +1703,10 @@ class GumaSearchPalette extends HTMLElement {
   }
 
   _row(entry, index, tokens) {
-    const soon = entry.status === "soon" || !entry.url;
-    const tag = soon ? "div" : "a";
-    const href = soon ? "" : ` href="${ghEscapeHtml(entry.url)}"`;
+    const egg = entry.status === "egg";
+    const soon = !egg && (entry.status === "soon" || !entry.url);
+    const tag = soon || egg ? "div" : "a";
+    const href = soon || egg ? "" : ` href="${ghEscapeHtml(entry.url)}"`;
 
     const icon = entry.icon
       ? `<img src="${ghEscapeHtml(entry.icon)}" alt="" />`
@@ -1705,8 +1719,8 @@ class GumaSearchPalette extends HTMLElement {
     const soonTag = soon ? ` <span class="text-[10px] font-bold uppercase tracking-widest">(Soon)</span>` : "";
 
     return `
-      <${tag}${href} role="option" aria-selected="false" data-sp-index="${index}"
-         class="guma-search-item${soon ? " guma-search-item-soon" : ""}">
+      <${tag}${href} role="option" aria-selected="false" data-sp-index="${index}"${egg ? " data-sp-egg" : ""}
+         class="guma-search-item${soon ? " guma-search-item-soon" : ""}${egg ? " guma-search-item-egg" : ""}">
         <span class="guma-search-icon">${icon}</span>
         <span class="min-w-0 flex-1">
           <span class="guma-search-title block">${this._mark(entry.title, tokens)}${soonTag}</span>

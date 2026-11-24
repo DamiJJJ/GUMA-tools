@@ -90,6 +90,11 @@ window.GumaLocker = (function () {
       </svg>`);
   }
 
+  // The donut from the search egg (js/donut-egg.js).
+  function donutIcon() {
+    return _el(`<img src="assets/donut.svg" alt="" />`);
+  }
+
   // ── Evidence registry ─────────────────────────────────────────
   // Order = exhibit letter. `fx` names the hover replay in the locker
   // (.guma-locker-icon[data-fx]). Police terms (title, "Exhibit",
@@ -115,6 +120,13 @@ window.GumaLocker = (function () {
       note: "Dziesięć przełączeń motywu w pięć sekund. Reaguj w kodzie 3.",
       fx: "flash",
       icon: lightbarIcon,
+    },
+    {
+      id: "donut",
+      title: "Jedziemy na pączki",
+      note: "Jedno słowo w wyszukiwarce i z nieba lecą pączki. Stereotyp potwierdzony.",
+      fx: "bite",
+      icon: donutIcon,
     },
   ];
 

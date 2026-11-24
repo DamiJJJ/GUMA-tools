@@ -83,6 +83,7 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── tire-spin.js            # GumaTireSpin - rolling-tire SVG (about page)
     ├── easter-egg.js           # hidden burnout easter egg, opt-in via [data-guma-egg]
     ├── lightbar-egg.js         # hidden lightbar easter egg (theme toggle spam, every page)
+    ├── donut-egg.js            # hidden donut rain easter egg ("donut" in the search palette)
     ├── evidence-locker.js      # Evidence Locker cabinet + dialog (about page)
     ├── bodycam-*.js            # bodycam overlay: cameras/layers/render/stage/page
     └── <page>.js               # one JS file per generator/report
@@ -127,8 +128,8 @@ module must precede the page JS that calls it. The two established tails:
 ```
 
 (Every page, cards and reports alike, also loads `js/guma-profile.js` +
-`js/guma-locker.js` + `js/lightbar-egg.js` right before `js/counters.js` - see
-the note below.)
+`js/guma-locker.js` + `js/lightbar-egg.js` + `js/donut-egg.js` right before
+`js/counters.js` - see the note below.)
 
 ```html
 <!-- Report generators (prehospital_care_report.html) -->
@@ -151,9 +152,10 @@ the note below.)
   `body-diagram.js`, then the page script).
 - `search-index.js` loads on every page, right before `components.js` (the
   `<guma-search>` palette reads `GUMA_SEARCH_INDEX`).
-- `guma-profile.js`, `guma-locker.js` then `lightbar-egg.js` load on every
-  page, right before `counters.js`: the header logo and theme toggle eggs
-  collect evidence on any page, and the locker reads the profile.
+- `guma-profile.js`, `guma-locker.js`, `lightbar-egg.js` then `donut-egg.js`
+  load on every page, right before `counters.js`: the header logo, theme
+  toggle and search palette eggs collect evidence on any page, and the locker
+  reads the profile.
 - Pages close with a small inline `<script>` bootstrap after `animations.js`
   (`DOMContentLoaded` -> page init + `GumaCounters?.initDownloadCounter(...)`).
   Keep it to wiring calls; logic belongs in the page JS.
@@ -220,8 +222,8 @@ Other tokens:
   `guma-mobile-open`, `guma-slide-up-out`, `guma-dropdown-open`,
   `guma-logo-band` + `guma-logo-recoil` (header logo click), `guma-logo-stamp`,
   `guma-logo-star-spin`, `guma-logo-rule-sweep` (`<guma-logo>` click on About),
-  the `guma-egg-*` set (easter egg) and `guma-stamp-slam` (Evidence Locker
-  CASE CLOSED stamp).
+  the `guma-egg-*` set (easter egg), `guma-stamp-slam` (Evidence Locker
+  CASE CLOSED stamp) and `guma-donut-bite` (donut exhibit hover).
 
 **A new colour or shadow goes into `js/tailwind-config.js`.** Never hard-code a
 hex value in markup or an inline style.
@@ -243,7 +245,8 @@ titles, Index tiles, Latest video widget, Form labels/inputs, Buttons, Form
 section header, Faction switcher, Segmented control, Bodycam stage, Report
 dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, Multi-page
 report (page strip + form tabs), WYSIWYG canvas editing, Easter egg (burnout),
-Easter egg (lightbar), Evidence Locker + evidence toast, Command palette.
+Easter egg (lightbar), Easter egg (donut rain), Evidence Locker + evidence
+toast, Command palette.
 
 Reuse before adding:
 
