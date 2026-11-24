@@ -115,7 +115,7 @@ function bbImage(src) {
  * "BLAINE COUNTY" / "SHERIFF'S OFFICE"). "County" belongs to the place.
  */
 function bbSplitAgency(name) {
-  const m = /^(.*?)\s+(police department|sheriff's department|sheriff's office|highway patrol|fire department|police|sheriff|department|patrol)$/i.exec(
+  const m = /^(.*?)\s+(police department|sheriff's department|sheriff's office|highway patrol|of corrections and rehabilitation|fire department|police|sheriff|department|patrol)$/i.exec(
     (name || "").trim(),
   );
   return m ? { top: m[1].toUpperCase(), bottom: m[2].toUpperCase() } : { top: (name || "").toUpperCase(), bottom: "" };

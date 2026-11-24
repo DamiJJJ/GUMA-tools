@@ -6,7 +6,7 @@
 ## Project context
 
 GUMA-Tools is a static webapp for generating documents and cards for FiveM
-roleplay (LSPD/LSSD/BCSO/SAHP/LSCoFD/LSFD, etc.). Zero build tooling -
+roleplay (LSPD/LSSD/BCSO/SAHP/SADCR/LSCoFD/LSFD, etc.). Zero build tooling -
 HTML + Tailwind (CDN) + Vanilla JS. Cards/documents are rendered on an
 HTML Canvas and exported to PNG or the clipboard. Hosting: GitHub Pages.
 
@@ -86,7 +86,7 @@ HTML Canvas and exported to PNG or the clipboard. Hosting: GitHub Pages.
   is set in the LA/LAPD/Los Santos universe - use American person names,
   LA/Los Santos street & area names (Vespucci Blvd, Vinewood, Del Perro,
   Mission Row), US date/number formats, and the project's own agencies
-  (LSPD/LSSD/BCSO/SAHP/LSFD/LSCoFD).
+  (LSPD/LSSD/BCSO/SAHP/SADCR/LSFD/LSCoFD).
 
 ## Slash commands
 

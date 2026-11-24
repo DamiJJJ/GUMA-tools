@@ -7,7 +7,7 @@ const BC_CUSTOM = {
   emailDomain: "",
 };
 
-const BC_FACTION_ORDER = ["lspd", "lssd", "bcso", "sahp", "lscofd", "lsfd"];
+const BC_FACTION_ORDER = ["lspd", "lssd", "bcso", "sahp", "sadcr", "lscofd", "lsfd"];
 
 // ── State ────────────────────────────────────────────────────────────────
 let bcCurrentFaction = "lspd";

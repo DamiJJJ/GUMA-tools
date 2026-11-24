@@ -259,6 +259,101 @@ const FACTIONS = {
       "Community Oriented Policing",
     ],
   },
+
+  sadcr: {
+    name: "San Andreas Department of Corrections and Rehabilitation",
+    short: "SADCR",
+    shortName: "San Andreas DCR",
+    emailDomain: "sadcr.gov",
+    icon: "assets/sadcr_192.png",
+    // Correctional officers are sworn peace officers, so SADCR shares the
+    // police generators (officer card, wanted poster, BOLO) and pay scale.
+    type: FACTION_TYPE.POLICE,
+    cardBg: "#e9eddc",
+    cardBorder: "#2f6b3a",
+    businessCard: {
+      header: "SAN ANDREAS DEPARTMENT OF CORRECTIONS AND REHABILITATION",
+      layout2: {
+        prefix: "State of San Andreas",
+        title: "Corrections & Rehabilitation",
+        motto1: "Custody - Safety - Rehabilitation",
+        motto2: "Since 1944",
+      },
+      badge: "assets/sadcr_192.png",
+      recruitName: "SADCR",
+      recruitPhone: "(866) 444-SADCR",
+      websiteMain: "www.SADCRonline.org",
+      websiteJoin: "www.joinSADCR.org",
+    },
+    ranks: [
+      "Correctional Officer Cadet",
+      "Correctional Officer",
+      "Correctional Sergeant",
+      "Correctional Lieutenant",
+      "Correctional Captain",
+      "Correctional Administrator",
+      "Associate Warden",
+      "Chief Deputy Warden",
+      "Warden",
+      "Associate Director",
+      "Deputy Director",
+      "Undersecretary",
+      "Secretary",
+    ],
+    seniorRanks: [
+      "Correctional Lieutenant",
+      "Correctional Captain",
+      "Correctional Administrator",
+      "Associate Warden",
+      "Chief Deputy Warden",
+      "Warden",
+      "Associate Director",
+      "Deputy Director",
+      "Undersecretary",
+      "Secretary",
+    ],
+    midRanks: ["Correctional Sergeant"],
+    // Own pay table instead of the police one (see randomizePay in js/app.js).
+    // Ranges are [min, max] in USD per year; rates are fractions of base.
+    // Modelled on CDCR: lower base than city police, heavy mandatory OT.
+    payScale: {
+      senior: [105000, 150000], // Correctional Lieutenant and up
+      mid: [88000, 108000], // Correctional Sergeant
+      junior: [62000, 84000], // Cadet / Correctional Officer
+      // Step raises flatten out early in corrections, so a lower rate and cap
+      // keep a 10-year officer near the real top step (~$100k base).
+      annualRate: [0.02, 0.03], // per service year
+      maxServiceYears: 20,
+      divisionBonus: [
+        { match: /special emergency|crisis response/i, rate: [0.06, 0.1] },
+        { match: /investigative|gang/i, rate: [0.04, 0.08] },
+        { match: /canine|k-?9/i, rate: [0.04, 0.07] },
+        { match: /training/i, rate: [0.03, 0.06] },
+        { match: /transportation|internal affairs|correctional safety/i, rate: [0.02, 0.05] },
+      ],
+      defaultDivisionBonus: [0, 0.02],
+      overtime: [0.2, 0.5],
+      other: [2000, 8000],
+      health: [16000, 22000],
+    },
+    divisions: [
+      "Bolingbroke Penitentiary",
+      "Division of Adult Institutions",
+      "Division of Adult Parole Operations",
+      "Receiving and Release",
+      "Transportation Unit",
+      "Investigative Services Unit",
+      "Institutional Gang Investigations",
+      "Crisis Response Team",
+      "Special Emergency Response Team",
+      "Canine Unit",
+      "Office of Correctional Safety",
+      "Office of Internal Affairs",
+      "Conservation Camp Program",
+      "Training Division",
+    ],
+  },
+
   lscofd: {
     name: "Los Santos County Fire Department",
     short: "LSCoFD",

@@ -36,7 +36,7 @@ Steps:
      the LA/LAPD/Los Santos universe: American person names (e.g. "Michael R.
      Callahan"), LA/Los Santos street & area names (Vespucci Blvd, Vinewood,
      Del Perro, Mission Row), US date/number formats, and the project's own
-     agencies (LSPD/LSSD/BCSO/SAHP/LSFD/LSCoFD). No Polish names, streets, or
+     agencies (LSPD/LSSD/BCSO/SAHP/SADCR/LSFD/LSCoFD). No Polish names, streets, or
      phrasing.
 
 4. **Run the capture.** Write the script below to the scratchpad as

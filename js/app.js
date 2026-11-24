@@ -147,8 +147,24 @@ function randomizePay() {
 
   let base, ot, other, health;
 
-  // ── Police / Sheriff / Highway Patrol ──────────────────────────────────────
-  if (fType === FACTION_TYPE.POLICE) {
+  // ── Faction-specific pay table (FACTIONS[key].payScale) ───────────────────
+  if (faction.payScale) {
+    const ps = faction.payScale;
+    const between = ([min, max]) => min + Math.random() * (max - min);
+
+    base = between(isSenior ? ps.senior : isMid ? ps.mid : ps.junior);
+    const serviceYears = Math.min(yearsOfService, ps.maxServiceYears);
+    base *= Math.pow(1 + between(ps.annualRate), serviceYears);
+
+    const bonus = ps.divisionBonus.find((b) => b.match.test(division));
+    base *= 1 + between(bonus ? bonus.rate : ps.defaultDivisionBonus);
+
+    ot = base * between(ps.overtime);
+    other = between(ps.other);
+    health = between(ps.health);
+
+    // ── Police / Sheriff / Highway Patrol ──────────────────────────────────────
+  } else if (fType === FACTION_TYPE.POLICE) {
     // Senior (Lieutenant+):   $138k–$185k
     // Mid    (Sergeant/Det):  $113k–$143k
     // Junior (PO1–PO3):        $95k–$115k  → PO2 avg ≈ $105k
