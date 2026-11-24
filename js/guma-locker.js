@@ -7,9 +7,9 @@
 // The locker itself - the cabinet on about.html - is drawn by
 // js/evidence-locker.js from list() / progress().
 // New egg: add an entry to EVIDENCE, then call collect() from the
-// egg's own code. It takes over one of the "Soon" slots; the total
-// grows with the registry, and a locker that was closed once keeps
-// its lockerClosedAt for good.
+// egg's own code. The locker pages through the exhibits and pads its
+// last page with "Soon" slots; the total grows with the registry, and
+// a locker that was closed once keeps its lockerClosedAt for good.
 
 "use strict";
 
@@ -19,9 +19,6 @@ window.GumaLocker = (function () {
   const TOAST_FADE_MS = 300; // matches the .guma-toast transition
   const LOCKER_URL = "about.html#evidence-locker";
   const EXHIBIT_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  // Slots the locker shows. Those without an egg yet are drawn as
-  // "Soon", so the shelf hints at more to come.
-  const LOCKER_SLOTS = 8;
 
   // ── Icons ─────────────────────────────────────────────────────
   // Each call returns a fresh element: the toast and the locker each
@@ -95,6 +92,30 @@ window.GumaLocker = (function () {
     return _el(`<img src="assets/donut.svg" alt="" />`);
   }
 
+  // A rubber stamp over its red INTERNAL AFFAIRS imprint, from the arrest
+  // report egg (js/internal-affairs-egg.js). The outline follows the theme
+  // via currentColor; the tool and the imprint carry the hover hooks
+  // (.guma-ia-tool / .guma-ia-ink).
+  function iaStampIcon() {
+    return _el(`
+      <svg viewBox="0 0 100 100" class="guma-ia-icon" aria-hidden="true" focusable="false">
+        <g class="guma-ia-ink" fill="none" stroke="#c8102e" transform="rotate(-6 50 79)">
+          <rect x="10" y="64" width="80" height="30" rx="3" stroke-width="3"/>
+          <rect x="14.5" y="68.5" width="71" height="21" rx="1.5" stroke-width="1"/>
+          <g fill="#c8102e" stroke="none" font-family="Arial, Helvetica, sans-serif" font-size="8" font-weight="900" text-anchor="middle" letter-spacing="0.5">
+            <text x="50" y="77.5">INTERNAL</text>
+            <text x="50" y="86.5">AFFAIRS</text>
+          </g>
+        </g>
+        <g class="guma-ia-tool" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
+          <rect x="44" y="24" width="12" height="14" fill="#a8714a"/>
+          <ellipse cx="50" cy="16" rx="13" ry="10" fill="#8a5a3b"/>
+          <rect x="22" y="37" width="56" height="13" rx="3" fill="#c48a5c"/>
+          <rect x="25" y="50" width="50" height="6" rx="1" fill="#c8102e"/>
+        </g>
+      </svg>`);
+  }
+
   // ── Evidence registry ─────────────────────────────────────────
   // Order = exhibit letter. `fx` names the hover replay in the locker
   // (.guma-locker-icon[data-fx]). Police terms (title, "Exhibit",
@@ -128,6 +149,13 @@ window.GumaLocker = (function () {
       fx: "bite",
       icon: donutIcon,
     },
+    {
+      id: "internal-affairs",
+      title: "Sam siebie zakuł",
+      note: "Zatrzymał sam siebie. Sprawa trafia do Wydziału Wewnętrznego.",
+      fx: "stamp",
+      icon: iaStampIcon,
+    },
   ];
 
   const _profile = window.GumaProfile;
@@ -152,15 +180,13 @@ window.GumaLocker = (function () {
 
   /**
    * Registered evidence only - ids of retired eggs are not counted.
-   * `soon` = empty slots kept for eggs that do not exist yet.
-   * @returns {{found: number, total: number, soon: number}}
+   * @returns {{found: number, total: number}}
    */
   function progress() {
     const found = _evidence();
     return {
       found: EVIDENCE.filter((e) => found[e.id]).length,
       total: EVIDENCE.length,
-      soon: Math.max(0, LOCKER_SLOTS - EVIDENCE.length),
     };
   }
 
@@ -192,12 +218,15 @@ window.GumaLocker = (function () {
   }
 
   /**
-   * Every slot on the locker shelf: list() followed by the "Soon"
-   * placeholders, which carry only { soon: true, exhibit }.
+   * Every slot on the locker shelf: list() followed by "Soon"
+   * placeholders ({ soon: true, exhibit }) for eggs that do not exist
+   * yet, padding the last page so every page is a full grid.
+   * @param {number} pageSize slots per page; 0 = no padding
    */
-  function slots() {
+  function slots(pageSize) {
     const items = list();
-    for (let i = 0; i < progress().soon; i++) {
+    const pad = pageSize ? (pageSize - (items.length % pageSize)) % pageSize : 0;
+    for (let i = 0; i < pad; i++) {
       items.push({ soon: true, exhibit: EXHIBIT_LETTERS[EVIDENCE.length + i] || "?" });
     }
     return items;

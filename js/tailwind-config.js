@@ -184,6 +184,22 @@ tailwind.config = {
           "88%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 42% 42%, 42% 42%", transform: "scale(1) rotate(0deg)" },
           "100%": { "mask-size": "100% 100%, 42% 42%, 42% 42%, 42% 42%, 42% 42%", transform: "scale(1) rotate(0deg)" },
         },
+        // Internal Affairs exhibit hover: the rubber stamp lifts off a faded
+        // imprint, comes down hard and the imprint is inked fresh on contact.
+        // Lengths are SVG user units (the icon's viewBox is 100 wide).
+        "guma-ia-press": {
+          "0%": { transform: "translateY(0)", animationTimingFunction: "cubic-bezier(0.5, 0, 0.75, 0)" },
+          "30%": { transform: "translateY(9px)" },
+          "45%": { transform: "translateY(9px)", animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" },
+          "75%": { transform: "translateY(-3px)" },
+          "100%": { transform: "translateY(0)" },
+        },
+        "guma-ia-ink": {
+          "0%": { opacity: "0.15" },
+          "29%": { opacity: "0.15" },
+          "30%": { opacity: "1" },
+          "100%": { opacity: "1" },
+        },
       },
       animation: {
         "guma-header-drop": "guma-header-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
@@ -204,6 +220,8 @@ tailwind.config = {
         "guma-egg-poke": "guma-egg-poke 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
         "guma-stamp-slam": "guma-stamp-slam 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
         "guma-donut-bite": "guma-donut-bite 2.4s ease-out both",
+        "guma-ia-press": "guma-ia-press 0.9s linear both",
+        "guma-ia-ink": "guma-ia-ink 0.9s linear both",
       },
     },
   },

@@ -1529,7 +1529,7 @@
         @apply absolute inset-0 bg-black/60 animate-guma-fade-in;
       }
       .guma-locker-panel {
-        @apply relative flex max-h-[94vh] w-full max-w-6xl flex-col gap-5 overflow-y-auto rounded-2xl border p-5 sm:p-7
+        @apply relative flex max-h-[94vh] w-full max-w-6xl flex-col gap-4 overflow-y-auto overflow-x-hidden rounded-2xl border p-5 sm:p-7
                animate-guma-fade-up
                border-guma-l-border bg-guma-l-panel shadow-panel-light
                dark:border-guma-border dark:bg-guma-panel dark:shadow-panel;
@@ -1553,7 +1553,8 @@
       .guma-locker-title {
         @apply text-lg font-black uppercase tracking-[0.1em] text-guma-l-text dark:text-guma-text sm:text-2xl sm:tracking-[0.14em];
       }
-      .guma-locker-close {
+      .guma-locker-close,
+      .guma-locker-page-btn {
         @apply inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition
                border-guma-l-border text-guma-l-muted hover:border-guma-l-gold hover:text-guma-l-gold
                dark:border-guma-border dark:text-guma-muted dark:hover:border-guma-gold dark:hover:text-guma-gold;
@@ -1567,8 +1568,25 @@
       .guma-locker-count {
         @apply text-xs font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold sm:text-sm;
       }
-      .guma-locker-soon-count {
-        @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-guma-l-muted dark:text-guma-muted;
+      .guma-locker-soon-count,
+      .guma-locker-page-label {
+        @apply whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] text-guma-l-muted dark:text-guma-muted;
+      }
+      /* Pager: arrows either side of "Page 1 / 2", next to the Soon count.
+         Hidden while everything fits one page. */
+      .guma-locker-summary-side {
+        @apply flex flex-wrap items-center gap-x-4 gap-y-1;
+      }
+      .guma-locker-pager {
+        @apply flex items-center gap-2;
+      }
+      .guma-locker-page-btn {
+        @apply h-7 w-7 disabled:cursor-default disabled:opacity-35
+               disabled:hover:border-guma-l-border disabled:hover:text-guma-l-muted
+               dark:disabled:hover:border-guma-border dark:disabled:hover:text-guma-muted;
+      }
+      .guma-locker-page-label {
+        @apply min-w-[5.5rem] text-center tabular-nums;
       }
       .guma-locker-progress {
         @apply h-2 w-full overflow-hidden rounded-full bg-guma-l-panel-2 dark:bg-guma-panel-2;
@@ -1580,10 +1598,19 @@
       .guma-locker-grid {
         @apply grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4;
       }
+      /* A turned page slides in from the side it came from. */
+      .guma-locker-grid.is-from-right {
+        @apply animate-guma-slide-in-right;
+        animation-duration: 0.35s;
+      }
+      .guma-locker-grid.is-from-left {
+        @apply animate-guma-slide-in-left;
+        animation-duration: 0.35s;
+      }
       /* Each exhibit is an evidence tag: a punched hole at the top, the
          exhibit letter, the item and the date it was logged. */
       .guma-locker-slot {
-        @apply relative flex flex-col items-center gap-1.5 rounded-xl border px-3 pb-4 pt-7 text-center sm:px-4
+        @apply relative flex flex-col items-center gap-1 rounded-xl border px-3 pb-4 pt-6 text-center sm:px-4
                border-guma-l-gold/30 bg-guma-l-panel-2 dark:border-guma-gold/30 dark:bg-guma-panel-2;
       }
       .guma-locker-slot::before {
@@ -1603,7 +1630,12 @@
         @apply text-[10px] font-bold uppercase tracking-[0.22em] text-guma-l-muted dark:text-guma-muted;
       }
       .guma-locker-art {
-        @apply relative my-1 flex h-20 w-20 items-center justify-center lg:h-24 lg:w-24;
+        @apply relative flex h-20 w-20 items-center justify-center lg:h-24 lg:w-24;
+      }
+      /* Short phones, where one row of full-size cards does not fit
+         (js/evidence-locker.js sets is-compact). */
+      .guma-locker-panel.is-compact .guma-locker-art {
+        @apply h-14 w-14;
       }
       .guma-locker-icon {
         @apply h-full w-full;
@@ -1613,7 +1645,8 @@
         @apply block h-full w-full object-contain;
       }
       /* Outline of the KOD 3 lightbar (also in the toast). */
-      .guma-kod3-icon {
+      .guma-kod3-icon,
+      .guma-ia-icon {
         @apply text-guma-l-text dark:text-guma-text;
       }
       .guma-locker-slot.is-classified .guma-locker-icon {
@@ -1654,6 +1687,13 @@
       }
       .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="flash"] .guma-kod3-red {
         animation-delay: 0.3s;
+      }
+      /* Internal Affairs: the rubber stamp presses a fresh imprint. */
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="stamp"] .guma-ia-tool {
+        @apply animate-guma-ia-press;
+      }
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="stamp"] .guma-ia-ink {
+        @apply animate-guma-ia-ink;
       }
       .guma-locker-name {
         @apply text-sm font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text sm:text-base;
@@ -1756,8 +1796,9 @@
         }
         .guma-locker-overlay,
         .guma-locker-panel,
+        .guma-locker-grid,
         .guma-locker-icon,
-        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red),
+        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red, .guma-ia-tool, .guma-ia-ink),
         .guma-locker-stamp-closed {
           animation: none !important;
         }

@@ -4,8 +4,11 @@
 // on hover, showing the GUMA shield inside. Clicking it opens the
 // locker: every easter egg as an exhibit - collected ones with their icon and
 // date, missing ones blurred out under a CLASSIFIED stamp, and empty "Soon"
-// slots for eggs that are still to come. The data and the collect() API live
-// in js/guma-locker.js; this file only draws the trigger and the dialog.
+// slots for eggs that are still to come. The exhibits are paged, so the
+// dialog never scrolls: a page holds as many rows as fit the viewport times
+// the grid's columns, turned with the arrows, the arrow keys or a swipe. The
+// data and the collect() API live in js/guma-locker.js; this file only draws
+// the trigger and the dialog.
 // Opt-in via [data-guma-locker] on the trigger button. about.html#evidence-
 // locker opens the dialog on arrival - the "evidence collected" toast links
 // there.
@@ -13,11 +16,18 @@
 (function () {
   // ── Config ──────────────────────────────────────────────────────────
   const HASH = "#evidence-locker";
+  const MAX_ROWS = 2; // rows per page when the viewport is tall enough
+  const PRE_RENDER_PAGE = 8; // page size before the first measure (dialog hidden)
+  const SWIPE_PX = 50; // horizontal travel that turns the page on touch
 
   let root = null; // dialog root, mounted hidden on init
   let trigger = null;
   let opener = null; // element to hand focus back to on close
   let unsubscribe = null;
+  let page = 0; // current page, 0-based
+  let pageSize = PRE_RENDER_PAGE;
+  let pageCount = 1;
+  let layoutFrame = 0;
 
   // ── Cabinet icon ────────────────────────────────────────────────────
   // Flat two-door locker on a plinth (viewBox 64x64): vents top and bottom,
@@ -64,6 +74,12 @@
   // classified slots share one set of elements that only toggle `hidden`:
   // the Tailwind CDN compiles classes it finds in the DOM, so markup that
   // first appeared on open would paint unstyled for a frame.
+  const CHEVRON = (d) => `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <path d="${d}"/>
+    </svg>`;
+
   const LOCK_SVG = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -93,7 +109,14 @@
         <div class="guma-locker-summary">
           <div class="guma-locker-summary-row">
             <p class="guma-locker-count" data-locker-count></p>
-            <p class="guma-locker-soon-count" data-locker-soon></p>
+            <div class="guma-locker-summary-side">
+              <p class="guma-locker-soon-count" data-locker-soon></p>
+              <div class="guma-locker-pager hidden" data-locker-pager>
+                <button type="button" class="guma-locker-page-btn" data-locker-prev aria-label="Previous page">${CHEVRON("M15 18l-6-6 6-6")}</button>
+                <p class="guma-locker-page-label" data-locker-page aria-live="polite"></p>
+                <button type="button" class="guma-locker-page-btn" data-locker-next aria-label="Next page">${CHEVRON("M9 18l6-6-6-6")}</button>
+              </div>
+            </div>
           </div>
           <div class="guma-locker-progress"><span class="guma-locker-progress-bar" data-locker-bar></span></div>
         </div>
@@ -101,6 +124,9 @@
         <p class="guma-locker-foot" data-locker-foot></p>
       </div>`;
     el.querySelectorAll("[data-locker-close]").forEach((n) => n.addEventListener("click", close));
+    el.querySelector("[data-locker-prev]").addEventListener("click", () => turnPage(-1));
+    el.querySelector("[data-locker-next]").addEventListener("click", () => turnPage(1));
+    wireSwipe(el.querySelector("[data-locker-grid]"));
     return el;
   }
 
@@ -141,10 +167,22 @@
     return li;
   }
 
+  function fillGrid(items) {
+    const grid = root.querySelector("[data-locker-grid]");
+    grid.textContent = "";
+    items.forEach((item) => grid.appendChild(buildSlot(item)));
+  }
+
   function render() {
     const locker = window.GumaLocker;
-    const { found, total, soon } = locker.progress();
+    const { found, total } = locker.progress();
     const closed = found === total;
+    // The last page is padded with "Soon" slots, so their count follows the
+    // page size - and with it the screen.
+    const items = locker.slots(pageSize);
+    const soon = items.filter((item) => item.soon).length;
+    pageCount = Math.max(1, Math.ceil(items.length / pageSize));
+    page = Math.min(Math.max(page, 0), pageCount - 1);
 
     root.querySelector("[data-locker-count]").textContent = `${found}/${total} evidence collected`;
     const soonEl = root.querySelector("[data-locker-soon]");
@@ -152,14 +190,99 @@
     soonEl.classList.toggle("hidden", !soon);
     root.querySelector("[data-locker-bar]").style.width = `${total ? (found / total) * 100 : 0}%`;
 
-    const grid = root.querySelector("[data-locker-grid]");
-    grid.textContent = "";
-    locker.slots().forEach((item) => grid.appendChild(buildSlot(item)));
+    fillGrid(items.slice(page * pageSize, (page + 1) * pageSize));
+    root.querySelector("[data-locker-pager]").classList.toggle("hidden", pageCount < 2);
+    root.querySelector("[data-locker-page]").textContent = `Page ${page + 1} / ${pageCount}`;
+    root.querySelector("[data-locker-prev]").disabled = page === 0;
+    root.querySelector("[data-locker-next]").disabled = page >= pageCount - 1;
 
     root.querySelector("[data-locker-closed]").classList.toggle("hidden", !closed);
     root.querySelector("[data-locker-foot]").textContent = closed
       ? "Wszystkie dowody zabezpieczone. Sprawa zamknięta - przynajmniej na razie."
       : "Dowody są poukrywane w całym GUMA Tools. Miej oczy szeroko otwarte.";
+  }
+
+  // ── Pages ───────────────────────────────────────────────────────────
+  // Sizes the page to the open dialog: every exhibit goes on the shelf with
+  // the pager showing, so the tallest card sets the row height and the
+  // header, summary and foot are measured as they will be. Then as many rows
+  // as fit the panel's max height (MAX_ROWS at most, 1 at least) times the
+  // grid's current column count. When even one row does not fit (short
+  // phones), the cards go compact (smaller icons) and are measured again.
+  // The first exhibit on screen stays on screen when the page size changes.
+  function measure(panel, grid) {
+    const gridStyle = getComputedStyle(grid);
+    return {
+      cols: gridStyle.gridTemplateColumns.split(" ").length,
+      rowH: Math.max(...Array.from(grid.children, (li) => li.offsetHeight)),
+      gap: parseFloat(gridStyle.rowGap) || 0,
+      chrome: panel.scrollHeight - grid.offsetHeight,
+      room: parseFloat(getComputedStyle(panel).maxHeight),
+    };
+  }
+
+  function layout() {
+    if (!isOpen()) return;
+    const panel = root.querySelector(".guma-locker-panel");
+    const grid = root.querySelector("[data-locker-grid]");
+    const first = page * pageSize;
+
+    fillGrid(window.GumaLocker.list());
+    root.querySelector("[data-locker-pager]").classList.remove("hidden");
+    panel.classList.remove("is-compact");
+    let m = measure(panel, grid);
+    if (m.chrome + m.rowH > m.room) {
+      panel.classList.add("is-compact");
+      m = measure(panel, grid);
+    }
+
+    let rows = MAX_ROWS;
+    while (rows > 1 && m.chrome + rows * m.rowH + (rows - 1) * m.gap > m.room) rows--;
+    pageSize = m.cols * rows;
+    page = Math.floor(first / pageSize);
+    render();
+  }
+
+  function scheduleLayout() {
+    cancelAnimationFrame(layoutFrame);
+    layoutFrame = requestAnimationFrame(layout);
+  }
+
+  // Turns one page back (-1) or forward (1); the new cards slide in from the
+  // side they came from.
+  function turnPage(dir) {
+    const next = page + dir;
+    if (!isOpen() || next < 0 || next >= pageCount) return;
+    page = next;
+    render();
+    const grid = root.querySelector("[data-locker-grid]");
+    grid.classList.remove("is-from-left", "is-from-right");
+    void grid.offsetWidth; // restart the animation on repeated turns
+    grid.classList.add(dir > 0 ? "is-from-right" : "is-from-left");
+  }
+
+  function wireSwipe(grid) {
+    let start = null;
+    grid.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.changedTouches[0];
+        start = { x: t.clientX, y: t.clientY };
+      },
+      { passive: true },
+    );
+    grid.addEventListener(
+      "touchend",
+      (e) => {
+        if (!start) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - start.x;
+        const dy = t.clientY - start.y;
+        start = null;
+        if (Math.abs(dx) > SWIPE_PX && Math.abs(dx) > Math.abs(dy)) turnPage(dx < 0 ? 1 : -1);
+      },
+      { passive: true },
+    );
   }
 
   function isOpen() {
@@ -169,11 +292,13 @@
   function open() {
     if (!root || isOpen()) return;
     opener = document.activeElement;
-    render();
+    page = 0;
     root.classList.remove("hidden");
     root.classList.add("flex");
-    // Keep the open dialog in step with finds here or in another tab.
-    unsubscribe = window.GumaLocker.subscribe(render);
+    layout();
+    // Keep the open dialog in step with finds here or in another tab. A
+    // find can change card heights, so it re-measures.
+    unsubscribe = window.GumaLocker.subscribe(layout);
     requestAnimationFrame(() => root.querySelector(".guma-locker-close").focus({ preventScroll: true }));
   }
 
@@ -205,7 +330,13 @@
     render();
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && isOpen()) close();
+      if (!isOpen()) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") turnPage(-1);
+      else if (e.key === "ArrowRight") turnPage(1);
+    });
+    window.addEventListener("resize", () => {
+      if (isOpen()) scheduleLayout();
     });
     window.addEventListener("hashchange", () => {
       if (window.location.hash === HASH) open();
