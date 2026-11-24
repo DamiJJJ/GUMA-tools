@@ -1646,8 +1646,16 @@
       }
       /* Outline of the KOD 3 lightbar (also in the toast). */
       .guma-kod3-icon,
-      .guma-ia-icon {
+      .guma-ia-icon,
+      .guma-reward-icon {
         @apply text-guma-l-text dark:text-guma-text;
+      }
+      /* The stamp across the wanted poster icon keeps its tilt when idle,
+         so the slam replay below lands exactly where it rests. */
+      .guma-reward-stamp {
+        transform: rotate(-6deg);
+        transform-box: fill-box;
+        transform-origin: center;
       }
       .guma-locker-slot.is-classified .guma-locker-icon {
         filter: blur(6px) grayscale(1);
@@ -1694,6 +1702,10 @@
       }
       .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="stamp"] .guma-ia-ink {
         @apply animate-guma-ia-ink;
+      }
+      /* Public Enemy / Nobody: the stamp is slammed onto the poster again. */
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="slam"] .guma-reward-stamp {
+        @apply animate-guma-stamp-slam;
       }
       .guma-locker-name {
         @apply text-sm font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text sm:text-base;
@@ -1798,7 +1810,7 @@
         .guma-locker-panel,
         .guma-locker-grid,
         .guma-locker-icon,
-        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red, .guma-ia-tool, .guma-ia-ink),
+        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red, .guma-ia-tool, .guma-ia-ink, .guma-reward-stamp),
         .guma-locker-stamp-closed {
           animation: none !important;
         }

@@ -85,6 +85,7 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── lightbar-egg.js         # hidden lightbar easter egg (theme toggle spam, every page)
     ├── donut-egg.js            # hidden donut rain easter egg ("donut" in the search palette)
     ├── internal-affairs-egg.js # GumaIaEgg - IA stamp when the arrestee is the arresting officer
+    ├── reward-egg.js           # GumaRewardEgg - PUBLIC ENEMY / NOBODY stamp for a $10M+ or $0 reward
     ├── evidence-locker.js      # Evidence Locker cabinet + dialog (about page)
     ├── bodycam-*.js            # bodycam overlay: cameras/layers/render/stage/page
     └── <page>.js               # one JS file per generator/report
@@ -159,7 +160,8 @@ module must precede the page JS that calls it. The two established tails:
   reads the profile.
 - A page-specific egg is a feature module like any other: on
   `arrest_report.html`, `internal-affairs-egg.js` sits right before
-  `arrest-report.js`, whose first draw already asks it. It collects through
+  `arrest-report.js`, whose first draw already asks it (likewise
+  `reward-egg.js` right before `wanted-poster.js`). It collects through
   `window.GumaLocker?.collect()`, so loading before `guma-locker.js` is safe.
 - Pages close with a small inline `<script>` bootstrap after `animations.js`
   (`DOMContentLoaded` -> page init + `GumaCounters?.initDownloadCounter(...)`).
@@ -228,7 +230,7 @@ Other tokens:
   `guma-logo-band` + `guma-logo-recoil` (header logo click), `guma-logo-stamp`,
   `guma-logo-star-spin`, `guma-logo-rule-sweep` (`<guma-logo>` click on About),
   the `guma-egg-*` set (easter egg), `guma-stamp-slam` (Evidence Locker
-  CASE CLOSED stamp), `guma-donut-bite` (donut exhibit hover) and
+  CASE CLOSED stamp, Public Enemy / Nobody exhibit hover), `guma-donut-bite` (donut exhibit hover) and
   `guma-ia-press` + `guma-ia-ink` (Internal Affairs exhibit hover).
 
 **A new colour or shadow goes into `js/tailwind-config.js`.** Never hard-code a

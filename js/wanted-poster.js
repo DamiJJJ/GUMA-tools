@@ -41,6 +41,9 @@ const WP_PHOTO_H = 588;
 const WP_PHOTO2_W = 520; // additional photo, 4:3
 const WP_FLYER_PHOTO_W = 460;
 const WP_MAX_CHARGES = 6;
+// The absurd reward stamps (easter eggs) sit this far below the top of the
+// subject's text column, across the name and the first lines under it.
+const WP_EGG_DY = 190;
 
 // ── Inks ─────────────────────────────────────────────────────────────────────
 // The poster is a printed document, not UI: it looks the same in both themes.
@@ -429,8 +432,15 @@ function wpRender() {
   // its slot first keeps a stale slot from catching drags.
   wpCrop2.paint(ctx, null);
 
-  const stampAt = wpLayout === "classic" ? wpDrawClassic(ctx, d) : wpDrawModern(ctx, d);
-  if (d.stamp) wpDrawStamp(ctx, stampAt.x, stampAt.y, d.stamp);
+  const at = wpLayout === "classic" ? wpDrawClassic(ctx, d) : wpDrawModern(ctx, d);
+  if (d.stamp) wpDrawStamp(ctx, at.stamp.x, at.stamp.y, d.stamp);
+  // Easter eggs: an absurd reward ($10M+ or $0) earns its own rubber stamp,
+  // pressed across the subject's description (js/reward-egg.js). Only on
+  // an open case: a resolved poster is past caring about the reward, and
+  // two stamps across the same column would bury each other.
+  const egg = window.GumaRewardEgg;
+  const eggStamp = !d.stamp && egg?.check(d.reward, d.sex);
+  if (eggStamp) egg.drawStamp(ctx, at.egg.x, at.egg.y, eggStamp);
   // The sheet's height follows its content, so the fit moves with every draw.
   wpZoom.refresh();
 }
@@ -486,10 +496,13 @@ function wpDrawModern(ctx, d) {
   wpModernBanner(ctx, d, WP_BAND_H, banH);
 
   let y = headH;
-  let stampAt = null;
+  const at = {};
   blocks.forEach((b) => {
     b.draw(y);
-    if (b === subject) stampAt = { x: W / 2, y: y + Math.min(b.h, WP_PHOTO_H) / 2 };
+    if (b === subject) {
+      at.stamp = { x: W / 2, y: y + Math.min(b.h, WP_PHOTO_H) / 2 };
+      at.egg = { x: subject.textX + subject.textW / 2, y: y + WP_EGG_DY };
+    }
     y += b.h + flow.gap;
   });
 
@@ -506,7 +519,7 @@ function wpDrawModern(ctx, d) {
   wpFitSpaced(ctx, cta, W - 2 * WP_M, 30, 18, (p) => wpFont(p, "bold"), 2);
   wpSpacedText(ctx, cta, W / 2, H - bottomH / 2 + 13, 2);
 
-  return stampAt;
+  return at;
 }
 
 /** Navy agency band: logo, agency + division, bulletin meta on the right. */
@@ -680,6 +693,8 @@ function wpModernSubject(ctx, d) {
   const photoH = ph + (d.photoDate ? 44 : 10);
   return {
     h: Math.max(photoH, wpSum(items)),
+    textX: rx,
+    textW: rw,
     draw(y) {
       // White mat + hairline, like a print pinned to the board
       ctx.fillStyle = "#ffffff";
@@ -1025,10 +1040,13 @@ function wpDrawClassic(ctx, d) {
   ctx.fillRect(0, 0, W, H);
 
   let y = headH;
-  let stampAt = null;
+  const at = {};
   blocks.forEach((b) => {
     b.draw(y);
-    if (b === body) stampAt = { x: W / 2, y: y + b.h / 2 };
+    if (b === body) {
+      at.stamp = { x: W / 2, y: y + b.h / 2 };
+      at.egg = { x: body.textX + body.textW / 2, y: y + WP_EGG_DY };
+    }
     y += b.h + flow.gap;
   });
 
@@ -1043,7 +1061,7 @@ function wpDrawClassic(ctx, d) {
     ctx.textAlign = "right";
     wpSpacedText(ctx, "BULLETIN NO. " + d.bulletinNo, W - WP_M, H - 34, 1.5);
   }
-  return stampAt;
+  return at;
 }
 
 /** Logos at both corners, red headline, agency, division, black rule. */
@@ -1297,6 +1315,8 @@ function wpFlyerBody(ctx, d) {
 
   return {
     h: Math.max(wpSum(L), rightH),
+    textX: M,
+    textW: lw,
     draw(y) {
       wpStack(L, y);
 

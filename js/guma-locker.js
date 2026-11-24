@@ -116,6 +116,39 @@ window.GumaLocker = (function () {
       </svg>`);
   }
 
+  // A wanted poster with a rubber stamp across it, from the wanted poster
+  // eggs (js/reward-egg.js): the reward on the poster and the stamp text
+  // differ per egg. The sheet outline follows the theme via currentColor;
+  // the stamp carries the hover hook (.guma-reward-stamp).
+  function wantedPosterIcon(reward, stampMain, stampSub) {
+    return _el(`
+      <svg viewBox="6 1 88 98" class="guma-reward-icon" aria-hidden="true" focusable="false">
+        <rect x="18" y="5" width="64" height="90" rx="3" fill="#f5f5f2"/>
+        <path d="M21 5h58a3 3 0 0 1 3 3v13H18V8a3 3 0 0 1 3-3z" fill="#c1121f"/>
+        <text x="50" y="17.5" fill="#ffffff" font-family="Impact, Arial, Helvetica, sans-serif" font-size="10" text-anchor="middle" letter-spacing="0.5">WANTED</text>
+        <rect x="26" y="27" width="20" height="24" fill="#d7dae0"/>
+        <path d="M28 51c0-6 3.5-9 8-9s8 3 8 9z" fill="#b3b8c2"/>
+        <circle cx="36" cy="35.5" r="5" fill="#b3b8c2"/>
+        <path d="M52 30h22M52 36h18M52 42h22M52 48h14" stroke="#b3b8c2" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="26" y="74" width="48" height="14" rx="2" fill="#c1121f"/>
+        <text x="50" y="84.5" fill="#ffffff" font-family="Impact, Arial, Helvetica, sans-serif" font-size="9" text-anchor="middle"${reward.length > 4 ? ' textLength="40" lengthAdjust="spacingAndGlyphs"' : ""}>${reward}</text>
+        <rect x="18" y="5" width="64" height="90" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <g class="guma-reward-stamp">
+          <g fill="none" stroke="#c8102e">
+            <rect x="11" y="52" width="78" height="22" rx="3" stroke-width="2.6"/>
+            <rect x="14" y="55" width="72" height="16" rx="1.5" stroke-width="0.9"/>
+          </g>
+          <g fill="#c8102e" font-family="Impact, Arial, Helvetica, sans-serif" text-anchor="middle">
+            <text x="50" y="64" font-size="9" textLength="62" lengthAdjust="spacingAndGlyphs">${stampMain}</text>
+            <text x="50" y="70.5" font-size="6" letter-spacing="0.8">${stampSub}</text>
+          </g>
+        </g>
+      </svg>`);
+  }
+
+  const publicEnemyIcon = () => wantedPosterIcon("$10,000,000", "PUBLIC ENEMY", "No. 1");
+  const nobodyIcon = () => wantedPosterIcon("$0", "NOBODY IS LOOKING", "FOR HIM");
+
   // ── Evidence registry ─────────────────────────────────────────
   // Order = exhibit letter. `fx` names the hover replay in the locker
   // (.guma-locker-icon[data-fx]). Police terms (title, "Exhibit",
@@ -155,6 +188,20 @@ window.GumaLocker = (function () {
       note: "Zatrzymał sam siebie. Sprawa trafia do Wydziału Wewnętrznego.",
       fx: "stamp",
       icon: iaStampIcon,
+    },
+    {
+      id: "public-enemy",
+      title: "Wróg publiczny",
+      note: "Dziesięć milionów dolarów za głowę. Szuka go całe San Andreas.",
+      fx: "slam",
+      icon: publicEnemyIcon,
+    },
+    {
+      id: "nobody",
+      title: "Nikt",
+      note: "Nawet straż rybacka go nie szuka.",
+      fx: "slam",
+      icon: nobodyIcon,
     },
   ];
 
