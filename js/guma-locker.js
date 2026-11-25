@@ -188,7 +188,8 @@ window.GumaLocker = (function () {
   // js/bodycam-sound.js, which mirrors its flicker keyframes.
 
   // ── Evidence registry ─────────────────────────────────────────
-  // Order = exhibit letter. `fx` names the hover replay in the locker
+  // Order = exhibit letter, sorted by how hard the egg is to find
+  // (easiest first); a new egg goes in where it fits. `fx` names the hover replay in the locker
   // (.guma-locker-icon[data-fx]) and `sound()` the sound played with it
   // (returns a GumaAudio.play() handle, or null; no `sound`, a silent
   // hover - the donut, until it gets a recorded bite). Police terms (title,
@@ -204,35 +205,11 @@ window.GumaLocker = (function () {
       icon: logoIcon,
     },
     {
-      id: "burnout",
-      title: "Palimy gumę!",
-      note: "Ślady opon, kłęby dymu i jedno bardzo gorące koło na stronie „O projekcie”.",
-      fx: "spin",
-      sound: () => window.GumaBurnoutEgg?.sound(),
-      icon: tireIcon,
-    },
-    {
-      id: "lightbar",
-      title: "KOD 3",
-      note: "Dziesięć przełączeń motywu w pięć sekund. Reaguj w kodzie 3.",
-      fx: "flash",
-      sound: () => window.GumaLightbarEgg?.sound(),
-      icon: lightbarIcon,
-    },
-    {
       id: "donut",
       title: "Jedziemy na pączki",
       note: "Jedno słowo w wyszukiwarce i z nieba lecą pączki. Stereotyp potwierdzony.",
       fx: "bite",
       icon: donutIcon,
-    },
-    {
-      id: "internal-affairs",
-      title: "Sam siebie zakuł",
-      note: "Zatrzymał sam siebie. Sprawa trafia do Wydziału Wewnętrznego.",
-      fx: "stamp",
-      sound: () => window.GumaStampPress?.thud(IA_CONTACT_S),
-      icon: iaStampIcon,
     },
     {
       id: "public-enemy",
@@ -251,12 +228,36 @@ window.GumaLocker = (function () {
       icon: nobodyIcon,
     },
     {
+      id: "lightbar",
+      title: "KOD 3",
+      note: "Dziesięć przełączeń motywu w pięć sekund. Reaguj w kodzie 3.",
+      fx: "flash",
+      sound: () => window.GumaLightbarEgg?.sound(),
+      icon: lightbarIcon,
+    },
+    {
+      id: "burnout",
+      title: "Palimy gumę!",
+      note: "Ślady opon, kłęby dymu i jedno bardzo gorące koło na stronie „O projekcie”.",
+      fx: "spin",
+      sound: () => window.GumaBurnoutEgg?.sound(),
+      icon: tireIcon,
+    },
+    {
       id: "bodycam-off",
       title: "Usterka techniczna",
       note: "Pięć kliknięć w baterię i kamera akurat padła. Czysty przypadek.",
       fx: "outage",
       sound: () => window.BodycamSound?.dim(),
       icon: bodycamIcon,
+    },
+    {
+      id: "internal-affairs",
+      title: "Sam siebie zakuł",
+      note: "Zatrzymał sam siebie. Sprawa trafia do Wydziału Wewnętrznego.",
+      fx: "stamp",
+      sound: () => window.GumaStampPress?.thud(IA_CONTACT_S),
+      icon: iaStampIcon,
     },
   ];
 
