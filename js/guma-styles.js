@@ -1421,6 +1421,85 @@
         will-change: transform, opacity;
       }
 
+      /* ─── Stamp press ─── */
+      /* A click-through layer over the viewport (js/stamp-press.js): a hand
+         reaches in and slams a rubber stamp onto the document preview. Under
+         the sticky header (z-30) and every dialog, so the arm passes behind
+         them. Each rig is laid out around the imprint centre (its 0,0); JS
+         sizes and places the parts inline and poses them every frame. The
+         stamp and the hand are objects over the paper, so their colours are
+         the same in both themes. */
+      .guma-press-stage {
+        @apply pointer-events-none fixed inset-0 z-20 overflow-hidden;
+      }
+      .guma-press-rig {
+        @apply absolute left-0 top-0;
+        will-change: transform;
+      }
+      .guma-press-tool {
+        @apply absolute left-0 top-0;
+        transform-origin: 0 0;
+        will-change: transform;
+      }
+      .guma-press-art,
+      .guma-press-burst {
+        @apply absolute block overflow-visible;
+      }
+      .guma-press-burst {
+        @apply opacity-0;
+        transform-origin: center;
+      }
+      .guma-press-burst-line {
+        fill: none;
+        stroke: #475569;
+        stroke-linecap: round;
+      }
+      .guma-press-shadow {
+        @apply absolute bg-slate-950;
+        transform-origin: center;
+        will-change: transform, opacity;
+      }
+      .guma-press-line {
+        stroke: #2b1a12;
+        stroke-linejoin: round;
+      }
+      .guma-press-wood {
+        fill: #c98d55;
+      }
+      .guma-press-wood-side {
+        fill: #95602f;
+      }
+      .guma-press-wood-hi {
+        fill: #efc795;
+      }
+      .guma-press-ink {
+        fill: #c8102e;
+      }
+      .guma-press-label {
+        fill: #f4ecd8;
+      }
+      .guma-press-label-rule {
+        fill: none;
+        stroke: #c8102e;
+      }
+      .guma-press-skin {
+        fill: #e3aa83;
+      }
+      .guma-press-sleeve {
+        fill: #1f355d;
+      }
+      .guma-press-sleeve-hi {
+        fill: none;
+        stroke: #36578f;
+        stroke-linecap: round;
+      }
+      .guma-press-cuff {
+        fill: #152647;
+      }
+      .guma-press-button {
+        fill: #d8b65f;
+      }
+
       /* ─── Evidence Locker (about.html) + evidence toast ─── */
       /* Trigger: the bare cabinet next to the disclaimer, a touch faded
          until it is hovered. */
@@ -1651,8 +1730,8 @@
       .guma-bcam-egg-icon {
         @apply text-guma-l-text dark:text-guma-text;
       }
-      /* The stamp across the wanted poster icon keeps its tilt when idle,
-         so the slam replay below lands exactly where it rests. */
+      /* The stamp across the wanted poster icon, tilted like the hand's
+         block that presses it on hover (the hover only re-inks it). */
       .guma-reward-stamp {
         transform: rotate(-6deg);
         transform-box: fill-box;
@@ -1704,9 +1783,22 @@
       .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="stamp"] .guma-ia-ink {
         @apply animate-guma-ia-ink;
       }
-      /* Public Enemy / Nobody: the stamp is slammed onto the poster again. */
-      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="slam"] .guma-reward-stamp {
-        @apply animate-guma-stamp-slam;
+      /* Public Enemy / Nobody: a hand slides in from the side and presses
+         the stamp onto the poster again, inking the imprint on contact. The
+         arm comes in from the card's edge: the icon may draw past its box
+         and the card clips it. The hand rests at opacity 0 (an attribute,
+         so it never flashes in before these rules compile). */
+      .guma-locker-slot:has(.guma-reward-icon) {
+        @apply overflow-hidden;
+      }
+      .guma-locker-slot .guma-reward-icon {
+        @apply overflow-visible;
+      }
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="press"] .guma-reward-hand {
+        @apply animate-guma-reward-hand;
+      }
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="press"] .guma-reward-stamp {
+        @apply animate-guma-reward-ink;
       }
       /* Bodycam outage: the camera flickers, goes dark, then comes back. */
       .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="outage"] .guma-bcam-egg-live {
@@ -1815,7 +1907,7 @@
         .guma-locker-panel,
         .guma-locker-grid,
         .guma-locker-icon,
-        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red, .guma-ia-tool, .guma-ia-ink, .guma-reward-stamp, .guma-bcam-egg-live),
+        .guma-locker-icon :is(.guma-kod3-blue, .guma-kod3-red, .guma-ia-tool, .guma-ia-ink, .guma-reward-stamp, .guma-reward-hand, .guma-bcam-egg-live),
         .guma-locker-stamp-closed {
           animation: none !important;
         }

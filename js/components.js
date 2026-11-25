@@ -1477,6 +1477,9 @@ class GumaPreviewModal extends HTMLElement {
 
   open() {
     const ex = window.GumaExport;
+    // A rubber stamp still on its way down (js/stamp-press.js) lands now,
+    // so the export never goes out without it.
+    window.GumaStampPress?.settle();
     // Fresh state per open: the document may have changed since last time.
     this._revoke();
     const pages = ex?.pages?.();

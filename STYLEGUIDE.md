@@ -86,8 +86,9 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── donut-egg.js            # hidden donut rain easter egg ("donut" in the search palette)
     ├── internal-affairs-egg.js # GumaIaEgg - IA stamp when the arrestee is the arresting officer
     ├── reward-egg.js           # GumaRewardEgg - PUBLIC ENEMY / NOBODY stamp for a $10M+ or $0 reward
+    ├── stamp-press.js          # GumaStampPress - hand + thud that press every rubber stamp on
     ├── evidence-locker.js      # Evidence Locker cabinet + dialog (about page)
-    ├── bodycam-*.js            # bodycam overlay: cameras/layers/render/stage/page
+    ├── bodycam-*.js            # bodycam overlay: cameras/layers/sound/render/stage/page
     └── <page>.js               # one JS file per generator/report
 ```
 
@@ -165,7 +166,15 @@ module must precede the page JS that calls it. The two established tails:
   `window.GumaLocker?.collect()`, so loading before `guma-locker.js` is safe.
   An egg that lives inside a canvas pipeline may stay in that module
   instead: the bodycam outage (five taps on the battery) is part of
-  `bodycam-render.js`, with `bodycam-stage.js` only forwarding the taps.
+  `bodycam-render.js`, with `bodycam-stage.js` only forwarding the taps
+  and `bodycam-sound.js` (loaded right before the render module) playing
+  its soundtrack.
+- `stamp-press.js` loads on every page that draws a rubber stamp
+  (`arrest_report.html`, `wanted_poster.html`,
+  `personnel_file_generator.html`), before the egg modules and the page
+  script, whose first draw already asks it. `about.html` loads it too,
+  before `guma-locker.js`: the Public Enemy / Nobody exhibits borrow its
+  hand (`art()`).
 - Pages close with a small inline `<script>` bootstrap after `animations.js`
   (`DOMContentLoaded` -> page init + `GumaCounters?.initDownloadCounter(...)`).
   Keep it to wiring calls; logic belongs in the page JS.
@@ -233,7 +242,8 @@ Other tokens:
   `guma-logo-band` + `guma-logo-recoil` (header logo click), `guma-logo-stamp`,
   `guma-logo-star-spin`, `guma-logo-rule-sweep` (`<guma-logo>` click on About),
   the `guma-egg-*` set (easter egg), `guma-stamp-slam` (Evidence Locker
-  CASE CLOSED stamp, Public Enemy / Nobody exhibit hover), `guma-donut-bite` (donut exhibit hover),
+  CASE CLOSED stamp), `guma-reward-hand` + `guma-reward-ink` (Public Enemy /
+  Nobody exhibit hover), `guma-donut-bite` (donut exhibit hover),
   `guma-ia-press` + `guma-ia-ink` (Internal Affairs exhibit hover) and
   `guma-bcam-egg-dark` (bodycam outage exhibit hover).
 
@@ -257,7 +267,7 @@ titles, Index tiles, Latest video widget, Form labels/inputs, Buttons, Form
 section header, Faction switcher, Segmented control, Bodycam stage, Report
 dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, Multi-page
 report (page strip + form tabs), WYSIWYG canvas editing, Easter egg (burnout),
-Easter egg (lightbar), Easter egg (donut rain), Evidence Locker + evidence
+Easter egg (lightbar), Easter egg (donut rain), Stamp press, Evidence Locker + evidence
 toast (incl. the exhibit hover replays), Command palette.
 
 Reuse before adding:
@@ -342,6 +352,7 @@ of forking a per-page variant.
 | `counters.js` | `GumaCounters` | Supabase counters, `initDownloadCounter`, `applyHotFlags` |
 | `random-character.js` | `randomizeCharacter(generatorKey)` | shared form filler |
 | `tire-spin.js` | `GumaTireSpin` | side-view branded tire drawn in code, posed per frame by `draw(angle, rps)` |
+| `stamp-press.js` | `GumaStampPress` | `gate(slot, id, place)` on every draw - a hand slams each newly appearing rubber stamp on (with a synthesised thud) and says when to paint it; `settle()` lands any stamp still in the air (the preview modal calls it before export); `art()` is the stamp in hand as still SVG for small art (locker exhibits) |
 | `guma-profile.js` | `GumaProfile` | shared user profile (`guma:profile`): `get`, `update(mutator)`, `subscribe` (also fires on changes from other tabs) |
 | `guma-locker.js` | `GumaLocker` | easter-egg registry: `collect`, `has`, `list`, `slots`, `progress`, `isComplete`, `closedAt`, `subscribe`, `reset` + the "evidence collected" toast |
 
@@ -483,6 +494,7 @@ When one feature outgrows a single file, split it by responsibility and keep the
 
 - `bodycam-cameras.js` - static camera data
 - `bodycam-layers.js` - geometry
+- `bodycam-sound.js` - outage easter egg soundtrack (Web Audio)
 - `bodycam-render.js` - drawing + pixel effects, owns `state`
 - `bodycam-stage.js` - direct manipulation on the frame
 - `bodycam-overlay.js` - page wiring only

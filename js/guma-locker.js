@@ -118,9 +118,13 @@ window.GumaLocker = (function () {
 
   // A wanted poster with a rubber stamp across it, from the wanted poster
   // eggs (js/reward-egg.js): the reward on the poster and the stamp text
-  // differ per egg. The sheet outline follows the theme via currentColor;
-  // the stamp carries the hover hook (.guma-reward-stamp).
+  // differ per egg. The sheet outline follows the theme via currentColor.
+  // On top, hidden until hovered, the hand from the stamp press
+  // (js/stamp-press.js, where loaded) holding the stamp over its imprint
+  // (50, 63); the hand and the imprint carry the hover hooks
+  // (.guma-reward-hand / .guma-reward-stamp).
   function wantedPosterIcon(reward, stampMain, stampSub) {
+    const hand = window.GumaStampPress?.art(78, 22, (-6 * Math.PI) / 180, { hand: 34, reach: 240 });
     return _el(`
       <svg viewBox="6 1 88 98" class="guma-reward-icon" aria-hidden="true" focusable="false">
         <rect x="18" y="5" width="64" height="90" rx="3" fill="#f5f5f2"/>
@@ -143,6 +147,7 @@ window.GumaLocker = (function () {
             <text x="50" y="70.5" font-size="6" letter-spacing="0.8">${stampSub}</text>
           </g>
         </g>
+        ${hand ? `<g class="guma-reward-hand" opacity="0"><g transform="translate(50 63)">${hand}</g></g>` : ""}
       </svg>`);
   }
 
@@ -212,14 +217,14 @@ window.GumaLocker = (function () {
       id: "public-enemy",
       title: "Wróg publiczny",
       note: "Dziesięć milionów dolarów za głowę. Szuka go całe San Andreas.",
-      fx: "slam",
+      fx: "press",
       icon: publicEnemyIcon,
     },
     {
       id: "nobody",
       title: "Nikt",
       note: "Nawet straż rybacka go nie szuka.",
-      fx: "slam",
+      fx: "press",
       icon: nobodyIcon,
     },
     {

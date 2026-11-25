@@ -458,10 +458,13 @@ function drawForm() {
 
   // ── Easter egg: the officer arrested themselves ───────────────────────────
   // Drawn last, over the print, and with no hitbox: the fields under the
-  // stamp stay editable.
+  // stamp stay editable. A hand presses it on when it first appears
+  // (js/stamp-press.js).
   const ia = window.GumaIaEgg;
-  if (ia?.check(arRawVal("arrestee_name"), officers.map((o) => o.name))) {
-    ia.drawStamp(ctx, DOC_W / 2 + 40, stampY);
+  const iaHit = !!ia?.check(arRawVal("arrestee_name"), officers.map((o) => o.name));
+  const iaAt = { ctx, x: DOC_W / 2 + 40, y: stampY, ...ia?.face, redraw: drawForm };
+  if (window.GumaStampPress?.gate("ia", iaHit && "ia", iaAt) ?? iaHit) {
+    ia.drawStamp(ctx, iaAt.x, iaAt.y);
   }
 
   window.GumaCanvasEdit?.end();

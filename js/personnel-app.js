@@ -673,25 +673,40 @@ function drawConfidentialStamp(ctx, W, H) {
   ctx.fillText("CONFIDENTIAL", 0, 26);
   ctx.restore();
 
-  // Rubber stamp box, top-right. It sits below the DATE PREPARED line and to
-  // the right of where the agency name ends: a stamp lands on top of print by
-  // nature, but not on the two lines the reader needs first.
+  // Rubber stamp box, drawn around its centre.
+  const box = pfConfidentialBox(W);
   ctx.save();
   ctx.globalAlpha = 0.55;
-  ctx.translate(W - 186, 46);
-  ctx.rotate(-0.07);
+  ctx.translate(box.x, box.y);
+  ctx.rotate(box.angle);
   ctx.strokeStyle = "#a40000";
   ctx.lineWidth = 2.2;
-  ctx.strokeRect(0, 0, 160, 42);
+  ctx.strokeRect(-80, -21, 160, 42);
   ctx.lineWidth = 0.9;
-  ctx.strokeRect(4, 4, 152, 34);
+  ctx.strokeRect(-76, -17, 152, 34);
   ctx.font = "bold 15px 'Georgia', 'Times New Roman', serif";
   ctx.fillStyle = "#a40000";
   ctx.textAlign = "center";
-  ctx.fillText("CONFIDENTIAL", 80, 21);
+  ctx.fillText("CONFIDENTIAL", 0, 0);
   ctx.font = pfFont(8.5);
-  ctx.fillText("PERSONNEL DIVISION", 80, 33);
+  ctx.fillText("PERSONNEL DIVISION", 0, 12);
   ctx.restore();
+}
+
+/**
+ * The CONFIDENTIAL rubber stamp box, top-right: centre, size and tilt. It
+ * sits below the DATE PREPARED line and to the right of where the agency
+ * name ends: a stamp lands on top of print by nature, but not on the two
+ * lines the reader needs first. Its top-left corner is at (W - 186, 46),
+ * turned about that corner.
+ */
+function pfConfidentialBox(W) {
+  const angle = -0.07;
+  const w = 160;
+  const h = 42;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return { x: W - 186 + (w / 2) * cos - (h / 2) * sin, y: 46 + (w / 2) * sin + (h / 2) * cos, w, h, angle };
 }
 
 // ── Main generator ────────────────────────────────────────────────────────────
@@ -805,7 +820,12 @@ function generateDoc() {
   y = drawSectionHeader(ctx, W, y, "NOTES / PERSONAL FACTS", accent);
   drawNotesSection(ctx, W, y, data.notes);
 
-  if (data.confidential) drawConfidentialStamp(ctx, W, H);
+  // The CONFIDENTIAL marking is pressed on by a hand when it is first
+  // ticked (js/stamp-press.js); until the impact the press says "not yet".
+  const confAt = data.confidential && { ctx, ...pfConfidentialBox(W), redraw: generateDoc };
+  if (window.GumaStampPress?.gate("confidential", data.confidential && "confidential", confAt) ?? data.confidential) {
+    drawConfidentialStamp(ctx, W, H);
+  }
   drawDocFooter(ctx, W, H);
 }
 

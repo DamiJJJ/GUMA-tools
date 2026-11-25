@@ -200,6 +200,25 @@ tailwind.config = {
           "30%": { opacity: "1" },
           "100%": { opacity: "1" },
         },
+        // Public Enemy / Nobody exhibit hover: the stamp press hand slides in
+        // from the right edge of the card, winds up, presses the stamp, lifts
+        // and leaves; the imprint is inked on contact (48%). Lengths are SVG
+        // user units (the icon is about 1px per unit).
+        "guma-reward-hand": {
+          "0%": { opacity: "1", transform: "translate(190px, -6px)", animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.3, 1)" },
+          "30%": { transform: "translate(0, -6px)", animationTimingFunction: "cubic-bezier(0.3, 0.6, 0.4, 1)" },
+          "42%": { transform: "translate(0, -12px)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.9, 0.5)" },
+          "48%": { transform: "translate(0, 0)" },
+          "64%": { transform: "translate(0, 0)", animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.3, 1)" },
+          "74%": { transform: "translate(0, -6px)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.9, 0.5)" },
+          "100%": { opacity: "1", transform: "translate(200px, -6px)" },
+        },
+        "guma-reward-ink": {
+          "0%": { opacity: "0" },
+          "47.9%": { opacity: "0" },
+          "48%": { opacity: "1" },
+          "100%": { opacity: "1" },
+        },
         // Bodycam outage exhibit hover: the REC dot and the lens flicker,
         // fade out and stay dark for a beat, then sputter back on.
         "guma-bcam-egg-dark": {
@@ -239,6 +258,8 @@ tailwind.config = {
         "guma-donut-bite": "guma-donut-bite 2.4s ease-out both",
         "guma-ia-press": "guma-ia-press 0.9s linear both",
         "guma-ia-ink": "guma-ia-ink 0.9s linear both",
+        "guma-reward-hand": "guma-reward-hand 1.1s linear both",
+        "guma-reward-ink": "guma-reward-ink 1.1s linear both",
         "guma-bcam-egg-dark": "guma-bcam-egg-dark 2s linear both",
       },
     },

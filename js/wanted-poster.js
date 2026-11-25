@@ -44,6 +44,9 @@ const WP_MAX_CHARGES = 6;
 // The absurd reward stamps (easter eggs) sit this far below the top of the
 // subject's text column, across the name and the first lines under it.
 const WP_EGG_DY = 190;
+// Resolved stamp: tilt and letter spacing of its wording.
+const WP_STAMP_TILT = -0.21;
+const WP_STAMP_LS = 8;
 
 // ── Inks ─────────────────────────────────────────────────────────────────────
 // The poster is a printed document, not UI: it looks the same in both themes.
@@ -433,14 +436,19 @@ function wpRender() {
   wpCrop2.paint(ctx, null);
 
   const at = wpLayout === "classic" ? wpDrawClassic(ctx, d) : wpDrawModern(ctx, d);
-  if (d.stamp) wpDrawStamp(ctx, at.stamp.x, at.stamp.y, d.stamp);
+  // Every rubber stamp is pressed on by a hand when it first appears
+  // (js/stamp-press.js); until the impact the press says "not yet".
+  const press = window.GumaStampPress;
+  const stampAt = d.stamp && { ctx, ...at.stamp, ...wpStampBox(d.stamp), angle: WP_STAMP_TILT, redraw: wpRender };
+  if (press?.gate("resolved", d.stamp && "resolved", stampAt) ?? d.stamp) wpDrawStamp(ctx, at.stamp.x, at.stamp.y, d.stamp);
   // Easter eggs: an absurd reward ($10M+ or $0) earns its own rubber stamp,
   // pressed across the subject's description (js/reward-egg.js). Only on
   // an open case: a resolved poster is past caring about the reward, and
   // two stamps across the same column would bury each other.
   const egg = window.GumaRewardEgg;
   const eggStamp = !d.stamp && egg?.check(d.reward, d.sex);
-  if (eggStamp) egg.drawStamp(ctx, at.egg.x, at.egg.y, eggStamp);
+  const eggAt = eggStamp && { ctx, ...at.egg, ...egg.face, redraw: wpRender };
+  if (press?.gate("reward", eggStamp && eggStamp.id, eggAt) ?? eggStamp) egg.drawStamp(ctx, at.egg.x, at.egg.y, eggStamp);
   // The sheet's height follows its content, so the fit moves with every draw.
   wpZoom.refresh();
 }
@@ -1423,15 +1431,23 @@ function wpHash(s) {
   return h >>> 0;
 }
 
+let wpStampMeasure = null;
+
+/** Size of the resolved stamp for its wording, in poster px. */
+function wpStampBox(stamp) {
+  if (!wpStampMeasure) wpStampMeasure = document.createElement("canvas").getContext("2d");
+  const o = wpStampMeasure;
+  o.font = wpFont(150, "", WP_FONT_IMPACT);
+  const tw = o.measureText(stamp.text).width + stamp.text.length * WP_STAMP_LS;
+  return { w: Math.ceil(tw + 130), h: stamp.date ? 280 : 214 };
+}
+
 /** Rubber stamp, rotated, centred on (cx, cy). */
 function wpDrawStamp(ctx, cx, cy, stamp) {
   const off = document.createElement("canvas");
   const o = off.getContext("2d");
-  const ls = 8;
-  o.font = wpFont(150, "", WP_FONT_IMPACT);
-  const tw = o.measureText(stamp.text).width + stamp.text.length * ls;
-  const bw = Math.ceil(tw + 130);
-  const bh = stamp.date ? 280 : 214;
+  const ls = WP_STAMP_LS;
+  const { w: bw, h: bh } = wpStampBox(stamp);
   off.width = bw;
   off.height = bh;
 
@@ -1477,7 +1493,7 @@ function wpDrawStamp(ctx, cx, cy, stamp) {
 
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(-0.21);
+  ctx.rotate(WP_STAMP_TILT);
   ctx.globalAlpha = 0.9;
   ctx.drawImage(off, -bw / 2, -bh / 2);
   ctx.restore();

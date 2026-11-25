@@ -9,7 +9,8 @@
 // (js/guma-locker.js).
 //
 // js/arrest-report.js asks check() on every draw and calls drawStamp()
-// last, over everything else. Loaded before it, because the page draws
+// last, over everything else; a hand presses the stamp on when it first
+// appears (js/stamp-press.js). Loaded before it, because the page draws
 // its first frame while the scripts are still loading.
 
 window.GumaIaEgg = (function () {
@@ -183,5 +184,9 @@ window.GumaIaEgg = (function () {
     ctx.restore();
   }
 
-  return { check, drawStamp };
+  // Imprint size and tilt, for the hand that presses it on
+  // (js/stamp-press.js).
+  const face = { w: STAMP_W, h: STAMP_H, angle: TILT_RAD };
+
+  return { check, drawStamp, face };
 })();
