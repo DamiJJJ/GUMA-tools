@@ -78,12 +78,14 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── canvas-zoom.js          # GumaCanvasZoom - zoomable preview for tall sheets
     ├── mannequin-3d.js         # raw WebGL mannequin for the character description
     ├── ui-helpers.js           # buildFactionSwitcher() and small shared UI bits
+    ├── guma-audio.js           # GumaAudio - shared Web Audio context + building blocks for egg sounds
     ├── guma-profile.js         # GumaProfile - shared user profile in localStorage
     ├── guma-locker.js          # GumaLocker - easter-egg registry, collect(), toast
     ├── tire-spin.js            # GumaTireSpin - rolling-tire SVG (about page)
     ├── easter-egg.js           # hidden burnout easter egg, opt-in via [data-guma-egg]
     ├── lightbar-egg.js         # hidden lightbar easter egg (theme toggle spam, every page)
     ├── donut-egg.js            # hidden donut rain easter egg ("donut" in the search palette)
+    ├── logo-sound.js           # GumaLogoSound - sounds of the logo click eggs (rubber band, stamp)
     ├── internal-affairs-egg.js # GumaIaEgg - IA stamp when the arrestee is the arresting officer
     ├── reward-egg.js           # GumaRewardEgg - PUBLIC ENEMY / NOBODY stamp for a $10M+ or $0 reward
     ├── stamp-press.js          # GumaStampPress - hand + thud that press every rubber stamp on
@@ -130,9 +132,10 @@ module must precede the page JS that calls it. The two established tails:
 <script src="js/animations.js"></script>
 ```
 
-(Every page, cards and reports alike, also loads `js/guma-profile.js` +
-`js/guma-locker.js` + `js/lightbar-egg.js` + `js/donut-egg.js` right before
-`js/counters.js` - see the note below.)
+(Every page, cards and reports alike, also loads `js/guma-audio.js` +
+`js/guma-profile.js` + `js/guma-locker.js` + `js/lightbar-egg.js` +
+`js/donut-egg.js` right before `js/counters.js`, and `js/logo-sound.js` right
+before `js/components.js` - see the notes below.)
 
 ```html
 <!-- Report generators (prehospital_care_report.html) -->
@@ -159,6 +162,10 @@ module must precede the page JS that calls it. The two established tails:
   load on every page, right before `counters.js`: the header logo, theme
   toggle and search palette eggs collect evidence on any page, and the locker
   reads the profile.
+- `guma-audio.js` loads before every module that makes a sound: right before
+  `guma-profile.js`, or right before `stamp-press.js` where that comes first
+  (`arrest_report.html`). `logo-sound.js` loads on every page, right before
+  `components.js`, which plays it on a logo click.
 - A page-specific egg is a feature module like any other: on
   `arrest_report.html`, `internal-affairs-egg.js` sits right before
   `arrest-report.js`, whose first draw already asks it (likewise
@@ -174,7 +181,8 @@ module must precede the page JS that calls it. The two established tails:
   `personnel_file_generator.html`), before the egg modules and the page
   script, whose first draw already asks it. `about.html` loads it too,
   before `guma-locker.js`: the Public Enemy / Nobody exhibits borrow its
-  hand (`art()`).
+  hand (`art()`). `about.html` also loads `bodycam-sound.js` (after
+  `stamp-press.js`): the bodycam exhibit in the locker plays its track.
 - Pages close with a small inline `<script>` bootstrap after `animations.js`
   (`DOMContentLoaded` -> page init + `GumaCounters?.initDownloadCounter(...)`).
   Keep it to wiring calls; logic belongs in the page JS.
@@ -353,6 +361,7 @@ of forking a per-page variant.
 | `random-character.js` | `randomizeCharacter(generatorKey)` | shared form filler |
 | `tire-spin.js` | `GumaTireSpin` | side-view branded tire drawn in code, posed per frame by `draw(angle, rps)` |
 | `stamp-press.js` | `GumaStampPress` | `gate(slot, id, place)` on every draw - a hand slams each newly appearing rubber stamp on (with a synthesised thud) and says when to paint it; `settle()` lands any stamp still in the air (the preview modal calls it before export); `art()` is the stamp in hand as still SVG for small art (locker exhibits) |
+| `guma-audio.js` | `GumaAudio` | one shared `AudioContext` per page (`context()`, `warm()` from a gesture), `play(build, { late })` runs a sound on its own bus and returns a handle whose `stop()` fades it out; building blocks `envelope`, `filter`, `noise`, `softClip`, `tone`, `burst` |
 | `guma-profile.js` | `GumaProfile` | shared user profile (`guma:profile`): `get`, `update(mutator)`, `subscribe` (also fires on changes from other tabs) |
 | `guma-locker.js` | `GumaLocker` | easter-egg registry: `collect`, `has`, `list`, `slots`, `progress`, `isComplete`, `closedAt`, `subscribe`, `reset` + the "evidence collected" toast |
 
@@ -774,7 +783,10 @@ Adding a new egg:
 
 1. Add an entry to `EVIDENCE` in `js/guma-locker.js`: `id` (kebab-case), `title`,
    `note` (shown once found), `fx` (hover replay in the locker, styled via
-   `.guma-locker-icon[data-fx="..."]`) and `icon()` returning a fresh element.
+   `.guma-locker-icon[data-fx="..."]`), `sound()` (the egg's sound, played
+   with that hover and cut when the pointer leaves - return the
+   `GumaAudio.play()` handle, timed to the hover keyframes) and `icon()`
+   returning a fresh element.
    The order sets the exhibit letter (A, B, ...). Keep the title to one line
    and the note to two at the 4-column width (about 65 characters): the
    tallest card sets the row height for every page. Nothing else to do - the
@@ -784,6 +796,12 @@ Adding a new egg:
    toast - so call it on every trigger. Call it after any full-screen scene
    ends (see `dismiss()` in `js/easter-egg.js`), so the toast is not hidden
    under it.
+3. Give it a sound. Every egg has one, synthesised with Web Audio on the
+   shared context of `js/guma-audio.js` (no audio files in the repo): build
+   it as `(ctx, out, t) => ...` into `out`, play it with
+   `GumaAudio.play()`, and expose it on the egg's global so `sound()` in the
+   registry can reach it. A page that does not load the egg's script stays
+   silent, so `about.html` must load it for the locker exhibit to play.
 
 The dialog never scrolls; it pages instead (`layout()` in
 `js/evidence-locker.js`). On open and on resize it measures the tallest card

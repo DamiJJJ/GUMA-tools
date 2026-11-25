@@ -96,18 +96,23 @@ function gumaWireLogoHover(el) {
 
 /**
  * Click easter egg on a logo: replays the CSS animation set keyed by
- * `state` (a class on the logo) on every click, restarting it mid-flight.
+ * `state` (a class on the logo) on every click, restarting it mid-flight,
+ * and its sound with it (js/logo-sound.js).
  * @param {HTMLElement} el element carrying the .guma-logo class
  * @param {string} state class that starts the animation, e.g. "is-stamping"
  * @param {string} lastAnimation keyframes name that finishes last
  * @param {string} [evidenceId] Evidence Locker id this egg collects
+ * @param {() => ({stop: Function} | null)} [sound] plays the egg's sound
  */
-function gumaWireLogoEgg(el, state, lastAnimation, evidenceId) {
+function gumaWireLogoEgg(el, state, lastAnimation, evidenceId, sound) {
+  let playing = null;
   el.addEventListener("click", (e) => {
     e.preventDefault(); // the header logo is a link - don't navigate
     el.classList.remove(state);
     void el.offsetWidth; // force a reflow so the animation restarts
     el.classList.add(state);
+    playing?.stop();
+    playing = sound ? sound() : null;
     if (evidenceId) window.GumaLocker?.collect(evidenceId);
   });
   el.addEventListener("animationend", (e) => {
@@ -684,7 +689,7 @@ class GumaHeader extends HTMLElement {
     const logo = this.querySelector("#gumaLogo");
     if (logo) {
       gumaWireLogoHover(logo);
-      gumaWireLogoEgg(logo, "is-snapping", "guma-logo-band", "logo-band");
+      gumaWireLogoEgg(logo, "is-snapping", "guma-logo-band", "logo-band", () => window.GumaLogoSound?.band());
     }
     // ───────────────────────────────────────────────────────────────
 
@@ -795,7 +800,7 @@ class GumaLogo extends HTMLElement {
     this.dataset.ready = "1";
     this.innerHTML = gumaLogoSvg(`${this.getAttribute("svg-class") || "h-14 w-auto"} block overflow-visible`);
     gumaWireLogoHover(this);
-    if (this.hasAttribute("stamp")) gumaWireLogoEgg(this, "is-stamping", "guma-logo-star-spin");
+    if (this.hasAttribute("stamp")) gumaWireLogoEgg(this, "is-stamping", "guma-logo-star-spin", null, () => window.GumaLogoSound?.stamp());
   }
 }
 customElements.define("guma-logo", GumaLogo);

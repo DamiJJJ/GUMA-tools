@@ -173,16 +173,34 @@ window.GumaLocker = (function () {
       </svg>`);
   }
 
+  // ── Exhibit sounds ────────────────────────────────────────────
+  // Hovering a collected exhibit replays its egg's sound with the
+  // pocket animation (js/evidence-locker.js), so the cues below follow
+  // the hover keyframes in js/tailwind-config.js. Each sound lives with
+  // its egg and is looked up on play: a page without that egg's script
+  // stays silent instead of failing.
+
+  // guma-ia-press (0.9 s): the stamp hits the paper at 30%.
+  const IA_CONTACT_S = 0.3 * 0.9;
+  // guma-reward-hand (1.1 s): the stamp hits the poster at 48%.
+  const REWARD_CONTACT_S = 0.48 * 1.1;
+  // The bodycam exhibit's dimming (guma-bcam-egg-dark) is timed in
+  // js/bodycam-sound.js, which mirrors its flicker keyframes.
+
   // ── Evidence registry ─────────────────────────────────────────
   // Order = exhibit letter. `fx` names the hover replay in the locker
-  // (.guma-locker-icon[data-fx]). Police terms (title, "Exhibit",
-  // stamps) stay English; the notes are Polish, like the About copy.
+  // (.guma-locker-icon[data-fx]) and `sound()` the sound played with it
+  // (returns a GumaAudio.play() handle, or null; no `sound`, a silent
+  // hover - the donut, until it gets a recorded bite). Police terms (title,
+  // "Exhibit", stamps) stay English; the notes are Polish, like the
+  // About copy.
   const EVIDENCE = [
     {
       id: "logo-band",
       title: "Guma LEA",
       note: "Logo w nagłówku naciągnięte jak guma. Na szczęście wróciło na miejsce.",
       fx: "band",
+      sound: () => window.GumaLogoSound?.band(),
       icon: logoIcon,
     },
     {
@@ -190,6 +208,7 @@ window.GumaLocker = (function () {
       title: "Palimy gumę!",
       note: "Ślady opon, kłęby dymu i jedno bardzo gorące koło na stronie „O projekcie”.",
       fx: "spin",
+      sound: () => window.GumaBurnoutEgg?.sound(),
       icon: tireIcon,
     },
     {
@@ -197,6 +216,7 @@ window.GumaLocker = (function () {
       title: "KOD 3",
       note: "Dziesięć przełączeń motywu w pięć sekund. Reaguj w kodzie 3.",
       fx: "flash",
+      sound: () => window.GumaLightbarEgg?.sound(),
       icon: lightbarIcon,
     },
     {
@@ -211,6 +231,7 @@ window.GumaLocker = (function () {
       title: "Sam siebie zakuł",
       note: "Zatrzymał sam siebie. Sprawa trafia do Wydziału Wewnętrznego.",
       fx: "stamp",
+      sound: () => window.GumaStampPress?.thud(IA_CONTACT_S),
       icon: iaStampIcon,
     },
     {
@@ -218,6 +239,7 @@ window.GumaLocker = (function () {
       title: "Wróg publiczny",
       note: "Dziesięć milionów dolarów za głowę. Szuka go całe San Andreas.",
       fx: "press",
+      sound: () => window.GumaStampPress?.thud(REWARD_CONTACT_S),
       icon: publicEnemyIcon,
     },
     {
@@ -225,6 +247,7 @@ window.GumaLocker = (function () {
       title: "Nikt",
       note: "Nawet straż rybacka go nie szuka.",
       fx: "press",
+      sound: () => window.GumaStampPress?.thud(REWARD_CONTACT_S),
       icon: nobodyIcon,
     },
     {
@@ -232,6 +255,7 @@ window.GumaLocker = (function () {
       title: "Usterka techniczna",
       note: "Pięć kliknięć w baterię i kamera akurat padła. Czysty przypadek.",
       fx: "outage",
+      sound: () => window.BodycamSound?.dim(),
       icon: bodycamIcon,
     },
   ];
@@ -280,7 +304,7 @@ window.GumaLocker = (function () {
 
   /**
    * Every exhibit in order, with its collection time (ms) or null.
-   * @returns {{id, exhibit, title, note, fx, collectedAt, icon: () => Element}[]}
+   * @returns {{id, exhibit, title, note, fx, collectedAt, sound: () => ({stop: Function} | null), icon: () => Element}[]}
    */
   function list() {
     const found = _evidence();
@@ -290,6 +314,7 @@ window.GumaLocker = (function () {
       title: e.title,
       note: e.note,
       fx: e.fx,
+      sound: e.sound,
       collectedAt: found[e.id] || null,
       icon: e.icon,
     }));

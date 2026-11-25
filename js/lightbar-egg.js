@@ -41,27 +41,23 @@
   let lamps = {}; // "left-blue" -> element
 
   // ── Sound ───────────────────────────────────────────────────────────
-  // Synthesised like the burnout screech (js/easter-egg.js), so no audio
-  // asset ships with the repo. Unlike a tire, a siren IS a tone: a pair of
-  // detuned oscillators, roughened by a soft clipper the way a horn speaker
-  // overdrives, then rounded off with a low-pass.
+  // Synthesised like the burnout screech (js/easter-egg.js), on the shared
+  // context of js/guma-audio.js, so no audio asset ships with the repo.
+  // Unlike a tire, a siren IS a tone: a pair of detuned oscillators,
+  // roughened by a soft clipper the way a horn speaker overdrives, then
+  // rounded off with a low-pass. Also the KOD 3 exhibit in the Evidence
+  // Locker.
+  /** @returns {{stop: Function} | null} GumaAudio.play() handle */
   function playWhoop() {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return null;
+    return window.GumaAudio?.play(buildWhoop) || null;
+  }
 
-    let ctx;
-    try {
-      ctx = new Ctx();
-    } catch (err) {
-      return null;
-    }
-
-    const t0 = ctx.currentTime + 0.02;
+  function buildWhoop(ctx, out, t0) {
     const end = t0 + sirenSeconds();
 
     const master = ctx.createGain();
     master.gain.value = 0.16;
-    master.connect(ctx.destination);
+    master.connect(out);
 
     const tone = ctx.createBiquadFilter();
     tone.type = "lowpass";
@@ -71,12 +67,7 @@
 
     // Soft clipper: tanh curve, the "horn" grit.
     const shaper = ctx.createWaveShaper();
-    const curve = new Float32Array(1024);
-    for (let i = 0; i < curve.length; i++) {
-      const x = (i / (curve.length - 1)) * 2 - 1;
-      curve[i] = Math.tanh(2.4 * x);
-    }
-    shaper.curve = curve;
+    shaper.curve = window.GumaAudio.softClip(2.4);
     shaper.connect(tone);
 
     // Per-whoop loudness: swells with the climb, gone on the drop.
@@ -118,8 +109,6 @@
       osc.start(t0);
       osc.stop(end + 0.05);
     });
-
-    return ctx;
   }
 
   // ── Stage ───────────────────────────────────────────────────────────
@@ -255,7 +244,7 @@
     return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
-  // Seconds of siren, so the toast lands after it and the context can close.
+  // Seconds of siren, so the toast lands after it.
   function sirenSeconds() {
     return WHOOP_GAP_S * (WHOOP_COUNT - 1) + WHOOP_RISE_S + WHOOP_FALL_S;
   }
@@ -270,17 +259,8 @@
     // Next frame, so the opacity transition has a start value to leave.
     requestAnimationFrame(() => stage.classList.add("is-on"));
 
-    const audio = playWhoop();
-    setTimeout(() => {
-      if (audio) {
-        try {
-          audio.close();
-        } catch (err) {
-          /* already closed */
-        }
-      }
-      window.GumaLocker?.collect("lightbar");
-    }, sirenSeconds() * 1000 + 200);
+    playWhoop();
+    setTimeout(() => window.GumaLocker?.collect("lightbar"), sirenSeconds() * 1000 + 200);
   }
 
   // ── Trigger ─────────────────────────────────────────────────────────
@@ -302,4 +282,6 @@
   } else {
     mountStage();
   }
+
+  window.GumaLightbarEgg = { sound: playWhoop };
 })();

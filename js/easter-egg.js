@@ -34,24 +34,20 @@
   let active = null; // { overlay, stop, audio, timers[] }
 
   // ── Sound ───────────────────────────────────────────────────────────
-  // Synthesised rather than shipped as an audio asset: keeps the repo free of
-  // binaries and the whole thing works offline on GitHub Pages.
+  // Synthesised rather than shipped as an audio asset (on the shared
+  // context of js/guma-audio.js): keeps the repo free of binaries and the
+  // whole thing works offline on GitHub Pages. Also the burnout exhibit
+  // in the Evidence Locker, which cuts it short when the pointer leaves.
+  /** @returns {{stop: Function} | null} GumaAudio.play() handle */
   function playBurnout() {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return null;
+    return window.GumaAudio?.play(buildBurnout) || null;
+  }
 
-    let ctx;
-    try {
-      ctx = new Ctx();
-    } catch (err) {
-      return null;
-    }
-
-    const t0 = ctx.currentTime;
+  function buildBurnout(ctx, out, t0) {
     const end = t0 + SOUND_SECONDS;
 
     const master = ctx.createGain();
-    master.connect(ctx.destination);
+    master.connect(out);
     // Held flat right up to the launch, then torn away in two stages - a single
     // exponential to near-silence collapses so fast the tire flew off in silence.
     master.gain.setValueAtTime(0.0001, t0);
@@ -62,11 +58,7 @@
 
     // One white-noise source feeds everything - a tire makes no tonal sound of
     // its own, only filtered friction.
-    const noiseBuffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * SOUND_SECONDS), ctx.sampleRate);
-    const noiseData = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = noiseBuffer;
+    const noise = window.GumaAudio.noise(ctx);
 
     // Scrub: the broadband rush of rubber dragging over asphalt, under it all.
     const scrub = ctx.createBiquadFilter();
@@ -130,8 +122,6 @@
 
     noise.start(t0);
     noise.stop(end);
-
-    return ctx;
   }
 
   // ── Scene ───────────────────────────────────────────────────────────
@@ -358,13 +348,7 @@
     scene.timers.forEach(clearTimeout);
     document.removeEventListener("keydown", onKeyDown);
     scene.stop();
-    if (scene.audio) {
-      try {
-        scene.audio.close();
-      } catch (err) {
-        /* already closed */
-      }
-    }
+    scene.audio?.stop();
 
     scene.overlay.classList.add("is-leaving");
     setTimeout(() => {
@@ -429,4 +413,6 @@
   } else {
     init();
   }
+
+  window.GumaBurnoutEgg = { sound: playBurnout };
 })();

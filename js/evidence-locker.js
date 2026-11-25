@@ -6,9 +6,10 @@
 // date, missing ones blurred out under a CLASSIFIED stamp, and empty "Soon"
 // slots for eggs that are still to come. The exhibits are paged, so the
 // dialog never scrolls: a page holds as many rows as fit the viewport times
-// the grid's columns, turned with the arrows, the arrow keys or a swipe. The
-// data and the collect() API live in js/guma-locker.js; this file only draws
-// the trigger and the dialog.
+// the grid's columns, turned with the arrows, the arrow keys or a swipe.
+// Hovering (or tapping) a collected exhibit replays its egg in miniature,
+// sound included. The data and the collect() API live in js/guma-locker.js;
+// this file only draws the trigger and the dialog.
 // Opt-in via [data-guma-locker] on the trigger button. about.html#evidence-
 // locker opens the dialog on arrival - the "evidence collected" toast links
 // there.
@@ -28,6 +29,7 @@
   let pageSize = PRE_RENDER_PAGE;
   let pageCount = 1;
   let layoutFrame = 0;
+  let exhibitSound = null; // GumaAudio.play() handle of the hovered exhibit
 
   // ── Cabinet icon ────────────────────────────────────────────────────
   // Flat two-door locker on a plinth (viewBox 64x64): vents top and bottom,
@@ -161,13 +163,34 @@
       <p class="guma-locker-note"></p>
       <p class="guma-locker-date${found ? "" : " hidden"}"></p>`;
     li.querySelector(".guma-locker-icon").appendChild(item.icon());
+    if (found && item.sound) wireSound(li, item);
     li.querySelector(".guma-locker-name").textContent = found ? item.title : "Unidentified";
     li.querySelector(".guma-locker-note").textContent = found ? item.note : "Jeszcze nie znaleziony. Szukaj dalej.";
     if (found) li.querySelector(".guma-locker-date").textContent = `Collected ${formatDate(item.collectedAt)}`;
     return li;
   }
 
+  // ── Exhibit sounds ──────────────────────────────────────────────────
+  // The sound starts with the hover animation and is cut when the pointer
+  // leaves. A tap counts as a hover too, but the finger lifting off is no
+  // "leave": that sound plays out, until the next tap or the dialog closes.
+  function wireSound(li, item) {
+    li.addEventListener("pointerenter", () => {
+      stopSound();
+      exhibitSound = item.sound() || null;
+    });
+    li.addEventListener("pointerleave", (e) => {
+      if (e.pointerType !== "touch") stopSound();
+    });
+  }
+
+  function stopSound() {
+    exhibitSound?.stop();
+    exhibitSound = null;
+  }
+
   function fillGrid(items) {
+    stopSound(); // the hovered card is about to be replaced
     const grid = root.querySelector("[data-locker-grid]");
     grid.textContent = "";
     items.forEach((item) => grid.appendChild(buildSlot(item)));
@@ -291,6 +314,9 @@
 
   function open() {
     if (!root || isOpen()) return;
+    // Opened by a click, the gesture Safari wants before the exhibits
+    // may play a sound on hover.
+    window.GumaAudio?.warm();
     opener = document.activeElement;
     page = 0;
     root.classList.remove("hidden");
@@ -304,6 +330,7 @@
 
   function close() {
     if (!isOpen()) return;
+    stopSound();
     root.classList.add("hidden");
     root.classList.remove("flex");
     if (unsubscribe) unsubscribe();

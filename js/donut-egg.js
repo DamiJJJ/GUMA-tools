@@ -10,7 +10,8 @@
 // The palette owns the UI; this file only answers onQuery() and runs the
 // rain, so the tool index (js/search-index.js) stays free of jokes. Like the
 // lightbar, the stage is a click-through layer over the viewport, so the
-// page stays fully usable while it rains.
+// page stays fully usable while it rains. Each shower falls to a handful of
+// cartoon whistles.
 
 window.GumaDonutEgg = (function () {
   // ── Config ──────────────────────────────────────────────────────────
@@ -35,6 +36,9 @@ window.GumaDonutEgg = (function () {
   const STILL_COUNT = 24;
   const STILL_MS = 2600;
   const STILL_DELAY_MS = 600;
+  // Sound: one falling whistle per this many donuts, spread like them.
+  const WHISTLES = 6;
+  const WHISTLE_GAIN = 0.1;
 
   // The palette row. Same shape as a js/search-index.js entry, plus
   // status "egg", which the palette renders as a selectable row without
@@ -139,6 +143,55 @@ window.GumaDonutEgg = (function () {
     anim.onfinish = anim.oncancel = () => el.remove();
   }
 
+  // ── Sound ───────────────────────────────────────────────────────────
+  // Synthesised on the shared context of js/guma-audio.js, like every egg
+  // sound. Falling: a sine gliding down from a high whistle, a little
+  // vibrato on it, each one panned somewhere else across the screen. The
+  // sound is not motion, so it plays under reduced motion too.
+  function buildWhistles(ctx, out, t) {
+    const master = ctx.createGain();
+    master.gain.value = WHISTLE_GAIN;
+    master.connect(out);
+
+    for (let i = 0; i < WHISTLES; i++) {
+      const at = t + (i / WHISTLES) * (SPAWN_MS / 1000) + rand(0, 0.15);
+      const len = rand(0.9, 1.4);
+      const from = rand(1500, 2300);
+
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(from, at);
+      osc.frequency.exponentialRampToValueAtTime(from * 0.35, at + len);
+      const wobble = ctx.createOscillator();
+      wobble.frequency.value = rand(5, 7);
+      const wobbleDepth = ctx.createGain();
+      wobbleDepth.gain.value = from * 0.012;
+      wobble.connect(wobbleDepth);
+      wobbleDepth.connect(osc.frequency);
+
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0.0001, at);
+      env.gain.exponentialRampToValueAtTime(1, at + 0.08);
+      env.gain.setValueAtTime(1, at + len * 0.7);
+      env.gain.exponentialRampToValueAtTime(0.0001, at + len);
+      osc.connect(env);
+
+      if (ctx.createStereoPanner) {
+        const pan = ctx.createStereoPanner();
+        pan.pan.value = rand(-0.6, 0.6);
+        env.connect(pan);
+        pan.connect(master);
+      } else {
+        env.connect(master);
+      }
+
+      [osc, wobble].forEach((node) => {
+        node.start(at);
+        node.stop(at + len + 0.02);
+      });
+    }
+  }
+
   // ── Public API ──────────────────────────────────────────────────────
   /**
    * Drops one shower of donuts. Ignored while the previous one is still
@@ -156,6 +209,7 @@ window.GumaDonutEgg = (function () {
     } else {
       for (let i = 0; i < DONUT_COUNT; i++) fall(i / DONUT_COUNT);
     }
+    window.GumaAudio?.play(buildWhistles);
     setTimeout(() => window.GumaLocker?.collect("donut"), COLLECT_DELAY_MS);
   }
 

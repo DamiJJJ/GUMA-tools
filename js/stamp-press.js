@@ -69,75 +69,31 @@ window.GumaStampPress = (function () {
   }
 
   // ── Sound ───────────────────────────────────────────────────────────
-  // A low wooden thud, synthesised like the burnout screech so the repo
-  // ships no audio files. A sine that drops from a knock to a sub in a
-  // blink (the boom), a softly clipped copy of it (harmonics a laptop
-  // speaker can actually play), and two short bursts of filtered noise:
-  // the knock of wood on the desk and the slap of rubber on paper. One
-  // context, reused for every press.
+  // A low wooden thud, synthesised on the shared context of
+  // js/guma-audio.js like every egg sound, so the repo ships no audio
+  // files. A sine that drops from a knock to a sub in a blink (the boom),
+  // a softly clipped copy of it (harmonics a laptop speaker can actually
+  // play), and two short bursts of filtered noise: the knock of wood on
+  // the desk and the slap of rubber on paper.
   const THUD_GAIN = 1.5;
-  let audio = null;
-
-  function audioCtx() {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return null;
-    // Before any click or key press the browser would refuse to start it
-    // (and say so in the console); there is nothing to hear yet anyway.
-    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return null;
-    if (!audio) {
-      try {
-        audio = new Ctx();
-      } catch (err) {
-        return null;
-      }
-    }
-    if (audio.state === "suspended") audio.resume().catch(() => {});
-    return audio;
-  }
-
-  // Gain node with a fast attack and an exponential tail.
-  function envelope(ctx, t, peak, attack, release) {
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(peak, t + attack);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + attack + release);
-    return g;
-  }
-
-  function softClipCurve(drive) {
-    const n = 1024;
-    const curve = new Float32Array(n);
-    for (let i = 0; i < n; i++) {
-      const x = (i / (n - 1)) * 2 - 1;
-      curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
-    }
-    return curve;
-  }
-
-  // A context that is still waking up (Safari, first press) plays the thud
-  // as soon as it is running - unless that takes long enough for the thud
-  // to land out of step with the stamp.
+  // A context still waking up (Safari, first press) drops a thud that
+  // would land this much later than the stamp.
   const THUD_LATE_MS = 150;
 
-  function thud() {
-    const ctx = audioCtx();
-    if (!ctx) return;
-    if (ctx.state === "running") {
-      playThud(ctx);
-      return;
-    }
-    const asked = performance.now();
-    ctx
-      .resume()
-      .then(() => {
-        if (performance.now() - asked < THUD_LATE_MS) playThud(ctx);
-      })
-      .catch(() => {});
+  /**
+   * Plays one thud, `delay` seconds from now. Also used without the hand:
+   * the About logo egg and the stamp exhibits in the Evidence Locker.
+   * @returns {{stop: Function} | null} GumaAudio.play() handle
+   */
+  function thud(delay = 0) {
+    const audio = window.GumaAudio;
+    if (!audio) return null;
+    return audio.play((ctx, out, t) => playThud(ctx, out, t + delay), { late: THUD_LATE_MS });
   }
 
-  /** Builds and starts one thud on ctx (live or offline). */
-  function playThud(ctx) {
-    const t = ctx.currentTime + 0.005;
+  /** Builds and starts one thud at t, into `out` (live or offline). */
+  function playThud(ctx, out, t) {
+    const { envelope, filter, noise, softClip } = window.GumaAudio;
 
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -12;
@@ -148,7 +104,7 @@ window.GumaStampPress = (function () {
     const master = ctx.createGain();
     master.gain.value = THUD_GAIN;
     master.connect(comp);
-    comp.connect(ctx.destination);
+    comp.connect(out);
 
     // Boom.
     const boom = ctx.createOscillator();
@@ -162,10 +118,8 @@ window.GumaStampPress = (function () {
 
     // Grit: the boom through a soft clipper, low-passed so it stays a thud.
     const shaper = ctx.createWaveShaper();
-    shaper.curve = softClipCurve(4);
-    const gritTone = ctx.createBiquadFilter();
-    gritTone.type = "lowpass";
-    gritTone.frequency.value = 900;
+    shaper.curve = softClip(4);
+    const gritTone = filter(ctx, "lowpass", 900);
     const grit = ctx.createGain();
     grit.gain.value = 0.45;
     boomEnv.connect(shaper);
@@ -174,39 +128,29 @@ window.GumaStampPress = (function () {
     grit.connect(master);
 
     // One short burst of noise feeds the two contact layers.
-    const len = Math.ceil(ctx.sampleRate * 0.12);
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
+    const src = noise(ctx);
 
     // Knock: wood on the desk, its brightness falling as fast as it fades.
-    const knockTone = ctx.createBiquadFilter();
-    knockTone.type = "lowpass";
-    knockTone.Q.value = 0.9;
+    const knockTone = filter(ctx, "lowpass", 3000, 0.9);
     knockTone.frequency.setValueAtTime(3000, t);
     knockTone.frequency.exponentialRampToValueAtTime(400, t + 0.05);
     const knockEnv = envelope(ctx, t, 1.6, 0.001, 0.07);
-    noise.connect(knockTone);
+    src.connect(knockTone);
     knockTone.connect(knockEnv);
     knockEnv.connect(master);
 
     // Slap: the rubber meeting the paper - a crisp click small speakers
     // play even when the boom is below what they can reach.
-    const slapTone = ctx.createBiquadFilter();
-    slapTone.type = "bandpass";
-    slapTone.Q.value = 0.9;
-    slapTone.frequency.value = 1400;
+    const slapTone = filter(ctx, "bandpass", 1400, 0.9);
     const slapEnv = envelope(ctx, t, 0.5, 0.001, 0.03);
-    noise.connect(slapTone);
+    src.connect(slapTone);
     slapTone.connect(slapEnv);
     slapEnv.connect(master);
 
     boom.start(t);
     boom.stop(t + 0.5);
-    noise.start(t);
-    noise.stop(t + 0.12);
+    src.start(t, Math.random() * 0.5);
+    src.stop(t + 0.12);
   }
 
   // ── Art ─────────────────────────────────────────────────────────────
@@ -519,7 +463,7 @@ window.GumaStampPress = (function () {
       return false;
     }
     if (!mountStage() || typeof stage.animate !== "function") return false;
-    audioCtx(); // wake the audio up now, so it is running by the impact
+    window.GumaAudio?.warm(); // wake the audio up now, so it is running by the impact
 
     const reach = reachToEdge(at.x, at.y, ARM_DEG);
     const g = measure(place.w * at.k, place.h * at.k, place.angle || 0, ARM_DEG, reach + 260);
@@ -639,5 +583,5 @@ window.GumaStampPress = (function () {
     mountStage();
   }
 
-  return { gate, settle, art };
+  return { gate, settle, art, thud };
 })();
