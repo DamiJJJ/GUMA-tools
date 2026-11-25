@@ -13,8 +13,9 @@
 // dies - the battery drains to 0% in a second, the screen collapses like an
 // old CRT, FOOTAGE UNAVAILABLE DUE TO TECHNICAL DIFFICULTIES sits on black,
 // then the picture comes back through a burst of static. It only ever
-// plays on view: exports taken meanwhile get the clean frame. Collected as
-// "bodycam-off" in the Evidence Locker (js/guma-locker.js).
+// plays on view: exports taken meanwhile get the clean frame. Its sound is
+// in js/bodycam-sound.js. Collected as "bodycam-off" in the Evidence Locker
+// (js/guma-locker.js).
 
 (function () {
   const L = window.BodycamLayers;
@@ -46,6 +47,8 @@
   const OUTAGE_DIE_MS = 400;
   const OUTAGE_DARK_MS = 2600;
   const OUTAGE_WAKE_MS = 700;
+  // The dead battery on the black screen is on this long, then off as long.
+  const OUTAGE_BLINK_MS = 500;
   const OUTAGE_MAIN = "FOOTAGE UNAVAILABLE";
   const OUTAGE_SUB = "DUE TO TECHNICAL DIFFICULTIES";
   // Static resolution; scaled up without smoothing into chunky TV snow.
@@ -547,7 +550,7 @@
 
     const bw = Math.round(BATTERY_W * 1.6 * unit);
     const bh = Math.round(BATTERY_H * 1.6 * unit);
-    if (Math.floor(t / 500) % 2 === 0) drawBattery(ctx, (W - bw) / 2, H / 2 - 150 * unit, bw, bh, 0, unit);
+    if (Math.floor(t / OUTAGE_BLINK_MS) % 2 === 0) drawBattery(ctx, (W - bw) / 2, H / 2 - 150 * unit, bw, bh, 0, unit);
 
     const maxW = W * 0.86;
     ctx.textAlign = "center";
@@ -599,6 +602,7 @@
         ["wake", reduce ? 0 : OUTAGE_WAKE_MS],
       ],
     };
+    window.BodycamSound?.outage(outage.phases, OUTAGE_BLINK_MS, outage.start);
     requestAnimationFrame(outageTick);
   }
 
@@ -614,6 +618,9 @@
     if (outage || !batteryBox) return false;
     const b = batteryBox;
     if (x < b.x - slop || x > b.x + b.w + slop || y < b.y - slop || y > b.y + b.h + slop) return false;
+
+    // Bring the audio device up now, so the outage is not heard late.
+    window.BodycamSound?.warm();
 
     const now = performance.now();
     if (now - lastTap > OUTAGE_TAP_GAP_MS) taps = 0;
