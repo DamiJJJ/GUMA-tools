@@ -236,6 +236,26 @@ tailwind.config = {
           "84%": { opacity: "1" },
           "100%": { opacity: "1" },
         },
+        // Christmas present (header catch + locker exhibit hover): the box
+        // squats, the lid pops up with a twist and drops back on. Lengths
+        // are SVG user units (the icon's viewBox is 100 wide), so the pop
+        // scales with the icon.
+        "guma-gift-lid": {
+          "0%": { transform: "translateY(0) rotate(0deg)", animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.3, 1)" },
+          "28%": { transform: "translateY(-22px) rotate(-14deg)" },
+          "48%": { transform: "translateY(-24px) rotate(-8deg)", animationTimingFunction: "cubic-bezier(0.6, 0, 0.9, 0.5)" },
+          "66%": { transform: "translateY(0) rotate(2deg)", animationTimingFunction: "ease-out" },
+          "80%": { transform: "translateY(-4px) rotate(-1deg)", animationTimingFunction: "ease-in" },
+          "100%": { transform: "translateY(0) rotate(0deg)" },
+        },
+        "guma-gift-box": {
+          "0%": { transform: "scale(1, 1)", animationTimingFunction: "ease-out" },
+          "14%": { transform: "scale(1.08, 0.88)", animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.3, 1)" },
+          "32%": { transform: "scale(0.96, 1.05)", animationTimingFunction: "ease-in-out" },
+          "66%": { transform: "scale(1, 1)", animationTimingFunction: "ease-out" },
+          "72%": { transform: "scale(1.05, 0.93)", animationTimingFunction: "ease-in-out" },
+          "100%": { transform: "scale(1, 1)" },
+        },
       },
       animation: {
         "guma-header-drop": "guma-header-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
@@ -261,6 +281,8 @@ tailwind.config = {
         "guma-reward-hand": "guma-reward-hand 1.1s linear both",
         "guma-reward-ink": "guma-reward-ink 1.1s linear both",
         "guma-bcam-egg-dark": "guma-bcam-egg-dark 2s linear both",
+        "guma-gift-lid": "guma-gift-lid 0.9s linear both",
+        "guma-gift-box": "guma-gift-box 0.9s linear both",
       },
     },
   },
