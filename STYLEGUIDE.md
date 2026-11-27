@@ -81,6 +81,8 @@ Generated from the code. Regenerate with `/styleguide`.
     ├── guma-audio.js           # GumaAudio - shared Web Audio context + building blocks for egg sounds
     ├── guma-profile.js         # GumaProfile - shared user profile in localStorage
     ├── guma-locker.js          # GumaLocker - easter-egg registry, collect(), toast
+    ├── guma-season.js          # GumaSeason - seasonal events by date, loads the season script
+    ├── season-christmas.js     # GumaChristmas - header snow, Santa hat on the logo, present egg
     ├── tire-spin.js            # GumaTireSpin - rolling-tire SVG (about page)
     ├── easter-egg.js           # hidden burnout easter egg, opt-in via [data-guma-egg]
     ├── lightbar-egg.js         # hidden lightbar easter egg (theme toggle spam, every page)
@@ -162,6 +164,11 @@ before `js/components.js` - see the notes below.)
   load on every page, right before `counters.js`: the header logo, theme
   toggle and search palette eggs collect evidence on any page, and the locker
   reads the profile.
+- `guma-season.js` loads on every page, right after `guma-locker.js`. It
+  loads the active season's script itself (see Seasonal events), so pages do
+  not list season scripts - except `about.html`, which loads
+  `season-christmas.js` right after it all year: the locker exhibit plays
+  its jingle.
 - `guma-audio.js` loads before every module that makes a sound: right before
   `guma-profile.js`, or right before `stamp-press.js` where that comes first
   (`arrest_report.html`). `logo-sound.js` loads on every page, right before
@@ -252,8 +259,9 @@ Other tokens:
   the `guma-egg-*` set (easter egg), `guma-stamp-slam` (Evidence Locker
   CASE CLOSED stamp), `guma-reward-hand` + `guma-reward-ink` (Public Enemy /
   Nobody exhibit hover), `guma-donut-bite` (donut exhibit hover),
-  `guma-ia-press` + `guma-ia-ink` (Internal Affairs exhibit hover) and
-  `guma-bcam-egg-dark` (bodycam outage exhibit hover).
+  `guma-ia-press` + `guma-ia-ink` (Internal Affairs exhibit hover),
+  `guma-bcam-egg-dark` (bodycam outage exhibit hover) and `guma-gift-lid` +
+  `guma-gift-box` (Christmas present: header catch and exhibit hover).
 
 **A new colour or shadow goes into `js/tailwind-config.js`.** Never hard-code a
 hex value in markup or an inline style.
@@ -275,7 +283,7 @@ titles, Index tiles, Latest video widget, Form labels/inputs, Buttons, Form
 section header, Faction switcher, Segmented control, Bodycam stage, Report
 dynamic rows, Form grid helpers, Checkbox group, Rating scale rows, Multi-page
 report (page strip + form tabs), WYSIWYG canvas editing, Easter egg (burnout),
-Easter egg (lightbar), Easter egg (donut rain), Stamp press, Evidence Locker + evidence
+Easter egg (lightbar), Easter egg (donut rain), Season: Christmas, Stamp press, Evidence Locker + evidence
 toast (incl. the exhibit hover replays), Command palette.
 
 Reuse before adding:
@@ -363,7 +371,8 @@ of forking a per-page variant.
 | `stamp-press.js` | `GumaStampPress` | `gate(slot, id, place)` on every draw - a hand slams each newly appearing rubber stamp on (with a synthesised thud) and says when to paint it; `settle()` lands any stamp still in the air (the preview modal calls it before export); `art()` is the stamp in hand as still SVG for small art (locker exhibits) |
 | `guma-audio.js` | `GumaAudio` | one shared `AudioContext` per page (`context()`, `warm()` from a gesture), `play(build, { late })` runs a sound on its own bus and returns a handle whose `stop()` fades it out; building blocks `envelope`, `filter`, `noise`, `softClip`, `tone`, `burst` |
 | `guma-profile.js` | `GumaProfile` | shared user profile (`guma:profile`): `get`, `update(mutator)`, `subscribe` (also fires on changes from other tabs) |
-| `guma-locker.js` | `GumaLocker` | easter-egg registry: `collect`, `has`, `list`, `slots`, `progress`, `isComplete`, `closedAt`, `subscribe`, `reset` + the "evidence collected" toast |
+| `guma-locker.js` | `GumaLocker` | easter-egg registry: `collect`, `has`, `list`, `progress`, `isComplete`, `closedAt`, `icon`, `subscribe`, `reset` + the "evidence collected" toast |
+| `guma-season.js` | `GumaSeason` | seasonal events: `active(date?)`, `is(id)`, `register(id, start)`; sets `html[data-season]` and loads the active season's script |
 
 ### More than one photo (`GumaPhotoCrop.create`)
 
@@ -785,8 +794,9 @@ Adding a new egg:
    `note` (shown once found), `fx` (hover replay in the locker, styled via
    `.guma-locker-icon[data-fx="..."]`), `sound()` (the egg's sound, played
    with that hover and cut when the pointer leaves - return the
-   `GumaAudio.play()` handle, timed to the hover keyframes) and `icon()`
-   returning a fresh element.
+   `GumaAudio.play()` handle, timed to the hover keyframes), `icon()`
+   returning a fresh element and, optionally, `hint` - the note on the still
+   classified exhibit (a seasonal egg says when to look for it).
    The order sets the exhibit letter (A, B, ...). Keep the title to one line
    and the note to two at the 4-column width (about 65 characters): the
    tallest card sets the row height for every page. Nothing else to do - the
@@ -808,15 +818,43 @@ The dialog never scrolls; it pages instead (`layout()` in
 with every exhibit on the shelf, then a page holds as many rows as fit the
 panel's `max-h-[94vh]` (2 at most, 1 at least) times the grid's current
 columns (2/3/4). When even one row does not fit (short phones) the panel goes
-`is-compact` (smaller icons). The last page is padded with "Soon" slots
-(`GumaLocker.slots(pageSize)`), so the "+N coming soon" count follows the
-screen. Pages turn with the arrows next to it, the arrow keys or a swipe, and
-the dialog always opens on page 1.
+`is-compact` (smaller icons). A short last page keeps the grid at a full
+page's height, so the dialog does not jump. Pages turn with the arrows next
+to the count, the arrow keys or a swipe, and the dialog always opens on
+page 1.
 
-Progress counts real eggs only (Soon slots never block CASE CLOSED); the total
-grows with the registry. `lockerClosedAt` is set the first time every
+The total grows with the registry. `lockerClosedAt` is set the first time every
 exhibit is in and is never cleared, so a future reward can rely on it.
 `GumaLocker.reset()` empties the locker from the console for testing.
+
+## Seasonal events
+
+Holiday decorations switch on by date. `SEASONS` in `js/guma-season.js` holds
+one entry per season: `id`, `from` / `to` (`"MM-DD"`, both days included, may
+wrap over New Year), `enabled` (`false` keeps it off whatever the date) and
+`script`. While a season is on, `guma-season.js` sets `html[data-season="<id>"]`
+and, once the DOM is ready, appends that script to the page; off-season
+nothing of it loads.
+
+- A season script calls `GumaSeason.register("<id>", start)`. `start()` runs
+  once, only while that season is active, so a page may load the script
+  off-season just for what it exposes (`about.html` and the Christmas jingle).
+- Decorations stay in the shared chrome (header, logos, eggs). The document
+  generators are left alone - their output is for serious RP.
+- Anything the season mounts goes in hidden first, like the eggs: the Tailwind
+  CDN compiles a class only after it shows up in the DOM.
+- Honour `prefers-reduced-motion` (no falling snow, no tumbling) and check
+  both themes.
+- Preview: `?season=<id>` forces a season on, `?season=off` switches them all
+  off, `?season=auto` returns to the calendar. The choice sticks for the tab
+  (sessionStorage).
+
+Christmas (`js/season-christmas.js`, 5-27 December): snow in the header bar
+(a canvas behind the nav, one still frame under reduced motion), a Santa hat
+on the GUMA shield (header and `<guma-logo>`) and a present that now and then
+drops into the header. Catching it collects the `christmas-gift` exhibit, a
+seasonal egg: its `hint` in the registry tells a locker visitor when to look.
+`GumaChristmas.dropGift()` drops one at once, for testing.
 
 ## PWA / service worker
 

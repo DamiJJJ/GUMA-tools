@@ -1421,6 +1421,46 @@
         will-change: transform, opacity;
       }
 
+      /* ─── Season: Christmas ─── */
+      /* js/season-christmas.js, only while the season is on. The snow is a
+         canvas behind the header bar (-z-10 inside the sticky header's
+         stacking context: over its background, under the nav); JS sets its
+         height to the bar's and picks the flake colour per theme. The
+         present is a button laid over the bar; JS moves it with transforms.
+         Its lid and box share their unwrap animation with the locker
+         exhibit (data-fx="unwrap"). */
+      .guma-snow {
+        @apply pointer-events-none absolute left-0 top-0 -z-10 w-full;
+      }
+      .guma-gift {
+        @apply absolute left-0 top-0 z-10 h-[26px] w-[26px] cursor-pointer rounded-md border-0 bg-transparent p-0
+               text-guma-l-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guma-l-gold
+               dark:text-guma-text dark:focus-visible:ring-guma-gold;
+        will-change: transform, opacity;
+      }
+      .guma-gift > svg {
+        @apply block h-full w-full drop-shadow-md;
+      }
+      .guma-gift-lid,
+      .guma-gift-box {
+        transform-box: fill-box;
+        transform-origin: 50% 100%;
+      }
+      .guma-gift.is-opened .guma-gift-lid,
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="unwrap"] .guma-gift-lid {
+        @apply animate-guma-gift-lid;
+      }
+      .guma-gift.is-opened .guma-gift-box,
+      .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="unwrap"] .guma-gift-box {
+        @apply animate-guma-gift-box;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .guma-gift-lid,
+        .guma-gift-box {
+          animation: none !important;
+        }
+      }
+
       /* ─── Stamp press ─── */
       /* A click-through layer over the viewport (js/stamp-press.js): a hand
          reaches in and slams a rubber stamp onto the document preview. Under
@@ -1647,15 +1687,11 @@
       .guma-locker-count {
         @apply text-xs font-bold uppercase tracking-[0.16em] text-guma-l-gold dark:text-guma-gold sm:text-sm;
       }
-      .guma-locker-soon-count,
       .guma-locker-page-label {
         @apply whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] text-guma-l-muted dark:text-guma-muted;
       }
-      /* Pager: arrows either side of "Page 1 / 2", next to the Soon count.
-         Hidden while everything fits one page. */
-      .guma-locker-summary-side {
-        @apply flex flex-wrap items-center gap-x-4 gap-y-1;
-      }
+      /* Pager: arrows either side of "Page 1 / 2". Hidden while everything
+         fits one page. */
       .guma-locker-pager {
         @apply flex items-center gap-2;
       }
@@ -1674,8 +1710,10 @@
         @apply block h-full rounded-full bg-guma-l-gold dark:bg-guma-gold;
         transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
       }
+      /* content-start: a short last page keeps a full page's height
+         (js/evidence-locker.js), without stretching its row to fill it. */
       .guma-locker-grid {
-        @apply grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4;
+        @apply grid content-start grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4;
       }
       /* A turned page slides in from the side it came from. */
       .guma-locker-grid.is-from-right {
@@ -1700,11 +1738,6 @@
       .guma-locker-slot.is-classified {
         @apply border-dashed border-guma-l-border-2 dark:border-guma-muted/30;
       }
-      /* An egg that does not exist yet: an empty, padlocked tag. */
-      .guma-locker-slot.is-soon {
-        @apply border-dashed border-guma-l-border bg-transparent opacity-75
-               dark:border-guma-muted/20 dark:bg-transparent;
-      }
       .guma-locker-exhibit {
         @apply text-[10px] font-bold uppercase tracking-[0.22em] text-guma-l-muted dark:text-guma-muted;
       }
@@ -1727,7 +1760,8 @@
       .guma-kod3-icon,
       .guma-ia-icon,
       .guma-reward-icon,
-      .guma-bcam-egg-icon {
+      .guma-bcam-egg-icon,
+      .guma-gift-icon {
         @apply text-guma-l-text dark:text-guma-text;
       }
       /* The stamp across the wanted poster icon, tilted like the hand's
@@ -1740,9 +1774,6 @@
       .guma-locker-slot.is-classified .guma-locker-icon {
         filter: blur(6px) grayscale(1);
         opacity: 0.5;
-      }
-      .guma-locker-slot.is-soon .guma-locker-icon {
-        @apply p-[26%] text-guma-l-muted/60 dark:text-guma-muted/50;
       }
       /* Hovering a collected exhibit replays a pocket version of its egg. */
       .guma-locker-slot:not(.is-classified):hover .guma-locker-icon[data-fx="band"] {
@@ -1807,8 +1838,7 @@
       .guma-locker-name {
         @apply text-sm font-black uppercase tracking-[0.12em] text-guma-l-text dark:text-guma-text sm:text-base;
       }
-      .guma-locker-slot.is-classified .guma-locker-name,
-      .guma-locker-slot.is-soon .guma-locker-name {
+      .guma-locker-slot.is-classified .guma-locker-name {
         @apply text-guma-l-muted dark:text-guma-muted;
       }
       .guma-locker-note {

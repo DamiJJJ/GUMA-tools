@@ -7,9 +7,9 @@
 // The locker itself - the cabinet on about.html - is drawn by
 // js/evidence-locker.js from list() / progress().
 // New egg: add an entry to EVIDENCE, then call collect() from the
-// egg's own code. The locker pages through the exhibits and pads its
-// last page with "Soon" slots; the total grows with the registry, and
-// a locker that was closed once keeps its lockerClosedAt for good.
+// egg's own code. The locker pages through the exhibits on its own;
+// the total grows with the registry, and a locker that was closed
+// once keeps its lockerClosedAt for good.
 
 "use strict";
 
@@ -173,6 +173,32 @@ window.GumaLocker = (function () {
       </svg>`);
   }
 
+  // A wrapped present, from the Christmas season (js/season-christmas.js),
+  // which drops the same art into the header through icon(). Box and
+  // ribbon are the same in both themes; the outline follows the theme
+  // via currentColor. The lid and the box carry the hooks for the catch
+  // and the locker hover (.guma-gift-lid / .guma-gift-box).
+  function giftIcon() {
+    const outline = `fill="none" stroke="currentColor" stroke-width="3"`;
+    return _el(`
+      <svg viewBox="0 0 100 100" class="guma-gift-icon" overflow="visible" aria-hidden="true" focusable="false">
+        <g class="guma-gift-box">
+          <rect x="18" y="46" width="64" height="46" rx="3" fill="#c8102e"/>
+          <rect x="18" y="46" width="64" height="7" fill="#000000" opacity="0.2"/>
+          <rect x="45" y="46" width="10" height="46" fill="#f0c040"/>
+          <rect x="18" y="46" width="64" height="46" rx="3" ${outline}/>
+        </g>
+        <g class="guma-gift-lid">
+          <path d="M50 33C41 15 22 18 29 31c4 5 14 5 21 2z" fill="#f0c040" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M50 33c9-18 28-15 21-2-4 5-14 5-21 2z" fill="#f0c040" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+          <rect x="12" y="32" width="76" height="16" rx="3" fill="#e0283d"/>
+          <rect x="45" y="32" width="10" height="16" fill="#f0c040"/>
+          <rect x="12" y="32" width="76" height="16" rx="3" ${outline}/>
+          <circle cx="50" cy="32" r="5" fill="#f0c040" stroke="currentColor" stroke-width="2.5"/>
+        </g>
+      </svg>`);
+  }
+
   // ── Exhibit sounds ────────────────────────────────────────────
   // Hovering a collected exhibit replays its egg's sound with the
   // pocket animation (js/evidence-locker.js), so the cues below follow
@@ -194,7 +220,8 @@ window.GumaLocker = (function () {
   // (returns a GumaAudio.play() handle, or null; no `sound`, a silent
   // hover - the donut, until it gets a recorded bite). Police terms (title,
   // "Exhibit", stamps) stay English; the notes are Polish, like the
-  // About copy.
+  // About copy. `hint` (optional) replaces the generic note on a
+  // classified exhibit - a seasonal egg says when to look for it.
   const EVIDENCE = [
     {
       id: "logo-band",
@@ -259,6 +286,15 @@ window.GumaLocker = (function () {
       sound: () => window.GumaStampPress?.thud(IA_CONTACT_S),
       icon: iaStampIcon,
     },
+    {
+      id: "christmas-gift",
+      title: "Paczka z sań",
+      note: "Spadła prosto na nagłówek. Zabezpieczona jako dowód.",
+      hint: "Dowód sezonowy. Pojawia się tylko w grudniu.",
+      fx: "unwrap",
+      sound: () => window.GumaChristmas?.sound(),
+      icon: giftIcon,
+    },
   ];
 
   const _profile = window.GumaProfile;
@@ -305,7 +341,7 @@ window.GumaLocker = (function () {
 
   /**
    * Every exhibit in order, with its collection time (ms) or null.
-   * @returns {{id, exhibit, title, note, fx, collectedAt, sound: () => ({stop: Function} | null), icon: () => Element}[]}
+   * @returns {{id, exhibit, title, note, hint, fx, collectedAt, sound: () => ({stop: Function} | null), icon: () => Element}[]}
    */
   function list() {
     const found = _evidence();
@@ -314,26 +350,12 @@ window.GumaLocker = (function () {
       exhibit: _exhibit(e),
       title: e.title,
       note: e.note,
+      hint: e.hint || null,
       fx: e.fx,
       sound: e.sound,
       collectedAt: found[e.id] || null,
       icon: e.icon,
     }));
-  }
-
-  /**
-   * Every slot on the locker shelf: list() followed by "Soon"
-   * placeholders ({ soon: true, exhibit }) for eggs that do not exist
-   * yet, padding the last page so every page is a full grid.
-   * @param {number} pageSize slots per page; 0 = no padding
-   */
-  function slots(pageSize) {
-    const items = list();
-    const pad = pageSize ? (pageSize - (items.length % pageSize)) % pageSize : 0;
-    for (let i = 0; i < pad; i++) {
-      items.push({ soon: true, exhibit: EXHIBIT_LETTERS[EVIDENCE.length + i] || "?" });
-    }
-    return items;
   }
 
   /**
@@ -361,6 +383,17 @@ window.GumaLocker = (function () {
     });
     _showToast(item, closedNow);
     return true;
+  }
+
+  /**
+   * A fresh copy of an exhibit's icon, for an egg that shows the same
+   * art on the page (the Christmas present).
+   * @param {string} id evidence id from EVIDENCE
+   * @returns {Element | null}
+   */
+  function icon(id) {
+    const item = _find(id);
+    return item ? item.icon() : null;
   }
 
   /**
@@ -449,5 +482,5 @@ window.GumaLocker = (function () {
     _mountToast();
   }
 
-  return { collect, has, list, slots, progress, isComplete, closedAt, subscribe, reset };
+  return { collect, has, list, progress, isComplete, closedAt, icon, subscribe, reset };
 })();

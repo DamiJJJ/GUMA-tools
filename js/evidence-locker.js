@@ -3,10 +3,10 @@
 // Evidence Locker (about.html): a two-door locker whose right door swings open
 // on hover, showing the GUMA shield inside. Clicking it opens the
 // locker: every easter egg as an exhibit - collected ones with their icon and
-// date, missing ones blurred out under a CLASSIFIED stamp, and empty "Soon"
-// slots for eggs that are still to come. The exhibits are paged, so the
-// dialog never scrolls: a page holds as many rows as fit the viewport times
-// the grid's columns, turned with the arrows, the arrow keys or a swipe.
+// date, missing ones blurred out under a CLASSIFIED stamp. The exhibits are
+// paged, so the dialog never scrolls: a page holds as many rows as fit the
+// viewport times the grid's columns, turned with the arrows, the arrow keys
+// or a swipe.
 // Hovering (or tapping) a collected exhibit replays its egg in miniature,
 // sound included. The data and the collect() API live in js/guma-locker.js;
 // this file only draws the trigger and the dialog.
@@ -82,12 +82,6 @@
       <path d="${d}"/>
     </svg>`;
 
-  const LOCK_SVG = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-      <rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/><path d="M12 15v2"/>
-    </svg>`;
-
   function buildDialog() {
     const el = document.createElement("div");
     el.className = "guma-locker-root hidden";
@@ -111,13 +105,10 @@
         <div class="guma-locker-summary">
           <div class="guma-locker-summary-row">
             <p class="guma-locker-count" data-locker-count></p>
-            <div class="guma-locker-summary-side">
-              <p class="guma-locker-soon-count" data-locker-soon></p>
-              <div class="guma-locker-pager hidden" data-locker-pager>
-                <button type="button" class="guma-locker-page-btn" data-locker-prev aria-label="Previous page">${CHEVRON("M15 18l-6-6 6-6")}</button>
-                <p class="guma-locker-page-label" data-locker-page aria-live="polite"></p>
-                <button type="button" class="guma-locker-page-btn" data-locker-next aria-label="Next page">${CHEVRON("M9 18l6-6-6-6")}</button>
-              </div>
+            <div class="guma-locker-pager hidden" data-locker-pager>
+              <button type="button" class="guma-locker-page-btn" data-locker-prev aria-label="Previous page">${CHEVRON("M15 18l-6-6 6-6")}</button>
+              <p class="guma-locker-page-label" data-locker-page aria-live="polite"></p>
+              <button type="button" class="guma-locker-page-btn" data-locker-next aria-label="Next page">${CHEVRON("M9 18l6-6-6-6")}</button>
             </div>
           </div>
           <div class="guma-locker-progress"><span class="guma-locker-progress-bar" data-locker-bar></span></div>
@@ -136,20 +127,7 @@
     return new Date(ms).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
   }
 
-  // An empty tag for an egg that does not exist yet.
-  function buildSoonSlot(item) {
-    const li = document.createElement("li");
-    li.className = "guma-locker-slot is-soon";
-    li.innerHTML = `
-      <p class="guma-locker-exhibit">Exhibit ${item.exhibit}</p>
-      <div class="guma-locker-art"><div class="guma-locker-icon">${LOCK_SVG}</div></div>
-      <p class="guma-locker-name">Soon</p>
-      <p class="guma-locker-note">Nowy dowód jest już w drodze.</p>`;
-    return li;
-  }
-
   function buildSlot(item) {
-    if (item.soon) return buildSoonSlot(item);
     const found = !!item.collectedAt;
     const li = document.createElement("li");
     li.className = `guma-locker-slot${found ? "" : " is-classified"}`;
@@ -165,7 +143,7 @@
     li.querySelector(".guma-locker-icon").appendChild(item.icon());
     if (found && item.sound) wireSound(li, item);
     li.querySelector(".guma-locker-name").textContent = found ? item.title : "Unidentified";
-    li.querySelector(".guma-locker-note").textContent = found ? item.note : "Jeszcze nie znaleziony. Szukaj dalej.";
+    li.querySelector(".guma-locker-note").textContent = found ? item.note : item.hint || "Jeszcze nie znaleziony. Szukaj dalej.";
     if (found) li.querySelector(".guma-locker-date").textContent = `Collected ${formatDate(item.collectedAt)}`;
     return li;
   }
@@ -200,17 +178,11 @@
     const locker = window.GumaLocker;
     const { found, total } = locker.progress();
     const closed = found === total;
-    // The last page is padded with "Soon" slots, so their count follows the
-    // page size - and with it the screen.
-    const items = locker.slots(pageSize);
-    const soon = items.filter((item) => item.soon).length;
+    const items = locker.list();
     pageCount = Math.max(1, Math.ceil(items.length / pageSize));
     page = Math.min(Math.max(page, 0), pageCount - 1);
 
     root.querySelector("[data-locker-count]").textContent = `${found}/${total} evidence collected`;
-    const soonEl = root.querySelector("[data-locker-soon]");
-    soonEl.textContent = `+${soon} coming soon`;
-    soonEl.classList.toggle("hidden", !soon);
     root.querySelector("[data-locker-bar]").style.width = `${total ? (found / total) * 100 : 0}%`;
 
     fillGrid(items.slice(page * pageSize, (page + 1) * pageSize));
@@ -249,8 +221,10 @@
     const panel = root.querySelector(".guma-locker-panel");
     const grid = root.querySelector("[data-locker-grid]");
     const first = page * pageSize;
+    const exhibits = window.GumaLocker.list();
 
-    fillGrid(window.GumaLocker.list());
+    fillGrid(exhibits);
+    grid.style.minHeight = "";
     root.querySelector("[data-locker-pager]").classList.remove("hidden");
     panel.classList.remove("is-compact");
     let m = measure(panel, grid);
@@ -263,6 +237,10 @@
     while (rows > 1 && m.chrome + rows * m.rowH + (rows - 1) * m.gap > m.room) rows--;
     pageSize = m.cols * rows;
     page = Math.floor(first / pageSize);
+    // A short last page keeps the height of a full one, so the dialog does
+    // not jump when the pages turn.
+    const paged = exhibits.length > pageSize;
+    grid.style.minHeight = paged ? `${rows * m.rowH + (rows - 1) * m.gap}px` : "";
     render();
   }
 
